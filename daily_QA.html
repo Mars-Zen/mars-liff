@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 星獸靈氣挑戰</title>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        :root { --primary: #6c5ce7; --secondary: #a29bfe; --success: #00b894; --fail: #d63031; --bg: #f9f9fb; }
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background-color: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; }
+        .header { font-size: 1.2rem; color: var(--primary); font-weight: bold; margin-bottom: 20px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+        .question { font-size: 1.1rem; color: #2d3436; line-height: 1.6; margin-bottom: 25px; text-align: left; min-height: 60px; }
+        .options { display: flex; flex-direction: column; gap: 12px; }
+        .opt-btn { background: var(--bg); border: 2px solid transparent; padding: 15px; border-radius: 12px; font-size: 1rem; cursor: pointer; transition: 0.2s; text-align: left; color: #636e72; }
+        .opt-btn:hover { background: #f0f0f5; }
+        .opt-btn.selected { border-color: var(--primary); background: #f0edff; color: var(--primary); font-weight: bold; }
+        
+        .action-area { margin-top: 30px; }
+        .main-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        #submit-btn { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); }
+        #submit-btn:disabled { background: #dfe6e9; color: #b2bec3; cursor: not-allowed; box-shadow: none; }
+        #confirm-btn { background: var(--success); color: white; display: none; }
+
+        .result-box { margin-top: 20px; padding: 15px; border-radius: 12px; display: none; font-weight: bold; text-align: left; line-height: 1.5; }
+        .result-correct { background: #e6fcf5; color: var(--success); border: 1px solid var(--success); }
+        .result-wrong { background: #fff5f5; color: var(--fail); border: 1px solid var(--fail); }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">🔮 每日靈氣試煉</div>
+    <div id="question" class="question">正在感應靈氣題目...</div>
+    
+    <div class="options">
+        <div class="opt-btn" onclick="select(this, '(A)')" id="opt-A"></div>
+        <div class="opt-btn" onclick="select(this, '(B)')" id="opt-B"></div>
+        <div class="opt-btn" onclick="select(this, '(C)')" id="opt-C"></div>
+    </div>
+
+    <div id="result-area" class="result-box"></div>
+
+    <div class="action-area">
+        <button id="submit-btn" class="main-btn" onclick="handleSubmit()" disabled>送出答案</button>
+        <button id="confirm-btn" class="main-btn" onclick="handleClose()">確認</button>
+    </div>
+</div>
+
+<script>
+    let chosen = '';
+    let currentAnswer = ''; // 儲存從 Webhook 抓到的正確答案
+    let params = new URLSearchParams(window.location.search);
+    const userId = params.get('uid'); 
+    const qid = params.get('qid'); 
+    const date = params.get('date');
+
+    async function init() {
+        try {
+            await liff.init({ liffId: "2009047186-tHvmtEtD" }); 
+            if (!liff.isLoggedIn()) { liff.login(); }
+            
+            if (qid) {
+                // 🚀 核心修正：抓取題目內容
+                const response = await fetch(`https://webbermars.app.n8n.cloud/webhook/get-question?qid=${qid}&uid=${userId}&date=${date}`);
+                const data = await response.json();
+
+                // 🌟 修正點：因為 n8n 回傳的是陣列 [ { ... } ]，必須取第一個元素
+                const quiz = Array.isArray(data) ? data[0] : data;
+
+                if (quiz.status === 'expired') {
+                    document.getElementById('question').innerText = "⏰ 此連結已過期，請重新點選下方選單獲取今日新題目";
+                    document.getElementById('submit-btn').style.display = 'none';
+                    document.querySelectorAll('.opt-btn').forEach(b => b.style.display = 'none');
+                    return;
+                }
+
+                if (quiz.status === 'already_submitted') {
+                    document.getElementById('question').innerText = "✅ 您已完成此題，請勿重複作答";
+                    document.getElementById('submit-btn').style.display = 'none';
+                    document.querySelectorAll('.opt-btn').forEach(b => b.style.display = 'none');
+                    return;
+                }
+
+                if (quiz && quiz.question) {
+                    document.getElementById('question').innerText = quiz.question;
+                    document.getElementById('opt-A').innerText = quiz.option_a || "---";
+                    document.getElementById('opt-B').innerText = quiz.option_b || "---";
+                    document.getElementById('opt-C').innerText = quiz.option_c || "---";
+                    currentAnswer = quiz.answer; // 取得正確答案
+                } else {
+                    document.getElementById('question').innerText = "❌ 找不到題目內容";
+                }
+            } else {
+                document.getElementById('question').innerText = "❌ 缺少題目 ID";
+            }
+        } catch (e) { 
+            console.error(e); 
+            document.getElementById('question').innerText = "題目載入失敗，請檢查網路連線";
+        }
+    }
+
+    function select(el, val) {
+        if (document.getElementById('submit-btn').style.display === 'none') return;
+        chosen = val;
+        document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+        el.classList.add('selected');
+        document.getElementById('submit-btn').disabled = false;
+    }
+
+    async function handleSubmit() {
+        const isCorrect = (chosen === currentAnswer);
+        const resultArea = document.getElementById('result-area');
+        
+        resultArea.style.display = 'block';
+        if (isCorrect) {
+            resultArea.innerText = "正確! 靈氣點數上升"; 
+            resultArea.className = "result-box result-correct";
+        } else {
+            resultArea.innerText = `錯誤，正確答案是 ${currentAnswer}`; 
+            resultArea.className = "result-box result-wrong";
+        }
+
+        document.getElementById('submit-btn').style.display = 'none';
+        document.getElementById('confirm-btn').style.display = 'block';
+
+        const webhookUrl = "https://webbermars.app.n8n.cloud/webhook/quiz-submit"; 
+
+        try {
+            const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+
+            await fetch(webhookUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: userId,
+                    isCorrect: isCorrect,
+                    currentQid: qid, 
+                    date: today
+                })
+            });
+            console.log("答案已同步至資料庫");
+        } catch (err) {
+            console.error("同步失敗", err);
+        }
+    }
+
+    function handleClose() {
+        liff.closeWindow();
+    }
+
+    init();
+</script>
+
+</body>
+</html>

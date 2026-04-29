@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>元素能量補給站</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        body { font-family: -apple-system, "Noto Sans TC", sans-serif; background: #f0f4f7; padding: 15px; color: #333; margin: 0; }
+        .quiz-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); max-width: 450px; margin: 20px auto; min-height: 400px; display: flex; flex-direction: column; }
+        .element-tag { display: inline-block; padding: 5px 15px; border-radius: 25px; font-size: 14px; font-weight: bold; margin-bottom: 15px; color: white; align-self: flex-start; }
+        
+        /* 🎨 顏色修正區 */
+        .fire { background: #e53935; } 
+        .earth { background: #795548; } 
+        .air { background: #4caf50; }    /* 風元素：綠色 */
+        .water { background: #03a9f4; }  /* 水元素：淺藍色 */
+
+        .question-text { font-size: 18px; font-weight: bold; line-height: 1.6; margin-bottom: 20px; }
+        .option { display: block; width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #eee; border-radius: 12px; text-align: left; cursor: pointer; transition: 0.3s; font-size: 16px; background: #fafafa; }
+        .option.selected { border-color: #0288d1; background: #e1f5fe; color: #0288d1; font-weight: bold; }
+        .feedback { margin-top: 15px; font-weight: bold; padding: 12px; border-radius: 10px; display: none; }
+        .correct { color: #2e7d32; background: #e8f5e9; border: 1px solid #c8e6c9; }
+        .incorrect { color: #c62828; background: #ffebee; border: 1px solid #ffcdd2; }
+        .analysis { margin-top: 15px; font-size: 14px; color: #666; display: none; line-height: 1.6; background: #f9f9f9; padding: 15px; border-radius: 10px; border-left: 4px solid #ddd; }
+        .btn { display: block; width: 100%; padding: 16px; border: none; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: auto; }
+        .confirm-btn { background: #0288d1; color: white; box-shadow: 0 4px 12px rgba(2,136,209,0.3); }
+        .next-btn { background: #4caf50; color: white; box-shadow: 0 4px 12px rgba(76,175,80,0.3); }
+        #loading { text-align: center; padding-top: 100px; font-size: 18px; color: #0288d1; }
+    </style>
+</head>
+<body>
+    <div id="loading">🔮 正在連結元素神殿...</div>
+    <div id="app" style="display:none;">
+        <div class="quiz-card">
+            <div id="el-tag" class="element-tag"></div>
+            <div id="q-text" class="question-text"></div>
+            <div id="options-box"></div>
+            
+            <div id="feedback-box" class="feedback"></div>
+            <div id="analysis-box" class="analysis"></div>
+
+            <button id="main-btn" class="btn confirm-btn" onclick="handleConfirm()">確認答案</button>
+        </div>
+    </div>
+
+    <script>
+        let uid = "";
+        let quizData = [];
+        let currentIndex = 0;
+        let selectedAns = "";
+        let correctElements = [];
+
+        // ✅ 已修改為生產路徑 (Production URL)
+        const API_BASE = "https://webbermars.app.n8n.cloud/webhook"; 
+
+        async function initLIFF() {
+            try {
+                // ✅ LIFF ID
+                await liff.init({ liffId: "2009047186-0mT7eAOQ" }); 
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                uid = urlParams.get('uid');
+
+                if (!uid) {
+                    if (!liff.isLoggedIn()) {
+                        liff.login();
+                    } else {
+                        const profile = await liff.getProfile();
+                        uid = profile.userId;
+                        fetchQuestions();
+                    }
+                } else {
+                    fetchQuestions();
+                }
+            } catch (err) { console.error("LIFF 啟動失敗", err); }
+        }
+
+        async function fetchQuestions() {
+            try {
+                // ★ 改動1：加上 ?uid=${uid}，讓 n8n 能查詢該使用者的驗證狀態
+                const res = await fetch(`${API_BASE}/get-questions?uid=${uid}`);
+                const data = await res.json();
+
+                // ★ 改動2：檢查是否被 n8n 擋住（已做過或時效已過）
+                if (data.error === 'blocked') {
+                    document.getElementById('loading').innerText = "此次測驗已完成或過期，無法再次開啟。";
+                    return;
+                }
+
+                quizData = data;
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
+                renderQuestion();
+            } catch (err) {
+                document.getElementById('loading').innerText = "❌ 連結失敗，請確認 n8n 的 Production Webhook 運作中";
+            }
+        }
+
+        function renderQuestion() {
+            const q = quizData[currentIndex];
+            const tag = document.getElementById('el-tag');
+            tag.innerText = q.element + "元素";
+            tag.className = 'element-tag ' + getElClass(q.element);
+            document.getElementById('q-text').innerText = q.question;
+            
+            const obox = document.getElementById('options-box');
+            obox.innerHTML = `
+                <div class="option" onclick="select(this, '(A)')">${q.option_a}</div>
+                <div class="option" onclick="select(this, '(B)')">${q.option_b}</div>
+                <div class="option" onclick="select(this, '(C)')">${q.option_c}</div>
+            `;
+            resetUI();
+        }
+
+        function select(el, val) {
+            if (document.getElementById('feedback-box').style.display === 'block') return; 
+            document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedAns = val;
+        }
+
+        function handleConfirm() {
+            if (!selectedAns) return alert("請先選擇一個選項！");
+            
+            const q = quizData[currentIndex];
+            const fb = document.getElementById('feedback-box');
+            const ab = document.getElementById('analysis-box');
+            const btn = document.getElementById('main-btn');
+
+            fb.style.display = 'block';
+            ab.style.display = 'block';
+            ab.innerText = `導師解析：${q.analysis}`;
+
+            if (selectedAns === q.answer) {
+                fb.innerText = "✅ 正確！妳獲得了元素共鳴";
+                fb.className = "feedback correct";
+                correctElements.push(q.element);
+            } else {
+                fb.innerText = `❌ 能量偏離。正確答案是 ${q.answer}`;
+                fb.className = "feedback incorrect";
+            }
+
+            if (currentIndex < 3) {
+                btn.innerText = "下一題";
+                btn.className = "btn next-btn";
+                btn.onclick = nextQuestion;
+            } else {
+                btn.innerText = "完成補給，查看報告";
+                btn.className = "btn next-btn";
+                btn.onclick = finishQuiz;
+            }
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            selectedAns = "";
+            renderQuestion();
+        }
+
+        async function finishQuiz() {
+            const btn = document.getElementById('main-btn');
+            btn.innerText = "正在同步能量...";
+            btn.disabled = true;
+
+            try {
+                // 自動組合為 /submit-quiz
+                await fetch(`${API_BASE}/submit-quiz`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid: uid, correctElements: correctElements })
+                });
+                alert("能量補給完成！請查看 LINE 導師報告。");
+                liff.closeWindow();
+            } catch (err) {
+                alert("同步失敗，但您的能量已記錄。");
+                liff.closeWindow();
+            }
+        }
+
+        function resetUI() {
+            document.getElementById('feedback-box').style.display = 'none';
+            document.getElementById('analysis-box').style.display = 'none';
+            const btn = document.getElementById('main-btn');
+            btn.innerText = "確認答案";
+            btn.className = "btn confirm-btn";
+            btn.onclick = handleConfirm;
+        }
+
+        function getElClass(el) {
+            if(el === '火') return 'fire';
+            if(el === '土') return 'earth';
+            if(el === '風') return 'air';
+            return 'water';
+        }
+
+        initLIFF();
+    </script>
+</body>
+</html>

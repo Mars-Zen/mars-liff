@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>元素動態波</title>
+    <style>
+        body { margin: 0; background-color: #F8F8F8; overflow: hidden; font-family: sans-serif; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        
+        /* 選單面板樣式 */
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 12px 18px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .control-title {
+            font-weight: bold; 
+            margin-bottom: 12px; 
+            font-size: 15px;
+            color: #333;
+            letter-spacing: 1px;
+        }
+        .control-item {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: #444;
+            user-select: none;
+            transition: opacity 0.2s;
+        }
+        .control-item:hover { opacity: 0.7; }
+        .control-item:last-child { margin-bottom: 0; }
+        .control-item input { 
+            margin-right: 12px; 
+            cursor: pointer; 
+            width: 16px;
+            height: 16px;
+        }
+        .label-text {
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="controls">
+        <div class="control-title">動態波顯示設定</div>
+        <label class="control-item">
+            <input type="checkbox" id="showFire" checked> 
+            <span class="label-text">🔥 火(Fire)</span>
+        </label>
+        <label class="control-item">
+            <input type="checkbox" id="showEarth" checked> 
+            <span class="label-text">⛰️ 土(Earth)</span>
+        </label>
+        <label class="control-item">
+            <input type="checkbox" id="showAir" checked> 
+            <span class="label-text">💨 風(Air)</span>
+        </label>
+        <label class="control-item">
+            <input type="checkbox" id="showWater" checked> 
+            <span class="label-text">💧 水(Water)</span>
+        </label>
+        <label class="control-item" style="margin-top: 10px; border-top: 1px solid #ddd; padding-top: 10px;">
+            <input type="checkbox" id="showGrid" checked> 
+            <span class="label-text">📏 能量水平(Level)</span>
+        </label>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const params = new URLSearchParams(window.location.search);
+
+        // 取得控制項元件
+        const toggles = {
+            fire: document.getElementById('showFire'),
+            earth: document.getElementById('showEarth'),
+            air: document.getElementById('showAir'),
+            water: document.getElementById('showWater'),
+            grid: document.getElementById('showGrid')
+        };
+
+        const scores = {
+            fire: parseFloat(params.get('fire')) || 0,
+            earth: parseFloat(params.get('earth')) || 0,
+            air: parseFloat(params.get('air')) || 0,
+            water: parseFloat(params.get('water')) || 0
+        };
+
+        let offset = 0;
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.onresize = resize;
+        resize();
+
+        // 繪製能量水平刻度
+        function drawGrid() {
+            ctx.save();
+            ctx.setLineDash([5, 5]); 
+            ctx.lineWidth = 1;
+            ctx.textAlign = 'right';
+            ctx.font = '10px Arial';
+            
+            // 虛線顏色保持一致深度
+            ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+
+            for (let i = 0; i <= 10; i++) {
+                let yOffset = i * 15;
+                [1, -1].forEach(dir => {
+                    let y = (canvas.height / 2) + (yOffset * dir);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                    
+                    // 標記數值 - 加深為 0.6
+                    if (dir === -1 || i === 0) {
+                        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                        ctx.fillText(i, 18, y + 3);
+                    }
+                });
+            }
+            ctx.restore();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 能量水平背景
+            if (toggles.grid.checked) {
+                drawGrid();
+            }
+
+            // 火元素
+            if (toggles.fire.checked) {
+                drawWave('#ff5f6d', scores.fire * 15, 0.01, offset * 3.0, 'spike');
+            }
+
+            // 土元素
+            if (toggles.earth.checked) {
+                drawWave('#8b4513', scores.earth * 15, 0.01, offset * 0.4, 'hill');
+            }
+            
+            // 風元素
+            if (toggles.air.checked) {
+                drawWave('#2ecc71', scores.air * 15, 0.03, offset * 1.8, 'wind');
+            }
+
+            // 水元素
+            if (toggles.water.checked) {
+                drawWave('#3498db', scores.water * 15, 0.02, offset * 1.0, 'sine');
+            }
+            
+            offset += 0.01; 
+            requestAnimationFrame(draw);
+        }
+
+        function drawWave(color, amp, freq, shift, type) {
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5; 
+            ctx.fillStyle = color + "18"; 
+            for (let x = 0; x < canvas.width; x++) {
+                let y;
+                if (type === 'spike') {
+                    y = (Math.abs(((x * freq + shift) % 1) - 0.5) * 4 - 1) * amp;
+                } else if (type === 'hill') {
+                    y = Math.sin(x * freq + shift) * amp;
+                } else if (type === 'wind') {
+                    y = (Math.sin(x * freq + shift) * 0.7 + Math.sin(x * freq * 0.4 + shift * 1.3) * 0.3) * amp;
+                } else {
+                    y = Math.sin(x * freq + shift) * amp;
+                }
+                if (x === 0) ctx.moveTo(x, (canvas.height/2) + y);
+                else ctx.lineTo(x, (canvas.height/2) + y);
+            }
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.fill();
+            ctx.stroke();
+        }
+        draw();
+    </script>
+</body>
+</html>

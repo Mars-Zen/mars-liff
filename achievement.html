@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>能量滿溢 · 心靈契合達成</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        /* 強制全螢幕並隱藏捲軸 */
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            overflow: hidden; background-color: #000; 
+            display: flex; align-items: center; justify-content: center;
+        }
+        /* 影片填滿螢幕但不變形，保持震撼感 */
+        video { 
+            width: 100%; height: 100%; object-fit: cover; 
+        }
+        /* 底部浮動文字特效 */
+        .overlay {
+            position: absolute; bottom: 15%; width: 100%;
+            text-align: center; pointer-events: none;
+            z-index: 10;
+        }
+        .achievement-text {
+            color: #D4AF37; font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            font-size: 22px; font-weight: bold;
+            letter-spacing: 4px; text-shadow: 0 0 20px rgba(212, 175, 55, 0.9);
+            opacity: 0; animation: fadeInOut 6s ease-in-out forwards;
+        }
+        /* 文字淡入淡出動畫 */
+        @keyframes fadeInOut { 
+            0% { opacity: 0; transform: translateY(10px); } 
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+
+    <video id="magicVideo" autoplay muted playsinline>
+        <source src="https://storage.googleapis.com/mars-zen-astro-dev/videos/soul_match_achievement.mp4?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gcs-signer-sa%40gen-lang-client-0769425383.iam.gserviceaccount.com%2F20260305%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260305T031918Z&X-Goog-Expires=604800&X-Goog-SignedHeaders=host&X-Goog-Signature=6c8dc22be86e2b9e57aca1cf6923332c2155ff3b7ec5391b520c324c514fa2c9ba9ec87edfdc621b44d5678abd65ae1a1002d877dc7ef7855a0c13604e196b0ddb56998eb3b37081eaf7bf0c813ae5998ab1345c2736d338f8700ad3ef64be9b4eb6bc9fa0f4be45b413fcd1a11d383768870f6ab1004c04da71cb18983f23ef3b2e3939f93724a48a330829b500e39bf8ba8ff1f29f534827cc5aa29f576ce1e9c0ec82fdddc8e9fee4ffa66f50f44757dae8f2e32972558410923d2ee7937b8e7bb79211431700409728004a3ad26d62a44d4df654b0a6250f653a68b399b30b2d791cf6371b028c1bc618b8bc569c8e09c212b95324890a4018086752b485" type="video/mp4">
+    </video>
+
+    <div class="overlay">
+        <div class="achievement-text">✨ 達成奇蹟：心靈契合 ✨</div>
+    </div>
+
+    <script>
+        // 🔮 已填入妳的成就 LIFF ID
+        const MY_LIFF_ID = "2009047186-Vaas5f7c"; 
+
+        // 1. 初始化 LIFF
+        liff.init({ liffId: MY_LIFF_ID }).then(() => {
+            const video = document.getElementById('magicVideo');
+
+            // 2. 影片播放完畢後，自動關閉 LIFF 視窗
+            video.onended = () => {
+                setTimeout(() => {
+                    liff.closeWindow(); // 呼叫 LINE 原生指令關閉視窗
+                }, 1000); // 留 1 秒金粉散落的餘韻
+            };
+
+            // 備援方案：若自動播放被瀏覽器阻擋，點擊螢幕任何地方即可啟動
+            document.body.onclick = () => {
+                if (video.paused) video.play();
+            };
+
+        }).catch(err => {
+            console.error("傳送陣初始化失敗:", err);
+        });
+    </script>
+</body>
+</html>

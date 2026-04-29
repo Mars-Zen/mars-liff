@@ -1,0 +1,1799 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>星際群組</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    :root {
+      --bg:       #f3f2f7;
+      --card:     #ffffff;
+      --border:   #e5e3ec;
+      --text:     #1c1a2e;
+      --subtext:  #6b7280;
+      --muted:    #9ca3af;
+      --primary:  #7c3aed;
+      --pri-bg:   #ede9fe;
+      --pri-text: #5b21b6;
+      --gold:     #d97706;
+      --gold-bg:  #fef3c7;
+      --success:  #059669;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow:    0 3px 10px rgba(0,0,0,0.09);
+      --fire-c:  #dc2626; --fire-bg:  #fee2e2;
+      --earth-c: #92400e; --earth-bg: #fef3c7;
+      --wind-c:  #166534; --wind-bg:  #dcfce7;
+      --water-c: #0369a1; --water-bg: #dbeafe;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 36px;
+      font-size: 15px;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .back-btn {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 18px; flex-shrink: 0;
+      padding-right: 2px;
+      transition: background 0.12s;
+    }
+    .back-btn:active { background: var(--border); }
+    .header-mid { flex: 1; min-width: 0; display: flex; align-items: center; }
+    .header-gname {
+      font-size: 18px; font-weight: 700; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      cursor: pointer;
+      display: inline-block;
+      max-width: 100%;
+      border: 1.5px solid rgba(124,58,237,0.3);
+      border-radius: 8px;
+      padding: 3px 10px;
+      background: #fff0f3;
+      box-shadow: 0 1px 0 rgba(124,58,237,0.2);
+    }
+    /* 右側代碼區塊 */
+    .header-code-btn {
+      flex-shrink: 0; text-align: center;
+      cursor: pointer; padding: 5px 10px; border-radius: 9px;
+      transition: background 0.12s;
+    }
+    .header-code-btn:active { background: rgba(0,0,0,0.04); }
+    .header-code-hint {
+      font-size: 10px; color: var(--subtext); margin-bottom: 5px;
+    }
+    .header-code-val {
+      display: inline-block;
+      font-size: 12px; font-weight: 700;
+      color: var(--pri-text); letter-spacing: 0.12em;
+      background: var(--pri-bg);
+      border: 1px solid var(--border);
+      padding: 3px 10px; border-radius: 20px;
+    }
+
+    /* ── Container ── */
+    .container { padding: 16px; }
+
+    /* ── Section Header ── */
+    .sec-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .sec-title {
+      font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; gap: 8px;
+      line-height: 1;
+    }
+    .sec-title::before {
+      content: '';
+      display: block; width: 4px; height: 16px; border-radius: 2px;
+    }
+    .sec-members .sec-title::before { background: var(--primary); }
+    .sec-rank    .sec-title::before { background: #f59e0b; }
+    .count-badge {
+      font-size: 12px; color: var(--text); font-weight: 600;
+      background: var(--bg); border: 1px solid var(--subtext);
+      padding: 2px 10px; border-radius: 20px;
+    }
+
+    /* ── Member Card ── */
+    .member-card {
+      background: var(--card);
+      border: 1px solid #b0adc0;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex; gap: 12px; align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .member-card.is-self {
+      background: #f5f3ff;
+      border-color: var(--primary);
+      box-shadow: 0 2px 12px rgba(124,58,237,0.13);
+    }
+    .member-card.is-self .member-name { color: var(--primary); }
+    .member-toggle-btn {
+      width: 100%; background: var(--card);
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 11px; margin-bottom: 10px;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      font-size: 13px; font-weight: 600; color: var(--primary);
+      cursor: pointer; font-family: inherit;
+      transition: background 0.15s;
+    }
+    .member-toggle-btn:active { background: var(--pri-bg); }
+    .member-toggle-icon { transition: transform 0.22s ease; display: flex; }
+    .member-avatar {
+      width: 52px; height: 52px; border-radius: 12px;
+      background: var(--pri-bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; overflow: hidden; flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+    .member-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .member-info { flex: 1; min-width: 0; }
+
+    /* Name row: name + self-tag 左側，靈氣點數推到右側 */
+    .member-top {
+      display: flex; align-items: center;
+      gap: 6px; margin-bottom: 8px;
+    }
+    .member-name {
+      font-size: 16px; font-weight: 700;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      flex: 1; min-width: 0;
+    }
+    .self-tag {
+      font-size: 10px; font-weight: 700;
+      color: var(--pri-text); background: var(--pri-bg);
+      padding: 1px 6px; border-radius: 5px;
+      flex-shrink: 0;
+    }
+    .aura-inline {
+      font-size: 12px; font-weight: 600;
+      color: var(--gold); white-space: nowrap;
+      flex-shrink: 0; margin-left: 4px;
+    }
+    .aura-inline::before { content: ''; }
+
+    /* Element chips */
+    .elements { display: flex; gap: 4px; flex-wrap: nowrap; }
+    .el-chip {
+      display: flex; align-items: center; gap: 2px;
+      padding: 3px 7px; border-radius: 7px;
+      font-size: 11px;
+    }
+    .el-icon  { font-size: 11px; line-height: 1; display: inline-flex; align-items: center; height: 14px; overflow: hidden; }
+    .el-label { font-size: 11px; font-weight: 500; }
+    .el-val   { font-size: 12px; font-weight: 700; margin-left: 1px; }
+    .el-fire  { background: var(--fire-bg);  color: var(--fire-c);  }
+    .el-earth { background: var(--earth-bg); color: var(--earth-c); }
+    .el-wind  { background: var(--wind-bg);  color: var(--wind-c);  }
+    .el-water { background: var(--water-bg); color: var(--water-c); }
+    .el-earth .el-icon { transform: translateY(-1px); }
+
+    /* ── Divider ── */
+    .divider { height: 1px; background: var(--border); margin: 22px 0 20px; }
+
+    /* ── Ranking Toggle (segmented control) ── */
+    .rank-toggle {
+      display: flex;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 3px;
+      gap: 3px;
+      margin-bottom: 14px;
+    }
+    .rank-tab {
+      flex: 1; padding: 9px 0;
+      border-radius: 8px; border: none;
+      background: transparent; color: var(--subtext);
+      font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: all 0.18s;
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif; display: flex;
+      align-items: center; justify-content: center; gap: 5px;
+    }
+    .rank-tab.active {
+      background: var(--card);
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* ── Ranking Panel ── */
+    .rank-panel { display: none; }
+    .rank-panel.active { display: block; }
+
+    .rank-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Top-3 podium strip */
+    .rank-item {
+      display: flex; align-items: center;
+      padding: 13px 16px; gap: 12px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+    .rank-item:last-child { border-bottom: none; }
+    .rank-item.gold-row   { background: #fffbeb; }
+    .rank-item.silver-row { background: #f5f3ff; }
+    .rank-item.bronze-row { background: #fdf2f8; }
+
+    .medal { font-size: 22px; flex-shrink: 0; width: 28px; text-align: center; }
+    .rank-info { flex: 1; min-width: 0; }
+    .rank-name {
+      font-size: 14px; font-weight: 700;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .rank-name.is-self-rank { color: var(--primary); }
+    .rank-sub { font-size: 12px; color: var(--subtext); }
+
+    .rank-score-col { flex-shrink: 0; display: flex; align-items: center; }
+
+    /* 得分王：+48 [90%] 同行 */
+    .score-line {
+      display: flex; align-items: center;
+      gap: 10px; white-space: nowrap;
+    }
+    .score-main {
+      font-size: 18px; font-weight: 700; color: var(--gold);
+    }
+    .acc-pill {
+      font-size: 11px; font-weight: 700;
+      color: #065f46; background: #d1fae5;
+      border: 1px solid #6ee7b7;
+      padding: 2px 8px; border-radius: 20px;
+      pointer-events: none; white-space: nowrap;
+    }
+
+    /* 互動王：數字 + 單位 同行 */
+    .rank-count {
+      font-size: 20px; font-weight: 700; color: var(--gold);
+      display: flex; align-items: baseline; gap: 8px;
+    }
+    .rank-count-unit { font-size: 13px; font-weight: 600; color: var(--subtext); }
+
+    .rank-empty {
+      padding: 28px; text-align: center;
+      font-size: 13px; color: var(--muted);
+    }
+    .rank-pos-num {
+      font-size: 13px; font-weight: 700; color: var(--muted);
+      width: 28px; text-align: center; flex-shrink: 0;
+    }
+    .rank-expand-btn {
+      padding: 11px 16px;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      font-size: 13px; font-weight: 600; color: var(--primary);
+      cursor: pointer; border-top: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+    .rank-expand-btn:active { background: var(--bg); }
+
+    /* ── Help button ── */
+    .help-btn {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--bg); border: 1.5px solid var(--subtext);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--subtext);
+      cursor: pointer; transition: all 0.15s;
+      font-family: 'Noto Sans TC', sans-serif; flex-shrink: 0;
+    }
+    .help-btn:active { border-color: var(--primary); color: var(--primary); }
+
+    /* ── Help overlay ── */
+    .help-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 200; display: flex; align-items: flex-end;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.22s, visibility 0.22s;
+    }
+    .help-overlay.open { opacity: 1; visibility: visible; }
+    .help-sheet {
+      background: var(--card);
+      border-radius: 20px 20px 0 0;
+      padding: 0 20px 44px;
+      width: 100%;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+    }
+    .help-overlay.open .help-sheet { transform: translateY(0); }
+    .help-handle {
+      width: 36px; height: 4px; background: var(--border);
+      border-radius: 2px; margin: 14px auto 20px;
+    }
+    .help-title { font-size: 16px; font-weight: 700; margin-bottom: 18px; }
+    .help-item { margin-bottom: 16px; }
+    .help-item-title {
+      font-size: 14px; font-weight: 700;
+      color: var(--primary); margin-bottom: 5px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .help-item-desc {
+      font-size: 13px; color: var(--subtext); line-height: 1.7;
+    }
+
+    /* ── Menu Button ── */
+    .menu-btn {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+      align-self: center;
+      transition: background 0.12s;
+    }
+    .menu-btn:active { background: var(--border); }
+    .back-btn { align-self: center; }
+
+    /* ── Right Drawer ── */
+    .drawer-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 300;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.22s, visibility 0.22s;
+    }
+    .drawer-overlay.open { opacity: 1; visibility: visible; }
+    .drawer-profile {
+      padding: 18px 14px 10px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      border-bottom: 1px solid var(--border);
+      background: #fff0f3;
+    }
+    .drawer-avatar {
+      width: 52px; height: 52px; border-radius: 12px;
+      background: var(--pri-bg);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; overflow: hidden; flex-shrink: 0;
+    }
+    .drawer-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .drawer-name-row {
+      position: relative;
+      width: 100%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .drawer-uname {
+      font-size: 13px; font-weight: 700; color: var(--primary);
+      text-align: center;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: calc(100% - 20px);
+    }
+    .drawer-edit-icon {
+      position: absolute; right: -4px;
+      top: 50%; transform: translateY(-50%);
+      color: var(--muted); cursor: pointer;
+      display: flex; align-items: center;
+    }
+    .drawer-panel {
+      position: absolute; top: 0; right: 0; bottom: 0;
+      width: 27%; max-width: 112px;
+      background: var(--card);
+      padding: 0;
+      transform: translateX(100%);
+      transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+      display: flex; flex-direction: column;
+      box-shadow: -6px 0 28px rgba(0,0,0,0.16);
+      border-left: 1px solid var(--border);
+    }
+    .drawer-overlay.open .drawer-panel { transform: translateX(0); }
+    .drawer-item {
+      padding: 14px 8px;
+      font-size: 16px; font-weight: 600; color: var(--text);
+      cursor: pointer; transition: all 0.12s;
+      border-left: 3px solid transparent;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .drawer-item:active {
+      background: var(--pri-bg);
+      border-left-color: var(--primary);
+      color: var(--primary);
+    }
+    .drawer-item.blue  { color: #2563eb; }
+    .drawer-item.green { color: #16a34a; }
+    .drawer-item.blue:active  { background: #eff6ff; border-left-color: #2563eb; }
+    .drawer-item.green:active { background: #f0fdf4; border-left-color: #16a34a; }
+    .drawer-item.danger { color: #dc2626; }
+    .drawer-item.danger:active { background: #fff1f2; border-left-color: #dc2626; }
+    @media (hover: hover) {
+      .drawer-item:hover        { background: var(--pri-bg); border-left-color: var(--primary); color: var(--primary); }
+      .drawer-item.blue:hover   { background: #eff6ff; border-left-color: #2563eb; color: #2563eb; }
+      .drawer-item.green:hover  { background: #f0fdf4; border-left-color: #16a34a; color: #16a34a; }
+      .drawer-item.danger:hover { background: #fff1f2; border-left-color: #dc2626; color: #dc2626; }
+    }
+    .drawer-item.sep { box-shadow: inset 0 -1px 0 #b0adc0; }
+
+    /* ── Switch Group Sheet ── */
+    .switch-item {
+      display: flex; align-items: center;
+      padding: 13px 10px; border-radius: 10px;
+      cursor: pointer; transition: background 0.12s;
+      margin-bottom: 7px;
+    }
+    .switch-item:not(.current):active { background: var(--bg); }
+    .switch-item.current  { background: var(--pri-bg); cursor: default; }
+    .switch-item.selected { background: #dcfce7; border: 1.5px solid #16a34a; }
+    @media (hover: hover) {
+      .switch-item:not(.current):not(.selected):hover { background: var(--bg); }
+    }
+    .switch-confirm-bar {
+      display: none; gap: 10px;
+      padding-top: 16px; margin-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .switch-confirm-bar.visible { display: flex; }
+    .switch-confirm-btn {
+      flex: 1; padding: 12px 0;
+      border-radius: 10px; border: none;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer;
+      font-family: 'Noto Sans TC', -apple-system, sans-serif;
+      transition: opacity 0.15s;
+    }
+    .switch-confirm-btn:active { opacity: 0.75; }
+    .switch-confirm-btn.ok     { background: #16a34a; color: #fff; }
+    .switch-confirm-btn.cancel { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+    .switch-item-name {
+      flex: 1; min-width: 0;
+      font-size: 15px; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .switch-item.current .switch-item-name { color: var(--primary); }
+    .switch-item-badge {
+      font-size: 11px; font-weight: 700;
+      color: var(--pri-text); background: var(--pri-bg);
+      border: 1px solid rgba(124,58,237,0.2);
+      padding: 2px 8px; border-radius: 20px; flex-shrink: 0; margin-left: 8px;
+    }
+    .switch-item-arrow {
+      font-size: 18px; color: var(--muted); flex-shrink: 0; margin-left: 6px;
+    }
+
+    /* ── Confirm Dialog ── */
+    .confirm-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 400;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+    .confirm-overlay.open { opacity: 1; visibility: visible; }
+    .confirm-box {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 24px 20px 20px;
+      width: 88%; max-width: 320px;
+      transform: scale(0.94);
+      transition: transform 0.2s cubic-bezier(0.32,0.72,0,1);
+    }
+    .confirm-overlay.open .confirm-box { transform: scale(1); }
+    .confirm-title {
+      font-size: 17px; font-weight: 700;
+      color: #dc2626; margin-bottom: 10px;
+    }
+    .confirm-msg {
+      font-size: 14px; color: var(--subtext);
+      line-height: 1.65; margin-bottom: 20px;
+    }
+    .confirm-btns { display: flex; gap: 10px; }
+    .confirm-btn {
+      flex: 1; padding: 12px 0;
+      border-radius: 10px; border: none;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer;
+      font-family: 'Noto Sans TC', -apple-system, sans-serif;
+      transition: opacity 0.15s;
+    }
+    .confirm-btn:active { opacity: 0.75; }
+    .confirm-btn.cancel { background: var(--bg); border: 1px solid var(--border); color: var(--text); }
+    .confirm-btn.leave  { background: #dc2626; color: #fff; }
+
+    /* ── Journal Overlay ── */
+    .journal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(28,26,46,0.45);
+      z-index: 350;
+      display: flex; align-items: flex-end;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.25s, visibility 0.25s;
+    }
+    .journal-overlay.open { opacity: 1; visibility: visible; }
+    .journal-panel {
+      width: 100%; height: 92vh;
+      background: #f9f7ff;
+      border-radius: 22px 22px 0 0;
+      display: flex; flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+      overflow: hidden;
+    }
+    .journal-overlay.open .journal-panel { transform: translateY(0); }
+    .journal-hd {
+      background: linear-gradient(145deg, #ede9fe 0%, #fce7f3 100%);
+      padding: 0 20px 16px; flex-shrink: 0;
+      border-bottom: 1px solid rgba(124,58,237,0.12);
+    }
+    .journal-hd.grp {
+      background: #fef9c3;
+      border-bottom-color: rgba(217,119,6,0.15);
+    }
+    .journal-hd.grp .journal-handle { background: rgba(217,119,6,0.25); }
+    .journal-hd.grp .journal-hd-title { color: #92400e; }
+    .journal-hd.grp .journal-close-btn { background: rgba(217,119,6,0.1); color: #92400e; }
+    .journal-hd.grp .journal-close-btn:active { background: rgba(217,119,6,0.2); }
+    .journal-handle {
+      width: 36px; height: 4px;
+      background: rgba(124,58,237,0.22);
+      border-radius: 2px; margin: 14px auto 16px;
+    }
+    .journal-hd-row {
+      display: flex; align-items: center;
+    }
+    .journal-hd-title { font-size: 17px; font-weight: 700; color: var(--pri-text); flex: 1; }
+    .journal-close-btn {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: none; background: rgba(124,58,237,0.1);
+      color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; transition: background 0.12s;
+    }
+    .journal-close-btn:active { background: rgba(124,58,237,0.22); }
+    .journal-body {
+      flex: 1; overflow-y: auto;
+      padding: 16px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .journal-today-card {
+      background: linear-gradient(135deg, #f0eeff 0%, #fdf0ff 100%);
+      border: 1.5px solid rgba(124,58,237,0.18);
+      border-radius: 18px; padding: 16px;
+      margin-bottom: 22px;
+      box-shadow: 0 2px 12px rgba(124,58,237,0.07);
+    }
+    .journal-today-tag {
+      display: inline-flex; align-items: center;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
+      color: #fff; background: #7c3aed;
+      border-radius: 20px; padding: 3px 10px;
+    }
+    .journal-today-date {
+      font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 12px;
+    }
+    .journal-ta {
+      width: 100%; box-sizing: border-box;
+      border: none; background: rgba(255,255,255,0.75);
+      border-radius: 12px; padding: 12px 14px;
+      font-size: 14px; line-height: 1.75;
+      color: var(--text); font-family: inherit;
+      resize: none; min-height: 78px; max-height: 180px; overflow-y: auto;
+      outline: none; transition: background 0.15s, box-shadow 0.15s;
+    }
+    .journal-ta:focus { background: #fff; box-shadow: 0 0 0 1.5px rgba(124,58,237,0.3); }
+    .journal-ta-footer {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-top: 10px;
+    }
+    .journal-char { font-size: 12px; color: var(--muted); }
+    .journal-char.amber { color: #d97706; }
+    .journal-char.red   { color: #dc2626; }
+    .journal-save-btn {
+      padding: 7px 18px; border-radius: 20px;
+      border: none; background: var(--primary); color: #fff;
+      font-size: 13px; font-weight: 700;
+      cursor: pointer; font-family: inherit; transition: opacity 0.15s;
+    }
+    .journal-save-btn:disabled { opacity: 0.35; cursor: default; }
+    .journal-save-btn:not(:disabled):active { opacity: 0.75; }
+    .journal-past-hd {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      color: var(--subtext); margin-bottom: 10px; padding-left: 2px;
+    }
+    .journal-entry-card {
+      background: #f0eeff;
+      border: 1px solid rgba(124,58,237,0.18);
+      border-left: 3px solid rgba(124,58,237,0.45);
+      border-radius: 14px; padding: 14px;
+      margin-bottom: 10px;
+    }
+    .journal-entry-head {
+      display: flex; align-items: center; margin-bottom: 8px;
+    }
+    .journal-entry-date-txt {
+      font-size: 12px; font-weight: 700; color: #9575cd; flex: 1;
+    }
+    .journal-entry-txt {
+      font-size: 14px; color: var(--text);
+      line-height: 1.75; white-space: pre-wrap; word-break: break-all;
+    }
+    .journal-load-more {
+      text-align: center; padding: 12px 0;
+      font-size: 13px; font-weight: 600; color: var(--primary);
+      cursor: pointer; border-top: 1px solid rgba(124,58,237,0.12);
+      margin-top: 4px; transition: background 0.12s; border-radius: 0 0 10px 10px;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .journal-load-more:active { background: rgba(124,58,237,0.06); }
+    .journal-empty-msg {
+      text-align: center; padding: 32px 0;
+      font-size: 13px; color: var(--muted); line-height: 2;
+    }
+
+    /* ── Journal: toggle switch ── */
+    .j-toggle-row { display: flex; align-items: center; gap: 6px; }
+    .j-toggle-lbl { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--subtext); }
+    .j-toggle-track {
+      width: 34px; height: 20px; border-radius: 10px;
+      background: #d1d5db; transition: background 0.2s;
+      position: relative; cursor: pointer; flex-shrink: 0;
+    }
+    .j-toggle-track.on { background: #16a34a; }
+    .j-toggle-thumb {
+      position: absolute; top: 4px; left: 4px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+      transition: transform 0.2s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none;
+    }
+    .j-toggle-track.on .j-toggle-thumb { transform: translateX(14px); }
+
+    /* ── Journal: view switcher dropdown ── */
+    .j-view-wrap { position: relative; }
+    .j-view-btn {
+      display: flex; align-items: center;
+      cursor: pointer; padding: 2px 0;
+    }
+    .j-chevron-wrap {
+      display: flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 6px;
+      transition: background 0.12s; flex-shrink: 0;
+      margin-left: 10px;
+    }
+    .j-view-btn:active .j-chevron-wrap { background: rgba(91,33,182,0.12); }
+    .journal-hd.grp .j-view-btn:active .j-chevron-wrap { background: rgba(217,119,6,0.15); }
+    .j-chevron { transition: transform 0.18s; display: flex; align-items: center; }
+    .j-chevron.open { transform: rotate(180deg); }
+    .j-view-dd {
+      position: absolute; top: calc(100% + 6px); left: -8px;
+      background: var(--card); border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      min-width: 130px; z-index: 20;
+      transform: translateY(-4px) scale(0.97); transform-origin: top left;
+      opacity: 0; visibility: hidden;
+      transition: all 0.15s cubic-bezier(0.4,0,0.2,1);
+      border: 1px solid var(--border); overflow: hidden;
+    }
+    .j-view-dd.open { transform: translateY(0) scale(1); opacity: 1; visibility: visible; }
+    .j-view-opt {
+      padding: 12px 14px; font-size: 14px; font-weight: 600; color: var(--text);
+      cursor: pointer; transition: background 0.1s;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .j-view-opt:last-child { border-bottom: none; }
+    .j-view-opt:active { background: var(--bg); }
+    .j-view-opt.cur { color: var(--primary); }
+    .j-view-check { width: 14px; font-size: 11px; flex-shrink: 0; }
+
+    /* ── Journal: group view ── */
+    .journal-body.grp { background: #fffdf0; }
+    .journal-grp-card {
+      background: #fefbd4;
+      border: 1px solid rgba(217,119,6,0.2);
+      border-left: 3px solid rgba(217,119,6,0.55);
+      border-radius: 14px; padding: 14px; margin-bottom: 10px;
+    }
+    .journal-grp-member { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .journal-grp-avatar {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: var(--pri-bg); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; overflow: hidden; flex-shrink: 0;
+    }
+    .journal-grp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .journal-grp-name { font-size: 13px; font-weight: 700; color: var(--pri-text); }
+
+
+    /* ── Loading ── */
+    .loading { display: flex; justify-content: center; padding: 52px; }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: #1c1a2e; color: #fff;
+      border-radius: 10px; padding: 10px 18px;
+      font-size: 13px; white-space: nowrap;
+      opacity: 0; transition: all 0.22s;
+      z-index: 1000; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.ok   { background: var(--success); }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="back-btn" onclick="goBack()">←</div>
+  <div class="header-mid">
+    <div class="header-gname" id="groupName" onclick="openRename()">載入中...</div>
+  </div>
+  <div class="header-code-btn" onclick="copyCode()">
+    <div class="header-code-hint" id="copyHint">點擊複製代碼</div>
+    <div class="header-code-val" id="codeChip">------</div>
+  </div>
+  <div class="menu-btn" onclick="openMenu()">
+    <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor">
+      <rect width="15" height="1.5" rx="0.75" y="0"/>
+      <rect width="15" height="1.5" rx="0.75" y="4.75"/>
+      <rect width="15" height="1.5" rx="0.75" y="9.5"/>
+    </svg>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Members -->
+  <div class="sec-head sec-members">
+    <div class="sec-title">成員</div>
+    <div class="count-badge" id="memberCount">-</div>
+  </div>
+  <div id="memberList"><div class="loading"><div class="spinner"></div></div></div>
+
+  <div class="divider"></div>
+
+  <!-- Rankings -->
+  <div class="sec-head sec-rank">
+    <div class="sec-title">本週排名</div>
+    <button class="help-btn" onclick="openHelp()">?</button>
+  </div>
+
+  <!-- Segmented Toggle -->
+  <div class="rank-toggle">
+    <button class="rank-tab active" id="tab-score"    onclick="switchTab('score')">🧠 知識王</button>
+    <button class="rank-tab"        id="tab-interact" onclick="switchTab('interact')">📸 互動王</button>
+  </div>
+
+  <!-- Score Panel (得分王) -->
+  <div class="rank-panel active" id="panel-score">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+
+  <!-- Interact Panel (互動王) -->
+  <div class="rank-panel" id="panel-interact">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Right Drawer Menu -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="if(event.target===this)closeMenu()">
+  <div class="drawer-panel" ontouchstart="">
+    <div class="drawer-profile">
+      <div class="drawer-avatar" id="drawerAvatar">🌟</div>
+      <div class="drawer-name-row">
+        <span class="drawer-uname" id="drawerName">---</span>
+        <span class="drawer-edit-icon" onclick="openNicknameEdit()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+    <div class="drawer-item" onclick="showToast('即將推出')">個人檔案</div>
+    <div class="drawer-item" onclick="showToast('即將推出')">星獸收集</div>
+    <div class="drawer-item" onclick="closeMenu(); goToBattleLobby()">測驗對戰</div>
+    <div class="drawer-item"             onclick="closeMenu(); openJournal()">心情札記</div>
+    <div class="drawer-item sep"         onclick="closeMenu(); window.open('https://youtu.be/DX0Z5u-tDys','_blank')">前導故事</div>
+    <div class="drawer-item blue sep"    onclick="closeMenu(); openInvite()">邀請好友</div>
+    <div class="drawer-item green sep"   onclick="closeMenu(); openSwitchGroup()">切換群組</div>
+    <div class="drawer-item danger"      onclick="closeMenu(); openLeaveConfirm()">退出群組</div>
+  </div>
+</div>
+
+<!-- Leave Confirm Dialog -->
+<div class="confirm-overlay" id="confirmOverlay" onclick="closeLeaveConfirm()">
+  <div class="confirm-box" onclick="event.stopPropagation()">
+    <div class="confirm-title">退出群組</div>
+    <div class="confirm-msg" id="confirmMsg">確定要退出此群組嗎？退出後可再次輸入群組代碼重新加入。</div>
+    <div class="confirm-btns">
+      <button class="confirm-btn cancel" onclick="closeLeaveConfirm()">取消</button>
+      <button class="confirm-btn leave"  id="leaveBtn" onclick="confirmLeave()">確認退出</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rename Modal -->
+<div class="help-overlay" id="renameOverlay" onclick="closeRename()">
+  <div class="help-sheet" onclick="event.stopPropagation()">
+    <div class="help-handle"></div>
+    <div class="help-title">修改群組名稱</div>
+    <input type="text" id="renameInput" maxlength="20" placeholder="輸入新名稱..."
+      style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--border);font-size:15px;font-family:inherit;margin-bottom:16px;outline:none;box-sizing:border-box;"
+      onkeydown="if(event.key==='Enter')confirmRename()">
+    <div style="display:flex;gap:10px;">
+      <button onclick="confirmRename()"
+        style="flex:1;padding:12px;border-radius:10px;border:none;background:#8b5cf6;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">確認</button>
+      <button onclick="closeRename()"
+        style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- Switch Group Sheet -->
+<div class="help-overlay" id="switchOverlay" onclick="closeSwitchGroup()">
+  <div class="help-sheet" onclick="event.stopPropagation()">
+    <div class="help-handle"></div>
+    <div class="help-title">切換群組</div>
+    <div id="switchGroupList"><div class="loading"><div class="spinner"></div></div></div>
+    <div class="switch-confirm-bar" id="switchConfirmBar">
+      <button class="switch-confirm-btn cancel" onclick="cancelSwitch()">取消</button>
+      <button class="switch-confirm-btn ok"     onclick="confirmSwitch()">確定</button>
+    </div>
+  </div>
+</div>
+
+<!-- Nickname Edit Modal -->
+<div class="help-overlay" id="nicknameOverlay" onclick="closeNicknameEdit()">
+  <div class="help-sheet" onclick="event.stopPropagation()">
+    <div class="help-handle"></div>
+    <div class="help-title">修改暱稱</div>
+    <input type="text" id="nicknameInput" maxlength="20" placeholder="輸入新暱稱..."
+      style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--border);font-size:15px;font-family:inherit;margin-bottom:16px;outline:none;box-sizing:border-box;"
+      onkeydown="if(event.key==='Enter')confirmNicknameEdit()">
+    <div style="display:flex;gap:10px;">
+      <button onclick="confirmNicknameEdit()"
+        style="flex:1;padding:12px;border-radius:10px;border:none;background:#8b5cf6;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">確認修改</button>
+      <button onclick="closeNicknameEdit()"
+        style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- Journal Overlay -->
+<div class="journal-overlay" id="journalOverlay" onclick="if(event.target===this)closeJournal()">
+  <div class="journal-panel">
+    <div class="journal-hd" id="journalHd">
+      <div class="journal-handle"></div>
+      <div class="journal-hd-row">
+        <div class="journal-hd-title j-view-wrap">
+          <div class="j-view-btn" onclick="toggleJViewMenu(event)">
+            <span style="display:flex;align-items:center;gap:8px;">
+              <svg width="18" height="20" viewBox="0 0 18 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;display:block">
+                <rect x="1" y="0" width="14" height="20" rx="3" fill="#7c3aed" opacity="0.75"/>
+                <rect x="1" y="0" width="3.5" height="20" rx="2.5" fill="#5b21b6"/>
+                <rect x="4.5" y="0" width="10.5" height="20" rx="2.5" fill="#f5f3ff"/>
+                <rect x="14.2" y="1" width="0.6" height="18" rx="0.3" fill="#ddd6fe" opacity="0.9"/>
+                <line x1="6.5" y1="4.5" x2="13" y2="4.5" stroke="#c4b5fd" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="6.5" y1="6.8" x2="10.5" y2="6.8" stroke="#c4b5fd" stroke-width="1.2" stroke-linecap="round"/>
+                <path d="M9.75 16.5C9.75 16.5 6.2 13.8 6.2 11.2C6.2 9.8 7.25 8.7 8.55 8.7C9.15 8.7 9.75 9.1 9.75 9.1C9.75 9.1 10.35 8.7 10.95 8.7C12.25 8.7 13.3 9.8 13.3 11.2C13.3 13.8 9.75 16.5 9.75 16.5Z" fill="#f472b6" opacity="0.92"/>
+              </svg>
+              <span id="jViewTitle">心情札記</span>
+            </span>
+            <div class="j-chevron-wrap">
+              <svg class="j-chevron" id="jViewChevron" width="11" height="11" viewBox="0 0 14 14" fill="currentColor">
+                <path d="M7 9.5L1.5 4h11L7 9.5z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="j-view-dd" id="jViewDd">
+            <div class="j-view-opt cur" id="jOpt0" onclick="switchJView('personal')"><span class="j-view-check">✓</span>心情札記</div>
+            <div class="j-view-opt" id="jOpt1" onclick="switchJView('group')"><span class="j-view-check"></span>群組日記</div>
+          </div>
+        </div>
+        <button class="journal-close-btn" onclick="closeJournal()">
+          <svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="journal-body" id="journalBody">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Help Modal -->
+<div class="help-overlay" id="helpOverlay" onclick="closeHelp()">
+  <div class="help-sheet" onclick="event.stopPropagation()">
+    <div class="help-handle"></div>
+    <div class="help-title">本週排名說明</div>
+    <div class="help-item">
+      <div class="help-item-title">🧠 知識王</div>
+      <div class="help-item-desc">獲得最多靈氣點數的人。點數可透過每日答題獲得，後方顯示的是答題的正確率。此排名每週重新計算。</div>
+    </div>
+    <div class="help-item">
+      <div class="help-item-title">📸 互動王</div>
+      <div class="help-item-desc">傳最多圖片的人。讓馬爾斯分析圖片可提升元素分數，也能獲得靈氣點數。此排名每週重新計算。</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API     = 'https://webbermars.app.n8n.cloud/webhook';
+  const LIFF_ID = '2009047186-MXDITyXh'; // Reuse home LIFF session; avoids LINE app-switch notification
+  let myNickname  = '';
+  let myAvatar    = '';
+  let _liffReady  = false;
+
+  // LIFF URL 導航時 params 會被包在 liff.state 裡，需額外解碼
+  function getUrlParam(key) {
+    const s = new URLSearchParams(location.search);
+    const v = s.get(key);
+    if (v !== null) return v;
+    const ls = s.get('liff.state');
+    if (ls) { try { return new URLSearchParams(decodeURIComponent(ls).replace(/^\?/, '')).get(key) || ''; } catch {} }
+    return '';
+  }
+
+  const group_id   = getUrlParam('group_id');
+  const group_name = getUrlParam('group_name') || '星際群組';
+  const uid        = getUrlParam('uid');
+  const inv_code   = getUrlParam('invite_code');
+
+  document.getElementById('groupName').textContent = group_name;
+  document.getElementById('codeChip').textContent  = inv_code || '------';
+  document.title = group_name;
+
+  /* ── Invite ──────────────────────────────────────────────────── */
+  async function ensureLiff() {
+    if (_liffReady) return true;
+    try { await liff.init({ liffId: LIFF_ID }); _liffReady = true; return true; }
+    catch { return false; }
+  }
+
+  async function openInvite() {
+    if (uid === 'demo_user') { showToast('示範模式無法邀請'); return; }
+    if (!inv_code) { showToast('群組代碼不存在'); return; }
+
+    const ready = await ensureLiff();
+    if (!ready || !liff.isInClient()) { showToast('請在 LINE 內使用邀請功能'); return; }
+
+    const HOME_LIFF_ID = '2009047186-MXDITyXh';
+    const inviteUrl   = `https://liff.line.me/${HOME_LIFF_ID}?invite_code=${encodeURIComponent(inv_code)}`;
+    const inviterName = myNickname || '朋友';
+
+    sessionStorage.setItem('pendingInvite', '1');
+    try {
+      const result = await liff.shareTargetPicker([{
+        type: 'flex',
+        altText: `${inviterName} 邀請你加入「${group_name}」，快進來！`,
+        contents: {
+          type: 'bubble',
+          size: 'kilo',
+          header: {
+            type: 'box', layout: 'vertical',
+            backgroundColor: '#7c3aed', paddingAll: '14px',
+            contents: [{ type: 'text', text: '星際群組邀請', color: '#ffffff', size: 'md', weight: 'bold', align: 'center' }]
+          },
+          body: {
+            type: 'box', layout: 'vertical',
+            paddingTop: '14px', paddingBottom: '10px', paddingStart: '16px', paddingEnd: '16px',
+            spacing: 'sm',
+            contents: [
+              { type: 'text', text: `${inviterName} 邀請你加入`, color: '#6b7280', size: 'sm', wrap: true },
+              { type: 'text', text: group_name, color: '#1c1a2e', size: 'xl', weight: 'bold', wrap: true },
+              {
+                type: 'box', layout: 'horizontal',
+                backgroundColor: '#ede9fe', cornerRadius: '8px',
+                paddingAll: '8px', margin: 'sm',
+                contents: [
+                  { type: 'text', text: '群組代碼', color: '#5b21b6', size: 'xs', flex: 0 },
+                  { type: 'text', text: inv_code, color: '#7c3aed', size: 'sm', weight: 'bold', align: 'end' }
+                ]
+              }
+            ]
+          },
+          footer: {
+            type: 'box', layout: 'vertical',
+            paddingTop: '10px', paddingBottom: '14px', paddingStart: '28px', paddingEnd: '28px',
+            contents: [{
+              type: 'button', style: 'primary', color: '#7c3aed', height: 'sm',
+              action: { type: 'uri', label: '立即加入群組', uri: inviteUrl }
+            }]
+          }
+        }
+      }], { isMultiple: true });
+
+      sessionStorage.removeItem('pendingInvite');
+      if (result) showToast('邀請已送出！', 'ok');
+    } catch (e) {
+      sessionStorage.removeItem('pendingInvite');
+      const code = e?.code || e?.errorCode || '';
+      const msg  = e?.message || '';
+      console.error('[shareTargetPicker]', e);
+      showToast(`邀請失敗 [${code || 'ERR'}] ${msg}`.slice(0, 60));
+    }
+  }
+
+  /* ── Tab toggle ─────────────────────────────────────────────── */
+  function switchTab(tab) {
+    ['score','interact'].forEach(t => {
+      document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+      document.getElementById(`panel-${t}`).classList.toggle('active', t === tab);
+    });
+  }
+
+  /* ── Init ─────────────────────────────────────────────────────  */
+  async function init() {
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      _liffReady = true;
+    } catch {}
+
+    if (!group_id || !uid || uid === 'demo_user') { renderDemo(); return; }
+    await loadMembers();
+    await loadRankings();
+
+    // If a previous shareTargetPicker call caused a LIFF re-auth redirect, auto-reopen
+    if (sessionStorage.getItem('pendingInvite') === '1') {
+      sessionStorage.removeItem('pendingInvite');
+      setTimeout(() => openInvite(), 400);
+    }
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && group_id && uid && uid !== 'demo_user') {
+      loadRankings();
+    }
+  });
+
+  /* ── Members ─────────────────────────────────────────────────── */
+  async function loadMembers() {
+    try {
+      const r = await fetch(`${API}/group-members`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ group_id })
+      });
+      renderMembers((await r.json()).members || []);
+    } catch {
+      document.getElementById('memberList').innerHTML =
+        '<div style="padding:20px;color:var(--muted);text-align:center">無法載入成員資料</div>';
+    }
+  }
+
+  function renderMembers(members) {
+    members.sort((a, b) => (a.uid === uid ? -1 : b.uid === uid ? 1 : 0));
+    document.getElementById('memberCount').textContent = `共 ${members.length} 人`;
+
+    if (!members.length) {
+      document.getElementById('memberList').innerHTML =
+        '<div style="padding:16px;color:var(--muted);text-align:center">目前沒有成員</div>';
+      return;
+    }
+
+    const els = [
+      { key:'fire',  icon:'🔥', label:'火', cls:'fire'  },
+      { key:'earth', icon:'⛰️', label:'土', cls:'earth' },
+      { key:'air',   icon:'💨', label:'風', cls:'wind'  },
+      { key:'water', icon:'💧', label:'水', cls:'water' }
+    ];
+
+    const cardHtml = m => {
+      const isSelf = m.uid === uid;
+      if (isSelf) {
+        myNickname = m.nickname || '';
+        myAvatar   = m.line_avatar || '';
+        updateDrawerProfile();
+      }
+      const avatar = m.line_avatar
+        ? `<img src="${x(m.line_avatar)}" alt="" onerror="this.parentElement.textContent='🌟'">`
+        : '🌟';
+      const aura  = Number(m.aura_points) || 0;
+      const chips = els.map(e => {
+        const val = Number(m[`current10_${e.key}`]) || 0;
+        return `<span class="el-chip el-${e.cls}">
+          <span class="el-icon">${e.icon}</span><span class="el-label">${e.label}</span><span class="el-val">${val}</span>
+        </span>`;
+      }).join('');
+      return `
+        <div class="member-card${isSelf ? ' is-self' : ''}">
+          <div class="member-avatar">${avatar}</div>
+          <div class="member-info">
+            <div class="member-top">
+              <span class="member-name">${x(m.nickname || '未知成員')}</span>
+              <span class="aura-inline">${aura} 靈氣</span>
+            </div>
+            <div class="elements">${chips}</div>
+          </div>
+        </div>`;
+    };
+
+    const LIMIT  = 5;
+    const shown  = members.slice(0, LIMIT);
+    const extra  = members.slice(LIMIT);
+    const total  = members.length;
+
+    let html = shown.map(cardHtml).join('');
+    if (extra.length) {
+      html += `
+        <div id="memberExtra" style="display:none">${extra.map(cardHtml).join('')}</div>
+        <button class="member-toggle-btn" id="memberToggleBtn" onclick="toggleMemberExtra()">
+          <span id="memberToggleLabel">查看全部成員</span>
+          <span class="member-toggle-icon" id="memberToggleIcon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+              <path d="M7 9.5L1.5 4h11L7 9.5z"/>
+            </svg>
+          </span>
+        </button>`;
+    }
+    document.getElementById('memberList').innerHTML = html;
+  }
+
+  function toggleMemberExtra() {
+    const extra  = document.getElementById('memberExtra');
+    const label  = document.getElementById('memberToggleLabel');
+    const icon   = document.getElementById('memberToggleIcon');
+    const btn    = document.getElementById('memberToggleBtn');
+    const isOpen = extra.style.display !== 'none';
+    extra.style.display   = isOpen ? 'none' : 'block';
+    icon.style.transform  = isOpen ? '' : 'rotate(180deg)';
+    label.textContent     = isOpen ? '查看全部成員' : '收起';
+  }
+
+  /* ── Rankings ────────────────────────────────────────────────── */
+  async function loadRankings() {
+    try {
+      const r = await fetch(`${API}/group-rankings`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ group_id })
+      });
+      renderRankings((await r.json()).rankings || { image: [], qa: [] });
+    } catch {
+      ['score','interact'].forEach(id => {
+        document.getElementById(`panel-${id}`).innerHTML =
+          '<div style="padding:20px;color:var(--muted);text-align:center">無法載入排名</div>';
+      });
+    }
+  }
+
+  function renderRankings({ image = [], qa = [] }) {
+    const medals     = ['🥇','🥈','🥉'];
+    const rowClasses = ['gold-row','silver-row','bronze-row'];
+
+    function posEl(i) {
+      return i < 3
+        ? `<span class="medal">${medals[i]}</span>`
+        : `<span class="rank-pos-num">${i + 1}</span>`;
+    }
+
+    function rowAttr(i) {
+      if (i < 3) return `class="rank-item ${rowClasses[i]}"`;
+      return `class="rank-item rank-hidden" style="display:none;background:#fff"`;
+    }
+
+    function expandBtn(list) {
+      if (list.length <= 3) return '';
+      return `<div class="rank-expand-btn" onclick="toggleRankFull(this)"><span class="rank-expand-label">查看完整排名</span><span class="member-toggle-icon" style="display:flex"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M7 9.5L1.5 4h11L7 9.5z"/></svg></span></div>`;
+    }
+
+    function scoreRows(list) {
+      if (!list.length) return `<div class="rank-empty">本週尚無紀錄</div>`;
+      return list.map((r, i) => {
+        const selfCls = (myNickname && r.nickname === myNickname) ? ' is-self-rank' : '';
+        return `
+        <div ${rowAttr(i)}>
+          ${posEl(i)}
+          <div class="rank-info">
+            <div class="rank-name${selfCls}">${x(r.nickname || '---')}</div>
+          </div>
+          <div class="rank-score-col">
+            <div class="score-line">
+              <span class="score-main">+${r.weekly_points_gained ?? 0}</span>
+              <span class="acc-pill">${r.accuracy ?? 0}%</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('') + expandBtn(list);
+    }
+
+    function interactRows(list) {
+      if (!list.length) return `<div class="rank-empty">本週尚無紀錄</div>`;
+      return list.map((r, i) => {
+        const selfCls = (myNickname && r.nickname === myNickname) ? ' is-self-rank' : '';
+        return `
+        <div ${rowAttr(i)}>
+          ${posEl(i)}
+          <div class="rank-info">
+            <div class="rank-name${selfCls}">${x(r.nickname || '---')}</div>
+          </div>
+          <div class="rank-score-col">
+            <div class="rank-count">
+              ${r.weekly_image_count ?? 0}<span class="rank-count-unit">張</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('') + expandBtn(list);
+    }
+
+    document.getElementById('panel-score').innerHTML =
+      `<div class="rank-card">${scoreRows(qa)}</div>`;
+    document.getElementById('panel-interact').innerHTML =
+      `<div class="rank-card">${interactRows(image)}</div>`;
+  }
+
+  function toggleRankFull(btn) {
+    const hidden    = btn.closest('.rank-card').querySelectorAll('.rank-hidden');
+    const expanding = hidden[0]?.style.display === 'none';
+    hidden.forEach(r => r.style.display = expanding ? 'flex' : 'none');
+    btn.querySelector('.rank-expand-label').textContent = expanding ? '收起' : '查看完整排名';
+    btn.querySelector('.member-toggle-icon').style.transform = expanding ? 'rotate(180deg)' : '';
+  }
+
+  /* ── Demo ────────────────────────────────────────────────────── */
+  function renderDemo() {
+    document.getElementById('groupName').textContent = '天秤座好友團（預覽）';
+    document.getElementById('codeChip').textContent  = 'AB1234';
+    myNickname = '你（示範）'; myAvatar = '';
+    updateDrawerProfile();
+
+    renderMembers([
+      { uid:'demo_user', nickname:'你（示範）', aura_points:320, line_avatar:'',
+        current10_fire:7, current10_earth:4, current10_air:9, current10_water:5 },
+      { uid:'u2', nickname:'宇宙探索家', aura_points:210, line_avatar:'',
+        current10_fire:3, current10_earth:8, current10_air:5, current10_water:9 },
+      { uid:'u3', nickname:'銀河守衛',   aura_points:155, line_avatar:'',
+        current10_fire:10, current10_earth:2, current10_air:6, current10_water:3 }
+    ]);
+
+    renderRankings({
+      image: [
+        { nickname:'你（示範）', weekly_image_count:12 },
+        { nickname:'銀河守衛',   weekly_image_count:8  },
+        { nickname:'宇宙探索家', weekly_image_count:5  },
+        { nickname:'星塵旅人',   weekly_image_count:3  },
+        { nickname:'月光騎士',   weekly_image_count:1  }
+      ],
+      qa: [
+        { nickname:'宇宙探索家', weekly_qa_correct:9, accuracy:90, weekly_points_gained:48 },
+        { nickname:'你（示範）', weekly_qa_correct:7, accuracy:87, weekly_points_gained:35 },
+        { nickname:'銀河守衛',   weekly_qa_correct:3, accuracy:60, weekly_points_gained:15 },
+        { nickname:'星塵旅人',   weekly_qa_correct:2, accuracy:50, weekly_points_gained:8  },
+        { nickname:'月光騎士',   weekly_qa_correct:1, accuracy:33, weekly_points_gained:3  }
+      ]
+    });
+  }
+
+  /* ── Helpers ─────────────────────────────────────────────────── */
+  function openHelp()  { document.getElementById('helpOverlay').classList.add('open'); }
+  function closeHelp() { document.getElementById('helpOverlay').classList.remove('open'); }
+
+  function openNicknameEdit() {
+    if (!uid || uid === 'demo_user') return;
+    document.getElementById('nicknameInput').value = myNickname || '';
+    document.getElementById('nicknameOverlay').classList.add('open');
+    setTimeout(() => document.getElementById('nicknameInput').focus(), 300);
+  }
+  function closeNicknameEdit() {
+    document.getElementById('nicknameOverlay').classList.remove('open');
+  }
+  async function confirmNicknameEdit() {
+    const newName = document.getElementById('nicknameInput').value.trim();
+    if (!newName) return;
+    if (newName === myNickname) { closeNicknameEdit(); return; }
+    try {
+      const r = await fetch(`${API}/update-nickname`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, nickname: newName })
+      });
+      const data = await r.json();
+      if (data.success) {
+        myNickname = newName;
+        updateDrawerProfile();
+        closeNicknameEdit();
+        showToast('暱稱已更新', 'ok');
+        loadMembers();
+      } else {
+        showToast(data.message || '更新失敗，請重試');
+      }
+    } catch {
+      showToast('更新失敗，請重試');
+    }
+  }
+
+  function openRename() {
+    if (!group_id || uid === 'demo_user') return;
+    document.getElementById('renameInput').value = document.getElementById('groupName').textContent;
+    document.getElementById('renameOverlay').classList.add('open');
+    setTimeout(() => document.getElementById('renameInput').focus(), 300);
+  }
+  function closeRename() {
+    document.getElementById('renameOverlay').classList.remove('open');
+  }
+  async function confirmRename() {
+    const newName = document.getElementById('renameInput').value.trim();
+    if (!newName) return;
+    if (newName === document.getElementById('groupName').textContent) { closeRename(); return; }
+    try {
+      const r = await fetch(`${API}/group-rename`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ group_id, new_name: newName, uid })
+      });
+      const data = await r.json();
+      if (data.success) {
+        document.getElementById('groupName').textContent = newName;
+        document.title = newName;
+        closeRename();
+        showToast('群組名稱已更新', 'ok');
+      } else {
+        showToast('更新失敗，請重試');
+      }
+    } catch {
+      showToast('更新失敗，請重試');
+    }
+  }
+
+  /* ── Drawer Profile ─────────────────────────────────────────────── */
+  function updateDrawerProfile() {
+    const nameEl   = document.getElementById('drawerName');
+    const avatarEl = document.getElementById('drawerAvatar');
+    if (nameEl)   nameEl.textContent = myNickname || '---';
+    if (avatarEl) avatarEl.innerHTML = myAvatar
+      ? `<img src="${x(myAvatar)}" alt="" onerror="this.parentElement.textContent='🌟'">`
+      : '🌟';
+  }
+
+  /* ── Switch Group ───────────────────────────────────────────────── */
+  let _switchGroups = [];
+  let _selectedGroupIdx = -1;
+
+  function openSwitchGroup() {
+    _selectedGroupIdx = -1;
+    document.getElementById('switchConfirmBar').classList.remove('visible');
+    document.getElementById('switchOverlay').classList.add('open');
+    loadGroupList();
+  }
+  function closeSwitchGroup() {
+    document.getElementById('switchOverlay').classList.remove('open');
+    _selectedGroupIdx = -1;
+    document.getElementById('switchConfirmBar').classList.remove('visible');
+  }
+
+  async function loadGroupList() {
+    const listEl = document.getElementById('switchGroupList');
+    listEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    if (!uid || uid === 'demo_user') {
+      renderGroupList([
+        { group_id: 'demo1', group_name: '天秤座好友團（預覽）', invite_code: 'AB1234' },
+        { group_id: 'demo2', group_name: '射手座聊天室',         invite_code: 'XY5678' }
+      ]);
+      return;
+    }
+    try {
+      const r = await fetch(`${API}/group-list`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid })
+      });
+      renderGroupList(applyGroupOrder((await r.json()).groups || []));
+    } catch {
+      listEl.innerHTML = '<div style="padding:16px;color:var(--muted);text-align:center">無法載入群組清單</div>';
+    }
+  }
+
+  function applyGroupOrder(groups) {
+    if (!uid) return groups;
+    try {
+      const saved = JSON.parse(localStorage.getItem(`group_order_${uid}`) || '[]');
+      if (!saved.length) return groups;
+      const map = new Map(groups.map(g => [g.group_id, g]));
+      return [
+        ...saved.filter(id => map.has(id)).map(id => map.get(id)),
+        ...groups.filter(g => !saved.includes(g.group_id))
+      ];
+    } catch { return groups; }
+  }
+
+  function renderGroupList(groups, selectedIdx = -1) {
+    _switchGroups = groups;
+    const listEl = document.getElementById('switchGroupList');
+    if (!groups.length) {
+      listEl.innerHTML = '<div style="padding:16px;color:var(--muted);text-align:center">沒有加入任何群組</div>';
+      return;
+    }
+    const currentId = (!uid || uid === 'demo_user') ? 'demo1' : group_id;
+    listEl.innerHTML = groups.map((g, i) => {
+      const isCurrent  = g.group_id === currentId;
+      const isSelected = !isCurrent && i === selectedIdx;
+      return `<div class="switch-item${isCurrent ? ' current' : ''}${isSelected ? ' selected' : ''}" ${!isCurrent ? `onclick="selectGroup(${i})"` : ''}>
+        <span class="switch-item-name">${x(g.group_name)}</span>
+        ${isCurrent
+          ? '<span class="switch-item-badge">目前群組</span>'
+          : '<span class="switch-item-arrow">›</span>'}
+      </div>`;
+    }).join('');
+  }
+
+  function selectGroup(idx) {
+    _selectedGroupIdx = idx;
+    renderGroupList(_switchGroups, idx);
+    document.getElementById('switchConfirmBar').classList.add('visible');
+  }
+
+  function cancelSwitch() {
+    _selectedGroupIdx = -1;
+    renderGroupList(_switchGroups, -1);
+    document.getElementById('switchConfirmBar').classList.remove('visible');
+  }
+
+  function confirmSwitch() {
+    const g = _switchGroups[_selectedGroupIdx];
+    if (!g) return;
+    if (!uid || uid === 'demo_user') {
+      closeSwitchGroup();
+      showToast('示範模式，無法切換群組');
+      return;
+    }
+    const params = new URLSearchParams({
+      group_id:   g.group_id,
+      group_name: g.group_name,
+      uid,
+      invite_code: g.invite_code || ''
+    });
+    closeSwitchGroup();
+    location.href = `group_room.html?${params}`;
+  }
+
+  /* ── Menu / Leave ─────────────────────────────────────────────── */
+  function openMenu()  {
+    document.getElementById('drawerOverlay').classList.add('open');
+  }
+  function closeMenu() { document.getElementById('drawerOverlay').classList.remove('open'); }
+
+  function openLeaveConfirm() {
+    const gname = document.getElementById('groupName').textContent;
+    document.getElementById('confirmMsg').textContent =
+      `確定要退出「${gname}」嗎？退出後可再次輸入群組代碼重新加入。`;
+    document.getElementById('confirmOverlay').classList.add('open');
+  }
+  function closeLeaveConfirm() { document.getElementById('confirmOverlay').classList.remove('open'); }
+
+  async function confirmLeave() {
+    if (!group_id || !uid || uid === 'demo_user') {
+      closeLeaveConfirm();
+      showToast('示範模式，無法實際退出');
+      return;
+    }
+    const btn = document.getElementById('leaveBtn');
+    btn.disabled = true; btn.textContent = '退出中...';
+    try {
+      const r = await fetch(`${API}/group-leave`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, group_id })
+      });
+      const d = await r.json();
+      if (!d.success) throw new Error('退出失敗');
+      location.href = 'group_home.html';
+    } catch {
+      showToast('退出失敗，請重試');
+      btn.disabled = false; btn.textContent = '確認退出';
+    }
+  }
+
+  function goBack() {
+    location.href = 'group_home.html';
+  }
+
+  function copyCode() {
+    const code = inv_code || document.getElementById('codeChip').textContent;
+    if (!code || code === '------') return;
+    navigator.clipboard?.writeText(code).then(() => {
+      document.getElementById('copyHint').textContent = '✓ 已複製！';
+      showToast('代碼已複製', 'ok');
+      setTimeout(() => { document.getElementById('copyHint').textContent = '點擊複製代碼'; }, 2000);
+    });
+  }
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = `toast ${type} show`;
+    setTimeout(() => { t.className = 'toast'; }, 2200);
+  }
+
+  function x(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ── Journal ─────────────────────────────────────────────────── */
+  let _jToday = '';
+  let _jOrigContent = '';
+  let _jPastEntries = [];
+  let _jShownCount  = 0;
+  let _jView        = 'personal';
+  let _jIsPublic    = false;
+  const J_PAGE = 5;
+
+  function openJournal() {
+    if (!uid || uid === 'demo_user') { showToast('示範模式無法使用心情札記'); return; }
+    _jView = 'personal';
+    document.getElementById('jViewTitle').textContent = '心情札記';
+    document.getElementById('jOpt0').classList.add('cur');
+    document.getElementById('jOpt0').querySelector('.j-view-check').textContent = '✓';
+    document.getElementById('jOpt1').classList.remove('cur');
+    document.getElementById('jOpt1').querySelector('.j-view-check').textContent = '';
+    document.getElementById('jViewDd').classList.remove('open');
+    document.getElementById('jViewChevron').classList.remove('open');
+    document.getElementById('journalBody').classList.remove('grp');
+    document.getElementById('journalHd').classList.remove('grp');
+    document.getElementById('journalOverlay').classList.add('open');
+    loadJournal();
+  }
+  function closeJournal() {
+    document.getElementById('journalOverlay').classList.remove('open');
+  }
+
+  function _getTodayStr() {
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+  }
+  function _fmtDateCN(d) {
+    const [y, m, day] = d.split('-').map(Number);
+    const dow = ['日','一','二','三','四','五','六'][new Date(y, m - 1, day).getDay()];
+    const yearPfx = y !== new Date().getFullYear() ? `${y}年` : '';
+    return `${yearPfx}${m}月${day}日  週${dow}`;
+  }
+  function _jCharCls(n) {
+    return n >= 95 ? ' red' : n >= 80 ? ' amber' : '';
+  }
+
+  async function loadJournal() {
+    _jToday = _getTodayStr();
+    document.getElementById('journalBody').innerHTML =
+      '<div class="loading"><div class="spinner"></div></div>';
+    try {
+      const r = await fetch(`${API}/journal-get`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid })
+      });
+      const data = await r.json();
+      renderJournal(data.entries || []);
+    } catch {
+      document.getElementById('journalBody').innerHTML =
+        '<div class="journal-empty-msg">無法載入，請稍後再試 🌙</div>';
+    }
+  }
+
+  function renderJournal(entries) {
+    entries.sort((a, b) => b.date.localeCompare(a.date));
+    const todayEntry   = entries.find(e => e.date === _jToday);
+    const todayContent = todayEntry?.content || '';
+    _jOrigContent  = todayContent;
+    _jIsPublic     = !!(todayEntry?.is_public);
+    _jPastEntries  = entries.filter(e => e.date !== _jToday);
+    _jShownCount   = 0;
+    const clen = todayContent.length;
+
+    let html = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="journal-past-hd" style="margin-bottom:0">今日記錄</div>
+        <div class="j-toggle-row">
+          <span class="j-toggle-lbl">展示</span>
+          <div class="j-toggle-track${_jIsPublic ? ' on' : ''}" id="jPublicTrack" onclick="toggleJPublic()">
+            <div class="j-toggle-thumb"></div>
+          </div>
+        </div>
+      </div>
+      <div class="journal-today-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="journal-today-date" style="margin-bottom:0">${_fmtDateCN(_jToday)}</div>
+          <div class="journal-today-tag">今天</div>
+        </div>
+        <textarea class="journal-ta" id="jTodayTA" maxlength="100"
+          placeholder="今天有什麼想說的嗎..." oninput="onJTodayInput(this)">${x(todayContent)}</textarea>
+        <div class="journal-ta-footer">
+          <span class="journal-char${_jCharCls(clen)}" id="jCharCount">${clen}/100</span>
+          <button class="journal-save-btn" id="jSaveBtn" onclick="saveJournalToday()" disabled>儲存</button>
+        </div>
+      </div>`;
+
+    if (_jPastEntries.length > 0) {
+      html += `<div class="journal-past-hd">過往記錄</div><div id="jPastList"></div><div id="jLoadMoreWrap"></div>`;
+    } else if (!todayContent) {
+      html += `<div class="journal-empty-msg">還沒有過往記錄 ✨<br>從今天開始寫下第一篇吧</div>`;
+    }
+
+    document.getElementById('journalBody').innerHTML = html;
+    if (_jPastEntries.length > 0) _appendJEntries();
+  }
+
+  function _entryCardHtml(e) {
+    return `
+      <div class="journal-entry-card">
+        <div class="journal-entry-head">
+          <span class="journal-entry-date-txt">${_fmtDateCN(e.date)}</span>
+        </div>
+        <div class="journal-entry-txt">${x(e.content)}</div>
+      </div>`;
+  }
+
+  function _appendJEntries() {
+    const listEl = document.getElementById('jPastList');
+    const wrapEl = document.getElementById('jLoadMoreWrap');
+    const next = _jPastEntries.slice(_jShownCount, _jShownCount + J_PAGE);
+    listEl.insertAdjacentHTML('beforeend', next.map(_entryCardHtml).join(''));
+    _jShownCount += next.length;
+    if (_jShownCount < _jPastEntries.length) {
+      wrapEl.innerHTML = `<div class="journal-load-more" onclick="_appendJEntries()">查看更多<svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor" style="margin-top:1px"><path d="M7 9.5L1.5 4h11L7 9.5z"/></svg></div>`;
+    } else if (_jShownCount > J_PAGE) {
+      wrapEl.innerHTML = `<div class="journal-load-more" onclick="_collapseJEntries()"><svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor" style="margin-top:1px;transform:rotate(180deg)"><path d="M7 9.5L1.5 4h11L7 9.5z"/></svg>收起</div>`;
+    } else {
+      wrapEl.innerHTML = '';
+    }
+  }
+
+  function _collapseJEntries() {
+    const listEl = document.getElementById('jPastList');
+    listEl.innerHTML = '';
+    _jShownCount = 0;
+    _appendJEntries();
+  }
+
+  function toggleJPublic() {
+    _jIsPublic = !_jIsPublic;
+    document.getElementById('jPublicTrack')?.classList.toggle('on', _jIsPublic);
+    if (_jOrigContent) {
+      fetch(`${API}/journal-save`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, date: _jToday, content: _jOrigContent, is_public: _jIsPublic })
+      }).catch(() => {});
+    }
+  }
+
+  function toggleJViewMenu(e) {
+    e.stopPropagation();
+    const dd = document.getElementById('jViewDd');
+    const ch = document.getElementById('jViewChevron');
+    const isOpen = dd.classList.contains('open');
+    dd.classList.toggle('open', !isOpen);
+    ch.classList.toggle('open', !isOpen);
+    if (!isOpen) {
+      setTimeout(() => document.addEventListener('click', _closeJViewDd, { once: true }), 0);
+    }
+  }
+
+  function _closeJViewDd() {
+    document.getElementById('jViewDd')?.classList.remove('open');
+    document.getElementById('jViewChevron')?.classList.remove('open');
+  }
+
+  function switchJView(view) {
+    _jView = view;
+    _closeJViewDd();
+    const isPersonal = view === 'personal';
+    document.getElementById('jViewTitle').textContent = isPersonal ? '心情札記' : '群組日記';
+    const opt0 = document.getElementById('jOpt0');
+    const opt1 = document.getElementById('jOpt1');
+    opt0.classList.toggle('cur', isPersonal);
+    opt0.querySelector('.j-view-check').textContent = isPersonal ? '✓' : '';
+    opt1.classList.toggle('cur', !isPersonal);
+    opt1.querySelector('.j-view-check').textContent = !isPersonal ? '✓' : '';
+    document.getElementById('journalBody').classList.toggle('grp', !isPersonal);
+    document.getElementById('journalHd').classList.toggle('grp', !isPersonal);
+    if (isPersonal) { loadJournal(); } else { loadGroupJournal(); }
+  }
+
+  async function loadGroupJournal() {
+    const bodyEl = document.getElementById('journalBody');
+    bodyEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    if (!group_id) {
+      bodyEl.innerHTML = '<div class="journal-empty-msg">群組日記需要在群組頁面中使用 🌙</div>';
+      return;
+    }
+    try {
+      const today = _getTodayStr();
+      const r = await fetch(`${API}/journal-group-today`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ group_id, date: today })
+      });
+      const data = await r.json();
+      renderGroupJournal(data.entries || []);
+    } catch {
+      bodyEl.innerHTML = '<div class="journal-empty-msg">無法載入群組日記 🌙</div>';
+    }
+  }
+
+  function renderGroupJournal(entries) {
+    const bodyEl = document.getElementById('journalBody');
+    if (!entries.length) {
+      bodyEl.innerHTML = '<div class="journal-empty-msg">今天還沒有人開啟展示 ✨<br>開啟展示後，成員就能看到你的日記囉</div>';
+      return;
+    }
+    const _grpToday = _getTodayStr();
+    bodyEl.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div class="journal-past-hd" style="margin-bottom:0">今日展示</div>
+        <span style="font-size:11px;font-weight:600;color:var(--text)">${_fmtDateCN(_grpToday)}</span>
+      </div>
+      ${entries.map(e => `
+        <div class="journal-grp-card">
+          <div class="journal-grp-member">
+            <div class="journal-grp-avatar">
+              ${e.avatar ? `<img src="${x(e.avatar)}" alt="" onerror="this.parentElement.textContent='🌟'">` : '🌟'}
+            </div>
+            <span class="journal-grp-name">${x(e.nickname || '成員')}</span>
+          </div>
+          <div class="journal-entry-txt">${x(e.content)}</div>
+        </div>
+      `).join('')}
+    `;
+  }
+
+  function onJTodayInput(ta) {
+    const n = ta.value.length;
+    const el = document.getElementById('jCharCount');
+    el.textContent = `${n}/100`;
+    el.className = `journal-char${_jCharCls(n)}`;
+    const btn = document.getElementById('jSaveBtn');
+    if (btn) btn.disabled = ta.value.trim() === _jOrigContent;
+  }
+
+  async function saveJournalToday() {
+    const content = document.getElementById('jTodayTA').value.trim();
+    if (!content) return;
+    const btn = document.getElementById('jSaveBtn');
+    btn.disabled = true; btn.textContent = '儲存中...';
+    try {
+      const r = await fetch(`${API}/journal-save`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, date: _jToday, content, is_public: _jIsPublic })
+      });
+      const d = await r.json();
+      if (d.success) {
+        _jOrigContent = content;
+        btn.textContent = '儲存'; btn.disabled = true;
+        showToast('已儲存', 'ok');
+      } else throw new Error();
+    } catch {
+      btn.textContent = '儲存'; btn.disabled = false;
+      showToast('儲存失敗，請重試');
+    }
+  }
+
+  /* ── Battle Lobby ────────────────────────────────────────────── */
+  function goToBattleLobby() {
+    if (!uid || uid === 'demo_user') { showToast('示範模式無法使用對戰功能'); return; }
+    const params = new URLSearchParams({ uid, group_id, group_name });
+    if (inv_code) params.set('invite_code', inv_code);
+    location.href = `quiz_battle.html?${params}`;
+  }
+
+  init();
+</script>
+</body>
+</html>

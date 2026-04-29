@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>星際群組</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    :root {
+      --bg:       #f3f2f7;
+      --card:     #ffffff;
+      --border:   #e5e3ec;
+      --text:     #1c1a2e;
+      --subtext:  #6b7280;
+      --muted:    #9ca3af;
+      --primary:  #7c3aed;
+      --pri-bg:   #ede9fe;
+      --pri-text: #5b21b6;
+      --gold:     #d97706;
+      --gold-bg:  #fef3c7;
+      --danger:   #dc2626;
+      --danger-bg:#fee2e2;
+      --success:  #059669;
+      --success-bg:#d1fae5;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow:    0 2px 8px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 96px;
+      font-size: 15px;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px 14px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-title {
+      font-size: 20px; font-weight: 700;
+      color: var(--primary);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .header-sub { font-size: 12px; color: var(--subtext); margin-top: 2px; }
+
+    /* ── Container ── */
+    .container { padding: 16px; }
+
+    /* ── User Card ── */
+    .user-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 20px;
+    }
+    .user-avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--pri-bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; overflow: hidden; flex-shrink: 0;
+      border: 2px solid var(--border);
+    }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-name { font-size: 15px; font-weight: 700; color: var(--text); }
+    .user-sub  { font-size: 12px; color: var(--subtext); margin-top: 1px; }
+
+    /* ── Section ── */
+    .section-label {
+      font-size: 12px; font-weight: 700;
+      color: var(--subtext);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+
+    /* ── Group Card ── */
+    .group-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      display: flex; align-items: center;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.15s, transform 0.15s;
+    }
+    .group-card:active { transform: scale(0.99); }
+    @media (hover: hover) {
+      .group-card:hover {
+        box-shadow: var(--shadow);
+        transform: translateY(-1px);
+      }
+    }
+    .group-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: var(--pri-bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .group-info { flex: 1; min-width: 0; }
+    .group-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .invite-chip {
+      display: inline-block;
+      background: var(--pri-bg);
+      color: var(--pri-text);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.12em;
+      padding: 2px 8px; border-radius: 6px;
+    }
+    .group-arrow { color: var(--muted); font-size: 20px; flex-shrink: 0; }
+
+    /* ─── Drag Reorder ─── */
+    .group-card { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+    .drag-ghost {
+      position: fixed; pointer-events: none; z-index: 999;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 16px;
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 24px 56px rgba(0,0,0,0.32), 0 8px 20px rgba(0,0,0,0.18);
+      transform: scale(1.05) rotate(1.2deg);
+      opacity: 1;
+    }
+    .drag-handle {
+      display: flex; align-items: center;
+      color: var(--muted); padding: 0 3px 0 0;
+      flex-shrink: 0; cursor: grab; touch-action: none;
+    }
+    .drag-handle:active { cursor: grabbing; color: var(--primary); }
+    .drag-hint { font-size: 11px; color: var(--muted); }
+    .palette-btn {
+      background: none; border: none; cursor: pointer; padding: 4px;
+      border-radius: 8px; color: var(--muted);
+      display: flex; align-items: center; line-height: 1;
+    }
+    @media (hover: hover) { .palette-btn:hover { color: var(--primary); } }
+    .palette-btn:active { color: var(--primary); }
+    /* Color Sheet */
+    .color-group-row { padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+    .color-group-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .color-group-label { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
+    .color-swatches { display: flex; gap: 10px; align-items: center; }
+    .color-swatch {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid rgba(0,0,0,0.08);
+      cursor: pointer; flex-shrink: 0; padding: 0;
+      transition: transform 0.12s; outline: none;
+    }
+    .color-swatch:active { transform: scale(0.88); }
+    .color-swatch.active { outline: 2.5px solid var(--primary); outline-offset: 3px; }
+
+    /* ── Empty ── */
+    .empty {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 20px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .empty-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .empty-desc { font-size: 13px; color: var(--subtext); line-height: 1.6; }
+
+    /* ── Bottom Bar ── */
+    .bottom-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      padding: 12px 16px 24px;
+      display: flex; gap: 10px;
+      z-index: 50;
+    }
+    .btn {
+      flex: 1; padding: 13px 0;
+      border-radius: 12px;
+      font-size: 15px; font-weight: 700;
+      border: none; cursor: pointer;
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.45; pointer-events: none; }
+    .btn-primary  { background: var(--primary); color: #fff; }
+    .btn-outline  {
+      background: var(--card); color: var(--primary);
+      border: 1.5px solid var(--primary);
+    }
+    @media (hover: hover) {
+      .btn-primary:hover  { opacity: 0.88; }
+      .btn-outline:hover  { background: var(--pri-bg); }
+    }
+
+    /* ── Modal ── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 200;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.22s, visibility 0.22s;
+      display: flex; align-items: flex-end;
+    }
+    .overlay.open { opacity: 1; visibility: visible; }
+    .sheet {
+      background: var(--card);
+      border-radius: 20px 20px 0 0;
+      padding: 0 20px 40px;
+      width: 100%;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+    }
+    .overlay.open .sheet { transform: translateY(0); }
+    .sheet-handle {
+      width: 36px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 14px auto 20px;
+    }
+    .sheet-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+
+    /* ── Form ── */
+    .form-group { margin-bottom: 16px; }
+    label { font-size: 13px; font-weight: 600; color: var(--subtext); display: block; margin-bottom: 7px; }
+    .input {
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 11px;
+      padding: 13px 14px;
+      font-size: 16px; color: var(--text);
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif; outline: none;
+      transition: border-color 0.18s;
+    }
+    .input:focus { border-color: var(--primary); background: #fff; }
+    .input::placeholder { color: var(--muted); }
+
+    /* ── Success Card ── */
+    .success-card {
+      background: var(--pri-bg);
+      border: 1.5px solid #c4b5fd;
+      border-radius: 14px;
+      padding: 18px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .success-label { font-size: 12px; font-weight: 700; color: var(--pri-text); margin-bottom: 8px; }
+    .success-code  { font-size: 32px; font-weight: 700; letter-spacing: 0.24em; color: var(--primary); }
+    .success-hint  { font-size: 12px; color: var(--subtext); margin-top: 8px; line-height: 1.6; }
+
+    /* ── Section Head ── */
+    .section-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    /* ── Loading ── */
+    .loading { display: flex; justify-content: center; padding: 48px; }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 100px; left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: #1c1a2e; color: #fff;
+      border-radius: 10px; padding: 10px 18px;
+      font-size: 13px; white-space: nowrap;
+      opacity: 0; transition: all 0.22s;
+      z-index: 1000; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.err  { background: var(--danger); }
+    .toast.ok   { background: var(--success); }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-title">星際群組</div>
+  <div class="header-sub">與好友一起探索星座能量</div>
+</header>
+
+<div class="container">
+
+  <div class="user-card">
+    <div class="user-avatar" id="userAvatar">🌟</div>
+    <div>
+      <div class="user-name" id="userName">載入中...</div>
+      <div class="user-sub"  id="userSub">連接中...</div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <div class="section-label" style="margin-bottom:0">我的群組</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="drag-hint" id="dragHintText" style="display:none">長按符號可調整順序</span>
+      <button class="palette-btn" id="paletteBtn" onclick="openColorSheet()" style="display:none" title="更換群組底色">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/>
+          <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>
+          <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div id="groupList"><div class="loading"><div class="spinner"></div></div></div>
+
+</div>
+
+<div class="bottom-bar">
+  <button class="btn btn-outline"  onclick="openSheet('joinSheet')">輸入群組代碼</button>
+  <button class="btn btn-primary"  onclick="openSheet('createSheet')">建立群組</button>
+</div>
+
+<!-- Color Sheet -->
+<div class="overlay" id="colorSheet" onclick="closeOnBg(event,'colorSheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">更換顏色</div>
+    <div id="colorSheetBody"></div>
+  </div>
+</div>
+
+<!-- Create Sheet -->
+<div class="overlay" id="createSheet" onclick="closeOnBg(event,'createSheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="createTitle">建立新群組</div>
+    <div id="createForm">
+      <div class="form-group">
+        <label>群組名稱</label>
+        <input type="text" class="input" id="groupNameInput" placeholder="為群組取個名字" maxlength="30">
+      </div>
+      <button class="btn btn-primary" style="width:100%" id="createBtn" onclick="createGroup()">建立</button>
+    </div>
+    <div id="createDone" style="display:none">
+      <div class="success-card">
+        <div class="success-label">群組驗證碼（分享給朋友）</div>
+        <div class="success-code" id="createdCode">------</div>
+        <div class="success-hint">朋友輸入這組驗證碼即可加入</div>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="enterCreated()">進入群組 ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- Join Sheet -->
+<div class="overlay" id="joinSheet" onclick="closeOnBg(event,'joinSheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">加入群組</div>
+    <div class="form-group">
+      <label>輸入 6 位數代碼</label>
+      <input type="text" class="input" id="codeInput"
+        placeholder="ABC123" maxlength="6"
+        style="text-transform:uppercase;letter-spacing:0.25em;text-align:center;font-size:22px;font-weight:700">
+    </div>
+    <button class="btn btn-primary" style="width:100%" id="joinBtn" onclick="joinGroup()">加入</button>
+  </div>
+</div>
+
+<!-- Invite Join Sheet (只在未註冊時出現) -->
+<div class="overlay" id="inviteSheet">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div style="text-align:center;padding:4px 0 24px">
+      <div style="font-size:40px;margin-bottom:14px">⭐</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px">尚未設定星盤</div>
+      <div style="font-size:13px;color:var(--subtext);line-height:1.8;margin-bottom:4px">加入星際群組前，需先與<strong>星語守護者</strong>完成星盤設定。<br>設定完成後再回來點擊邀請連結，即可直接加入！</div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-bottom:10px" onclick="goToBot()">前往加入官方帳號</button>
+    <button class="btn btn-outline"  style="width:100%" onclick="closeSheet('inviteSheet')">稍後再說</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API         = 'https://webbermars.app.n8n.cloud/webhook';
+  const LIFF_ID     = '2009047186-MXDITyXh';
+  const LINE_BOT_ID = '@070rgzrs';
+
+  const CARD_COLORS = [
+    { id:'white',  label:'白色',   bg:'#ffffff',  border:'#e5e3ec',               name:'#1c1a2e', chip_bg:'#ede9fe',               chip_text:'#5b21b6', arrow:'#9ca3af', handle:'#9ca3af', icon_bg:'#ede9fe',               star:'#7c3aed' },
+    { id:'black',  label:'黑色',   bg:'#1c1a2e',  border:'#e5e3ec',               name:'#ffffff', chip_bg:'#ede9fe',               chip_text:'#5b21b6', arrow:'#ffffff', handle:'#ffffff', icon_bg:'#ede9fe',               star:'#7c3aed' },
+    { id:'pink',   label:'淡粉色', bg:'#fce7f3',  border:'#f9a8d4',               name:'#831843', chip_bg:'#fbcfe8',               chip_text:'#9d174d', arrow:'#be185d', handle:'#f472b6', icon_bg:'#fbcfe8',               star:'#be185d' },
+    { id:'yellow', label:'淡黃色', bg:'#fefce8',  border:'#fde68a',               name:'#78350f', chip_bg:'#fde68a',               chip_text:'#92400e', arrow:'#d97706', handle:'#fbbf24', icon_bg:'#fde68a',               star:'#d97706' },
+    { id:'blue',   label:'淡藍色', bg:'#eff6ff',  border:'#bfdbfe',               name:'#1e3a8a', chip_bg:'#bfdbfe',               chip_text:'#1e40af', arrow:'#3b82f6', handle:'#93c5fd', icon_bg:'#bfdbfe',               star:'#1d4ed8' },
+    { id:'green',  label:'淡綠色', bg:'#f0fdf4',  border:'#bbf7d0',               name:'#14532d', chip_bg:'#bbf7d0',               chip_text:'#065f46', arrow:'#059669', handle:'#6ee7b7', icon_bg:'#bbf7d0',               star:'#059669' },
+  ];
+  let _cardColors = {};
+
+  let uid = '';
+  let _pendingInviteCode = '';
+  let createdGid = '', createdGname = '', createdCode = '';
+  let _groups = [], _dragActive = false, _dragIdx = -1;
+  let _ghost = null, _lpTimer = null, _dragOffsetY = 0, _dragCardH = 0;
+  let _touchStartX = 0, _touchStartY = 0, _justDragged = false;
+  let _nonDragCards = [], _naturalMidpoints = [], _dropSlot = -1, _dragCardEl = null;
+
+  async function init() {
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isInClient()) throw new Error('browser');
+      if (!liff.isLoggedIn()) { liff.login(); return; }
+      const p = await liff.getProfile();
+      uid = p.userId;
+      // 解析 URL params（相容 liff.state 包裝）
+      const _up  = new URLSearchParams(location.search);
+      const _ls  = _up.get('liff.state');
+      const _lsp = _ls ? (() => { try { return new URLSearchParams(decodeURIComponent(_ls).replace(/^\?/,'')); } catch { return new URLSearchParams(); } })() : new URLSearchParams();
+      const _gp  = k => _up.get(k) || _lsp.get(k) || '';
+      // 對戰邀請連結：直接跳轉到 quiz_battle.html
+      const _bid = _gp('battle_id');
+      if (_bid) {
+        const bp = new URLSearchParams({ battle_id: _bid, uid, group_id: _gp('group_id'), group_name: _gp('group_name') || '星際群組' });
+        location.replace(`quiz_battle.html?${bp}`);
+        return;
+      }
+      loadCardColors();
+      document.getElementById('userName').textContent = p.displayName;
+      document.getElementById('userSub').textContent  = '已連線';
+      if (p.pictureUrl)
+        document.getElementById('userAvatar').innerHTML = `<img src="${p.pictureUrl}" alt="">`;
+      loadGroups();
+      // 偵測群組邀請連結，直接自動加入
+      const urlCode = _gp('invite_code');
+      if (urlCode) autoJoinFromInvite(urlCode.toUpperCase());
+    } catch {
+      uid = 'demo_user';
+      loadCardColors();
+      document.getElementById('userName').textContent = '示範用戶';
+      document.getElementById('userSub').textContent  = '瀏覽器預覽模式';
+      renderGroups([
+        { group_id: 'demo1', group_name: '天秤座好友團', invite_code: 'AB1234' },
+        { group_id: 'demo2', group_name: '星座研究社',   invite_code: 'XY9876' }
+      ]);
+    }
+  }
+
+  async function loadGroups(retry = 0) {
+    try {
+      const r = await fetch(`${API}/group-list`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid })
+      });
+      const d = await r.json();
+      renderGroups(d.groups || []);
+    } catch {
+      if (retry < 2) { setTimeout(() => loadGroups(retry + 1), 4000); }
+      else { showToast('載入失敗，請關閉後重試', 'err'); renderGroups([]); }
+    }
+  }
+
+  function renderGroups(list) {
+    _groups = applyOrder(list);
+    _render();
+  }
+
+  function _render() {
+    const el = document.getElementById('groupList');
+    const hint = document.getElementById('dragHintText');
+    const pal  = document.getElementById('paletteBtn');
+    if (!_groups.length) {
+      if (hint) hint.style.display = 'none';
+      if (pal)  pal.style.display  = 'none';
+      el.innerHTML = `
+        <div class="empty">
+          <div class="empty-title">尚未加入任何群組</div>
+          <div class="empty-desc">建立群組邀請朋友，或輸入代碼加入朋友的群組</div>
+        </div>`;
+      return;
+    }
+    if (hint) hint.style.display = _groups.length >= 2 ? 'inline' : 'none';
+    if (pal)  pal.style.display  = 'flex';
+    el.innerHTML = _groups.map((g, i) => {
+      const cc = CARD_COLORS.find(c => c.id === (_cardColors[g.group_id] || 'white')) || CARD_COLORS[0];
+      const d  = cc.id === 'white';
+      const cardSt   = d ? '' : `style="background:${cc.bg};border:1.5px solid ${cc.border};"`;
+      const handleSt = d ? '' : `style="color:${cc.handle};"`;
+      const iconSt   = d ? '' : `style="background:${cc.icon_bg};"`;
+      const nameSt   = d ? '' : `style="color:${cc.name};"`;
+      const chipSt   = d ? '' : `style="background:${cc.chip_bg};color:${cc.chip_text};"`;
+      const arrowSt  = d ? '' : `style="color:${cc.arrow};"`;
+      const dotOp    = d ? '0.5' : '1';
+      return `
+      <div class="group-card" data-idx="${i}" ${cardSt} onclick="if(!_dragActive&&!_justDragged)goRoom('${x(g.group_id)}','${x(g.group_name)}','${x(g.invite_code)}')">
+        <div class="drag-handle" ${handleSt}>
+          <svg width="14" height="16" viewBox="0 0 14 16" fill="currentColor" opacity="${dotOp}">
+            <circle cx="4" cy="3.5" r="1.5"/><circle cx="10" cy="3.5" r="1.5"/>
+            <circle cx="4" cy="8"   r="1.5"/><circle cx="10" cy="8"   r="1.5"/>
+            <circle cx="4" cy="12.5" r="1.5"/><circle cx="10" cy="12.5" r="1.5"/>
+          </svg>
+        </div>
+        <div class="group-icon" ${iconSt}><svg width="18" height="18" viewBox="0 0 18 18" fill="${cc.star}"><path d="M9 1.5l1.8 5.4H17l-4.6 3.3 1.8 5.4L9 12.4l-5.2 3.2 1.8-5.4L1 6.9h6.2L9 1.5z"/></svg></div>
+        <div class="group-info">
+          <div class="group-name" ${nameSt}>${x(g.group_name)}</div>
+          <span class="invite-chip" ${chipSt}>${x(g.invite_code)}</span>
+        </div>
+        <div class="group-arrow" ${arrowSt}>›</div>
+      </div>`;
+    }).join('');
+    initDrag();
+  }
+
+  /* ─── Card Color ───────────────────────────────── */
+  function loadCardColors() {
+    if (!uid) return;
+    try { _cardColors = JSON.parse(localStorage.getItem(`group_card_colors_${uid}`) || '{}'); } catch {}
+  }
+
+  function saveCardColor(group_id, colorId) {
+    if (colorId === 'white') delete _cardColors[group_id]; else _cardColors[group_id] = colorId;
+    if (!uid) return;
+    try { localStorage.setItem(`group_card_colors_${uid}`, JSON.stringify(_cardColors)); } catch {}
+  }
+
+  function openColorSheet() {
+    if (!_groups.length) return;
+    const body = document.getElementById('colorSheetBody');
+    body.innerHTML = _groups.map(g => {
+      const cur = _cardColors[g.group_id] || 'white';
+      return `<div class="color-group-row">
+        <div class="color-group-label">${x(g.group_name)}</div>
+        <div class="color-swatches">
+          ${CARD_COLORS.map(c => `<button class="color-swatch${cur===c.id?' active':''}"
+            style="background:${c.bg};"
+            onclick="applyCardColor('${x(g.group_id)}','${c.id}',this)"
+            title="${c.label}"></button>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+    openSheet('colorSheet');
+  }
+
+  function applyCardColor(group_id, colorId, btn) {
+    saveCardColor(group_id, colorId);
+    btn.closest('.color-group-row').querySelectorAll('.color-swatch').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    _render();
+  }
+
+  /* ─── Order Persistence ─────────────────────────── */
+  const ORDER_KEY = () => `group_order_${uid}`;
+
+  function applyOrder(list) {
+    if (!uid || uid === 'demo_user') return list;
+    try {
+      const saved = JSON.parse(localStorage.getItem(ORDER_KEY()) || '[]');
+      if (!saved.length) return list;
+      const map = new Map(list.map(g => [g.group_id, g]));
+      return [
+        ...saved.filter(id => map.has(id)).map(id => map.get(id)),
+        ...list.filter(g => !saved.includes(g.group_id))
+      ];
+    } catch { return list; }
+  }
+
+  function saveOrder() {
+    if (!uid || uid === 'demo_user') return;
+    try { localStorage.setItem(ORDER_KEY(), JSON.stringify(_groups.map(g => g.group_id))); } catch {}
+  }
+
+  /* ─── Drag to Reorder ───────────────────────────── */
+  function initDrag() {
+    if (_groups.length < 2) return;
+    const cards = [...document.querySelectorAll('.group-card')];
+    cards.forEach((card, i) => {
+      // Prevent iOS long-press context menu
+      card.addEventListener('contextmenu', e => e.preventDefault());
+
+      // Mobile: long-press 2s to start drag
+      card.addEventListener('touchstart', e => {
+        if (e.touches.length !== 1) return;
+        const t = e.touches[0];
+        _touchStartX = t.clientX; _touchStartY = t.clientY;
+        _lpTimer = setTimeout(() => {
+          navigator.vibrate?.(60);
+          startDrag(card, i, t.clientX, t.clientY);
+        }, 2000);
+      }, { passive: true });
+
+      card.addEventListener('touchmove', e => {
+        if (_dragActive || !_lpTimer) return;
+        const t = e.touches[0];
+        // 15px threshold — finger micro-trembling on mobile won't cancel
+        if (Math.hypot(t.clientX - _touchStartX, t.clientY - _touchStartY) > 15) cancelLP();
+      }, { passive: true });
+
+      card.addEventListener('touchend',    cancelLP);
+      card.addEventListener('touchcancel', cancelLP);
+
+      // Drag handle: desktop mousedown + mobile touchstart
+      const handle = card.querySelector('.drag-handle');
+      if (handle) {
+        handle.addEventListener('mousedown', e => {
+          e.preventDefault();
+          startDrag(card, i, e.clientX, e.clientY);
+        });
+        handle.addEventListener('touchstart', e => {
+          if (e.touches.length !== 1) return;
+          e.preventDefault(); // must be passive:false to call this
+          const t = e.touches[0];
+          startDrag(card, i, t.clientX, t.clientY);
+        }, { passive: false });
+      }
+    });
+  }
+
+  function cancelLP() { clearTimeout(_lpTimer); _lpTimer = null; }
+
+  function startDrag(card, idx, clientX, clientY) {
+    if (_dragActive) return;
+    _dragActive  = true;
+    _dragIdx     = idx;
+    _dragCardEl  = card;
+
+    const rect   = card.getBoundingClientRect();
+    _dragOffsetY = clientY - rect.top;
+    _dragCardH   = card.offsetHeight + 10; // card height + margin-bottom
+
+    // Ghost: lifted card that follows the finger
+    _ghost = document.createElement('div');
+    _ghost.className = 'drag-ghost';
+    _ghost.style.cssText = `width:${rect.width}px;height:${rect.height}px;top:${rect.top}px;left:${rect.left}px;`;
+    if (card.style.background) _ghost.style.background = card.style.background;
+    if (card.style.border)     _ghost.style.border     = card.style.border;
+    _ghost.innerHTML = card.innerHTML;
+    document.body.appendChild(_ghost);
+
+    // Remove original from flow; remaining cards shift up to close the gap
+    card.style.display = 'none';
+
+    // Measure natural midpoints of remaining cards AFTER original is hidden
+    const allCards = [...document.querySelectorAll('.group-card')];
+    _nonDragCards = allCards.filter((_, i) => i !== idx);
+    _naturalMidpoints = _nonDragCards.map(c => {
+      const r = c.getBoundingClientRect();
+      return r.top + r.height / 2;
+    });
+
+    // Enable smooth sliding on remaining cards
+    _nonDragCards.forEach(c => {
+      c.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    });
+
+    // Apply initial shifts based on where the finger is
+    _dropSlot = _nonDragCards.length; // start: no shifts
+    updateShifts(calcDropSlot(clientY));
+
+    document.addEventListener('touchmove',  onDragMove, { passive: false });
+    document.addEventListener('touchend',   onDragEnd);
+    document.addEventListener('mousemove',  onDragMove);
+    document.addEventListener('mouseup',    onDragEnd);
+  }
+
+  function onDragMove(e) {
+    if (!_dragActive) return;
+    if (e.cancelable) e.preventDefault();
+    const fingerY = e.touches ? e.touches[0].clientY : e.clientY;
+    _ghost.style.top = (fingerY - _dragOffsetY) + 'px';
+    updateShifts(calcDropSlot(fingerY));
+  }
+
+  // Use TARGET midpoints (natural + shift if applicable) for slot calculation.
+  // This gives exact transitions at visual card midpoints with hysteresis to prevent oscillation.
+  function calcDropSlot(fingerY) {
+    for (let j = 0; j < _naturalMidpoints.length; j++) {
+      const targetMid = _naturalMidpoints[j] + (j >= _dropSlot ? _dragCardH : 0);
+      if (fingerY < targetMid) return j;
+    }
+    return _naturalMidpoints.length;
+  }
+
+  function updateShifts(newSlot) {
+    if (newSlot === _dropSlot) return;
+    _dropSlot = newSlot;
+    _nonDragCards.forEach((c, j) => {
+      c.style.transform = j >= _dropSlot ? `translateY(${_dragCardH}px)` : '';
+    });
+  }
+
+  function onDragEnd() {
+    if (!_dragActive) return;
+    _dragActive = false;
+    document.removeEventListener('touchmove',  onDragMove);
+    document.removeEventListener('touchend',   onDragEnd);
+    document.removeEventListener('mousemove',  onDragMove);
+    document.removeEventListener('mouseup',    onDragEnd);
+
+    _ghost?.remove(); _ghost = null;
+
+    const toClean = [..._nonDragCards];
+    const di = _dragIdx, ds = _dropSlot;
+    _dragIdx = -1; _dropSlot = -1;
+    _nonDragCards = []; _naturalMidpoints = [];
+
+    _justDragged = true;
+    setTimeout(() => { _justDragged = false; }, 350);
+
+    // Determine new order
+    const nonDragging = _groups.filter((_, i) => i !== di);
+    nonDragging.splice(ds, 0, _groups[di]);
+    const changed = nonDragging.map(g => g.group_id).join(',') !== _groups.map(g => g.group_id).join(',');
+
+    if (changed) {
+      _groups = nonDragging;
+      saveOrder();
+      toClean.forEach(c => { c.style.transition = ''; c.style.transform = ''; });
+      if (_dragCardEl) { _dragCardEl.style.display = ''; _dragCardEl = null; }
+      _render();
+    } else {
+      // No change: animate cards back to original positions
+      toClean.forEach(c => {
+        c.style.transition = 'transform 0.18s ease';
+        c.style.transform  = '';
+      });
+      if (_dragCardEl) { _dragCardEl.style.display = ''; _dragCardEl = null; }
+      setTimeout(() => { toClean.forEach(c => { c.style.transition = ''; }); }, 200);
+    }
+  }
+
+  async function createGroup() {
+    const name = document.getElementById('groupNameInput').value.trim();
+    if (!name) { showToast('請輸入群組名稱', 'err'); return; }
+    const btn = document.getElementById('createBtn');
+    btn.disabled = true; btn.textContent = '建立中...';
+    try {
+      const r = await fetch(`${API}/group-create`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, group_name: name })
+      });
+      const d = await r.json();
+      if (!d.success) throw new Error(d.message || '建立失敗');
+      createdGid   = d.group_id;
+      createdGname = name;
+      createdCode  = d.invite_code;
+      document.getElementById('createdCode').textContent    = d.invite_code;
+      document.getElementById('createTitle').textContent    = `「${name}」建立成功！`;
+      document.getElementById('createForm').style.display   = 'none';
+      document.getElementById('createDone').style.display   = 'block';
+      loadGroups();
+    } catch (e) {
+      showToast(e.message || '建立失敗', 'err');
+      btn.disabled = false; btn.textContent = '建立';
+    }
+  }
+
+  function enterCreated() {
+    closeSheet('createSheet');
+    goRoom(createdGid, createdGname, createdCode);
+  }
+
+  async function joinGroup() {
+    const code = document.getElementById('codeInput').value.trim().toUpperCase();
+    if (code.length !== 6) { showToast('請輸入 6 位驗證碼', 'err'); return; }
+    const btn = document.getElementById('joinBtn');
+    btn.disabled = true; btn.textContent = '加入中...';
+    try {
+      const r = await fetch(`${API}/group-join`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, invite_code: code })
+      });
+      const d = await r.json();
+      if (!d.success) throw new Error(d.message || '加入失敗');
+      closeSheet('joinSheet');
+      showToast(d.already_member ? '你已在此群組' : `已加入「${d.group_name}」！`, 'ok');
+      loadGroups();
+      setTimeout(() => goRoom(d.group_id, d.group_name, d.invite_code), 700);
+    } catch (e) {
+      showToast(e.message || '驗證碼錯誤', 'err');
+      btn.disabled = false; btn.textContent = '加入';
+    }
+  }
+
+  /* ── Invite Join ──────────────────────────────────────────────── */
+  async function autoJoinFromInvite(code) {
+    _pendingInviteCode = code;
+    showToast('正在加入群組...');
+    try {
+      const r = await fetch(`${API}/group-join`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, invite_code: code })
+      });
+      const d = await r.json();
+      if (!d.success) {
+        const msg = d.message || '';
+        if (msg.includes('代碼') || msg.includes('群組不存在') || msg.includes('找不到')) {
+          showToast(msg || '邀請連結已失效', 'err');
+        } else {
+          openSheet('inviteSheet'); // 未註冊 → 引導視窗
+        }
+        return;
+      }
+      showToast(d.already_member ? '你已在此群組' : `已加入「${d.group_name}」！`, 'ok');
+      loadGroups();
+      setTimeout(() => goRoom(d.group_id, d.group_name, d.invite_code), 700);
+    } catch {
+      showToast('加入失敗，請稍後重試', 'err');
+    }
+  }
+
+  function goToBot() {
+    const url = `https://line.me/R/ti/p/${LINE_BOT_ID}`;
+    if (typeof liff !== 'undefined' && liff.isInClient()) {
+      liff.openWindow({ url, external: false });
+    } else {
+      window.open(url, '_blank');
+    }
+  }
+
+  function goRoom(gid, gname, code) {
+    const params = new URLSearchParams({ group_id: gid, group_name: gname, uid, invite_code: code });
+    location.href = `group_room.html?${params}`;
+  }
+
+  function openSheet(id) {
+    if (id === 'createSheet') {
+      document.getElementById('groupNameInput').value       = '';
+      document.getElementById('createTitle').textContent    = '建立新群組';
+      document.getElementById('createForm').style.display   = 'block';
+      document.getElementById('createDone').style.display   = 'none';
+      const b = document.getElementById('createBtn');
+      b.disabled = false; b.textContent = '建立';
+    }
+    if (id === 'joinSheet') {
+      document.getElementById('codeInput').value  = '';
+      const b = document.getElementById('joinBtn');
+      b.disabled = false; b.textContent = '加入';
+    }
+    document.getElementById(id).classList.add('open');
+  }
+  function closeSheet(id) { document.getElementById(id).classList.remove('open'); }
+  function closeOnBg(e, id) { if (e.target === e.currentTarget) closeSheet(id); }
+
+  function openDragHelp()  { document.getElementById('dragHelpOverlay').classList.add('open'); }
+  function closeDragHelp() { document.getElementById('dragHelpOverlay').classList.remove('open'); }
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = `toast ${type} show`;
+    setTimeout(() => { t.className = 'toast'; }, 2500);
+  }
+
+  function x(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  init();
+</script>
+</body>
+</html>

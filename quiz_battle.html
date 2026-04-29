@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>測驗對戰</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    :root {
+      --bg:      #0d0c1d;
+      --card:    #1a1830;
+      --card2:   #221f3a;
+      --border:  #3e3b65;
+      --text:    #f0eeff;
+      --sub:     #8b87c0;
+      --muted:   #7a769e;
+      --primary: #7c3aed;
+      --pri-l:   #a78bfa;
+      --gold:    #f59e0b;
+      --green:   #10b981;
+      --red:     #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans TC', -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; overflow-x: hidden;
+    }
+
+    /* ── Screens ── */
+    .screen { display: none; position: relative; z-index: 1; min-height: 100vh; padding: 20px 16px 44px; flex-direction: column; }
+    .screen.active { display: flex; }
+
+    /* ── Loading ── */
+    #screenLoading {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; min-height: 100vh; gap: 14px;
+    }
+    .spinner { width: 34px; height: 34px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error ── */
+    #screenError { display: none; position: relative; z-index: 1; min-height: 100vh; }
+    .err-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 12px; padding: 24px; text-align: center; }
+    .err-icon { font-size: 52px; }
+    .err-msg  { font-size: 15px; color: var(--sub); line-height: 1.7; }
+
+    /* ── Common ── */
+    .screen-hd { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .back-btn  { width: 36px; height: 36px; border-radius: 10px; background: var(--card); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; flex-shrink: 0; padding-right: 2px; transition: background 0.12s; }
+    .back-btn:active { background: var(--border); }
+    .screen-title { font-size: 17px; font-weight: 700; flex: 1; }
+    .sec-label { font-size: 11px; font-weight: 700; letter-spacing: 0.09em; color: var(--muted); margin-bottom: 10px; }
+
+    .btn { width: 100%; padding: 15px; border-radius: 13px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity 0.15s, transform 0.1s; margin-bottom: 10px; }
+    .btn:active:not(:disabled) { transform: scale(0.98); opacity: 0.82; }
+    .btn:disabled { opacity: 0.35; cursor: default; }
+    .btn-primary   { background: var(--primary); color: #fff; }
+    .btn-success   { background: var(--green); color: #fff; }
+    .btn-outline   { background: transparent; color: var(--pri-l); border: 1.5px solid var(--primary); }
+    .btn-secondary { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+
+    /* ── Player card (shared) ── */
+    .player-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .player-card.is-self { border-color: var(--primary); background: rgba(124,58,237,0.1); }
+    .p-avatar  { width: 40px; height: 40px; border-radius: 9px; background: var(--card2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 18px; overflow: hidden; flex-shrink: 0; }
+    .p-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .p-name    { font-size: 14px; font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .host-tag  { font-size: 10px; font-weight: 700; color: var(--gold); background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); padding: 2px 7px; border-radius: 20px; flex-shrink: 0; }
+    .s-badge   { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; flex-shrink: 0; }
+    .s-waiting { background: rgba(107,114,128,0.2); color: #9ca3af; }
+    .s-ready   { background: rgba(16,185,129,0.2); color: #34d399; }
+
+    /* ── Lobby ── */
+    .lobby-hd-room { flex: 1; min-width: 0; }
+    .lobby-hd-code { font-size: 20px; font-weight: 700; color: var(--pri-l); letter-spacing: 0.18em; line-height: 1.2; }
+    .lobby-hd-group { font-size: 11px; color: var(--sub); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lobby-hint { font-size: 13px; color: var(--sub); text-align: center; margin: 16px 0; line-height: 1.6; }
+    .lobby-btn-area { margin-top: auto; padding-top: 16px; }
+
+    /* ── Countdown ── */
+    #screenCountdown { align-items: center; justify-content: center; background: radial-gradient(ellipse at center, #1a0a3d 0%, var(--bg) 70%); }
+    .cd-label { font-size: 13px; letter-spacing: 0.15em; color: var(--sub); margin-bottom: 28px; }
+    .cd-num   { font-size: 120px; font-weight: 700; line-height: 1; color: var(--pri-l); text-shadow: 0 0 40px rgba(124,58,237,0.8), 0 0 80px rgba(124,58,237,0.4); animation: pulse-in 0.85s ease-out; }
+    @keyframes pulse-in { 0% { transform: scale(1.4); opacity: 0.4; } 60% { transform: scale(0.92); } 100% { transform: scale(1); opacity: 1; } }
+    .cd-sub   { margin-top: 28px; font-size: 14px; color: var(--sub); letter-spacing: 0.05em; }
+
+    /* ── Question ── */
+    .q-hd       { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .q-idx      { font-size: 13px; font-weight: 700; color: var(--sub); }
+    .q-timer-wrap { position: relative; width: 60px; height: 60px; flex-shrink: 0; }
+    .q-timer-wrap svg { transform: rotate(-90deg); display: block; }
+    .q-timer-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: var(--pri-l); }
+    .q-timer-num.urgent { color: var(--red); }
+    .q-text  { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; font-size: 16px; font-weight: 600; line-height: 1.6; margin-bottom: 18px; text-align: center; min-height: 88px; display: flex; align-items: center; justify-content: center; }
+    .q-opts  { display: flex; flex-direction: column; gap: 10px; }
+    .q-opt   { padding: 14px 16px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--card); display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all 0.14s; font-size: 14px; font-weight: 500; }
+    .q-opt:active { transform: scale(0.99); }
+    .q-opt.selected { border-color: var(--pri-l); background: rgba(124,58,237,0.28); box-shadow: 0 0 0 2px rgba(124,58,237,0.4); }
+    .q-opt.selected .q-opt-k { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .q-opt.disabled { cursor: default; opacity: 0.55; }
+    .q-opt-k { width: 28px; height: 28px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--card2); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--pri-l); flex-shrink: 0; }
+    .q-strip { margin-top: 16px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .q-pip   { display: flex; align-items: center; gap: 5px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px 4px 5px; font-size: 12px; font-weight: 600; }
+    .q-pip-av { width: 20px; height: 20px; border-radius: 5px; background: var(--card2); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+    .q-pip-av img { width: 100%; height: 100%; object-fit: cover; }
+    .q-pip.done { border-color: var(--green); background: rgba(16,185,129,0.1); }
+
+    /* ── Reveal ── */
+    .rv-q    { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; font-size: 15px; font-weight: 600; line-height: 1.6; text-align: center; margin-bottom: 14px; }
+    .rv-opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .rv-opt  { padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--card); display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; }
+    .rv-opt.correct { border-color: var(--green); background: rgba(16,185,129,0.12); }
+    .rv-opt.wrong   { opacity: 0.45; }
+    .rv-opt-k { width: 24px; height: 24px; border-radius: 6px; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+    .rv-opt.correct .rv-opt-k { background: var(--green); color: #fff; border-color: var(--green); }
+    .rv-player { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 6px; }
+    .rv-player.is-self { border-color: var(--primary); }
+    .rv-av   { width: 32px; height: 32px; border-radius: 8px; background: var(--card2); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .rv-av img { width: 100%; height: 100%; object-fit: cover; }
+    .rv-name { font-size: 13px; font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rv-ans  { font-size: 12px; font-weight: 700; color: var(--sub); flex-shrink: 0; margin-right: 4px; }
+    .rv-icon { font-size: 16px; flex-shrink: 0; }
+    .rv-score{ font-size: 12px; font-weight: 700; color: var(--gold); flex-shrink: 0; margin-left: 4px; }
+    .rv-next { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; font-size: 14px; color: var(--sub); margin-top: 4px; }
+    .rv-next-n { font-size: 20px; font-weight: 700; color: var(--pri-l); min-width: 28px; text-align: center; }
+
+    /* ── Final ── */
+    .final-title { text-align: center; font-size: 30px; font-weight: 700; margin-bottom: 6px; background: linear-gradient(135deg, #a78bfa, #f0abfc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .final-sub   { text-align: center; font-size: 13px; color: var(--sub); margin-bottom: 24px; }
+    .podium { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 16px; }
+    .rk-row  { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--border); }
+    .rk-row:last-child { border-bottom: none; }
+    .rk-row.gold   { background: rgba(245,158,11,0.08); }
+    .rk-row.silver { background: rgba(167,139,250,0.07); }
+    .rk-row.bronze { background: rgba(252,165,165,0.05); }
+    .rk-row.self   { border-left: 3px solid var(--primary); }
+    .rk-medal { font-size: 22px; width: 28px; text-align: center; flex-shrink: 0; }
+    .rk-av   { width: 38px; height: 38px; border-radius: 9px; background: var(--card2); border: 1px solid var(--border); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .rk-av img { width: 100%; height: 100%; object-fit: cover; }
+    .rk-name { font-size: 14px; font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rk-pts  { font-size: 22px; font-weight: 700; color: var(--gold); flex-shrink: 0; }
+    .rk-unit { font-size: 11px; color: var(--sub); margin-left: 2px; }
+
+    /* ── Setup Screen ── */
+    .sel-row { display: flex; gap: 10px; margin-bottom: 8px; }
+    .sel-btn { flex: 1; padding: 13px 0; border-radius: 10px; border: 1.5px solid var(--border); background: transparent; color: var(--text); font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .sel-btn.active { border-color: var(--primary); background: rgba(124,58,237,0.22); color: var(--pri-l); box-shadow: 0 0 0 2px rgba(124,58,237,0.35); }
+    .setup-desc { font-size: 13px; color: var(--sub); line-height: 1.7; margin-bottom: 24px; }
+
+    /* ── Player Slots ── */
+    .slots-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+    .slot-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 14px; padding: 16px 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 130px; position: relative; }
+    .slot-card.is-self { border-color: var(--primary); background: rgba(124,58,237,0.1); }
+    .slot-card.empty { border-style: dashed; cursor: pointer; }
+    .slot-card.empty:active { opacity: 0.7; }
+    .slot-av { width: 52px; height: 52px; border-radius: 12px; background: var(--card2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; flex-shrink: 0; }
+    .slot-av img { width: 100%; height: 100%; object-fit: cover; }
+    .slot-plus { width: 52px; height: 52px; border-radius: 12px; background: var(--card2); border: 1.5px dashed var(--muted); display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--muted); }
+    .slot-name { font-size: 13px; font-weight: 700; text-align: center; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .slot-host-tag { position: absolute; top: 6px; right: 6px; font-size: 10px; font-weight: 700; color: var(--gold); background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); padding: 2px 7px; border-radius: 20px; }
+    .slot-ready-tag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+    .slot-ready-tag.ready   { background: rgba(16,185,129,0.2); color: #34d399; }
+    .slot-ready-tag.waiting { background: rgba(107,114,128,0.2); color: #9ca3af; }
+
+    /* ── Invite Modal ── */
+    .invite-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; display: none; align-items: flex-end; }
+    .invite-overlay.open { display: flex; }
+    .invite-sheet { background: var(--card); border-radius: 20px 20px 0 0; padding: 12px 20px 44px; width: 100%; max-height: 75vh; overflow-y: auto; }
+    .invite-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
+    .invite-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .invite-sub   { font-size: 12px; color: var(--sub); margin-bottom: 16px; }
+    .member-row   { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .member-row:last-child { border-bottom: none; }
+    .member-av  { width: 38px; height: 38px; border-radius: 9px; background: var(--card2); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .member-av img { width: 100%; height: 100%; object-fit: cover; }
+    .member-name { flex: 1; font-size: 14px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .m-invite-btn { padding: 7px 14px; border-radius: 8px; border: 1.5px solid var(--primary); background: transparent; color: var(--pri-l); font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+    .m-joined-tag { font-size: 12px; color: var(--green); font-weight: 700; }
+    .share-all-btn { width: 100%; padding: 13px; border-radius: 12px; border: 1.5px solid var(--border); background: transparent; color: var(--sub); font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 14px; }
+
+    /* ── Entry Screen ── */
+    #screenEntry { justify-content: center; align-items: center; }
+    .entry-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 20px; padding: 32px 24px; width: 100%; max-width: 340px; }
+    .entry-logo { font-size: 44px; text-align: center; margin-bottom: 8px; }
+    .entry-title { font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 6px; }
+    .entry-sub { font-size: 13px; color: var(--sub); text-align: center; margin-bottom: 24px; line-height: 1.6; }
+    .entry-or { display: flex; align-items: center; gap: 10px; margin: 14px 0; }
+    .entry-or::before, .entry-or::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .entry-or span { font-size: 12px; color: var(--muted); flex-shrink: 0; }
+    .room-code-input { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--card2); color: var(--text); font-size: 20px; font-weight: 700; text-align: center; letter-spacing: 0.2em; font-family: inherit; margin-bottom: 10px; transition: border-color 0.15s, box-shadow 0.15s; }
+    .room-code-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(124,58,237,0.25); }
+    .room-code-input::placeholder { font-size: 13px; font-weight: 400; letter-spacing: 0; color: var(--muted); }
+
+    /* ── Room Code Banner ── */
+    .room-code-banner { display: flex; align-items: center; gap: 10px; background: rgba(124,58,237,0.12); border: 1.5px solid rgba(124,58,237,0.35); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; }
+    .rcb-inner { flex: 1; }
+    .rcb-label { font-size: 10px; font-weight: 700; color: var(--sub); letter-spacing: 0.08em; margin-bottom: 2px; }
+    .rcb-code { font-size: 22px; font-weight: 700; color: var(--pri-l); letter-spacing: 0.2em; }
+    .rcb-copy { padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--primary); background: transparent; color: var(--pri-l); font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap; }
+    .rcb-copy:active { background: rgba(124,58,237,0.22); }
+    .rcb-copy.copied { border-color: var(--green); background: rgba(16,185,129,0.18); color: #34d399; }
+
+    /* ── Lobby Settings Panel ── */
+    .lobby-settings { background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 14px 6px; margin-bottom: 14px; }
+    .ls-title { font-size: 11px; font-weight: 700; letter-spacing: 0.09em; color: var(--muted); margin-bottom: 12px; }
+    .ls-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .ls-label { font-size: 12px; font-weight: 700; color: var(--sub); width: 36px; flex-shrink: 0; }
+    .ls-btns { display: flex; gap: 6px; flex: 1; }
+    .ls-btn { flex: 1; padding: 8px 0; border-radius: 8px; border: 1.5px solid var(--border); background: transparent; color: var(--text); font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.13s; }
+    .ls-btn.active { border-color: var(--primary); background: rgba(124,58,237,0.22); color: var(--pri-l); box-shadow: 0 0 0 2px rgba(124,58,237,0.3); }
+    .ls-btn:active:not(:disabled) { transform: scale(0.96); opacity: 0.8; }
+    .ls-btn:disabled { opacity: 0.4; cursor: default; }
+
+    /* ── Kick / Leave ── */
+    .slot-kick-btn { position: absolute; top: 6px; left: 6px; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--red); background: rgba(239,68,68,0.1); color: var(--red); font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: inherit; padding: 0; line-height: 1; }
+    .slot-kick-btn:active { background: rgba(239,68,68,0.3); }
+    .leave-btn { padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--red); background: rgba(239,68,68,0.1); color: var(--red); font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.12s; white-space: nowrap; }
+    .leave-btn:active { background: rgba(239,68,68,0.28); }
+    .entry-back { position: absolute; top: 20px; left: 16px; z-index: 2; }
+
+    /* ── Toast ── */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(10px); background: var(--card2); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px 18px; font-size: 13px; white-space: nowrap; opacity: 0; transition: all 0.22s; z-index: 1000; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.ok   { background: #064e3b; border-color: var(--green); }
+  </style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="screenLoading">
+  <div class="spinner"></div>
+  <div style="font-size:13px;color:var(--sub)">載入對戰房間...</div>
+</div>
+
+<!-- Error -->
+<div id="screenError">
+  <div class="err-wrap">
+    <div class="err-icon">⚠️</div>
+    <div class="err-msg" id="errMsg">發生錯誤，請重試</div>
+    <button class="btn btn-secondary" style="max-width:200px;margin-top:8px" onclick="location.reload()">重新載入</button>
+    <button class="btn btn-outline" style="max-width:200px" onclick="goBack()">返回群組</button>
+  </div>
+</div>
+
+<!-- Entry -->
+<div id="screenEntry" class="screen">
+  <div class="back-btn entry-back" onclick="goBack()">←</div>
+  <div class="entry-card">
+    <div class="entry-logo">⚔️</div>
+    <div class="entry-title">測驗對戰</div>
+    <div class="entry-sub">輸入房號加入對戰，或建立一個新房間</div>
+    <input class="room-code-input" id="joinCodeInput" placeholder="輸入 6 位房號" maxlength="6"
+      oninput="this.value = this.value.toUpperCase()"
+      onkeydown="if(event.key==='Enter') joinByCode()">
+    <button class="btn btn-outline" id="joinCodeBtn" onclick="joinByCode()">加入房間</button>
+    <div class="entry-or"><span>或</span></div>
+    <button class="btn btn-primary" onclick="goToSetup()">⚔️ 建立對戰</button>
+  </div>
+</div>
+
+<!-- Setup (host only) -->
+<div id="screenSetup" class="screen">
+  <div class="screen-hd">
+    <div class="back-btn" onclick="goBack()">←</div>
+    <div class="screen-title">建立對戰房間</div>
+  </div>
+  <p class="setup-desc">選擇參賽人數與題目數量，建立後可在房間內邀請群組成員加入。</p>
+
+  <div class="sec-label">對戰人數</div>
+  <div class="sel-row" id="playerSel">
+    <button class="sel-btn active" data-v="2" onclick="selPlayers(2)">2 人</button>
+    <button class="sel-btn"        data-v="3" onclick="selPlayers(3)">3 人</button>
+    <button class="sel-btn"        data-v="4" onclick="selPlayers(4)">4 人</button>
+  </div>
+
+  <div class="sec-label" style="margin-top:20px">題目數量</div>
+  <div class="sel-row" id="qSel">
+    <button class="sel-btn"        data-v="3"  onclick="selQ(3)">3 題</button>
+    <button class="sel-btn active" data-v="5"  onclick="selQ(5)">5 題</button>
+    <button class="sel-btn"        data-v="10" onclick="selQ(10)">10 題</button>
+  </div>
+
+  <div style="margin-top:auto;padding-top:24px">
+    <button class="btn btn-primary" id="createBtn" onclick="doCreateBattle()">⚔️ 建立房間</button>
+  </div>
+</div>
+
+<!-- Lobby -->
+<div id="screenLobby" class="screen">
+  <div class="screen-hd">
+    <div class="back-btn" onclick="goToEntry()">←</div>
+    <div class="lobby-hd-room">
+      <div class="lobby-hd-code" id="lobbyRoomCode">------</div>
+      <div class="lobby-hd-group" id="lobbyGroup">---</div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="rcb-copy" onclick="copyRoomCode()">複製房號</button>
+      <button class="leave-btn" onclick="leaveRoom()">退出</button>
+    </div>
+  </div>
+
+  <div id="lobbySettings">
+    <div class="lobby-settings">
+      <div class="ls-title">⚙ 對戰設定</div>
+      <div class="ls-row">
+        <span class="ls-label">人數</span>
+        <div class="ls-btns">
+          <button class="ls-btn" data-type="players" data-v="2" onclick="updateLobbySettings('players',2)">2人</button>
+          <button class="ls-btn" data-type="players" data-v="3" onclick="updateLobbySettings('players',3)">3人</button>
+          <button class="ls-btn" data-type="players" data-v="4" onclick="updateLobbySettings('players',4)">4人</button>
+        </div>
+      </div>
+      <div class="ls-row">
+        <span class="ls-label">題數</span>
+        <div class="ls-btns">
+          <button class="ls-btn" data-type="questions" data-v="3" onclick="updateLobbySettings('questions',3)">3題</button>
+          <button class="ls-btn" data-type="questions" data-v="5" onclick="updateLobbySettings('questions',5)">5題</button>
+          <button class="ls-btn" data-type="questions" data-v="10" onclick="updateLobbySettings('questions',10)">10題</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-label">玩家</div>
+  <div class="slots-grid" id="slotsGrid"></div>
+  <div class="lobby-hint" id="lobbyHint"></div>
+
+  <div class="lobby-btn-area">
+    <button class="btn btn-success" id="btnReady" onclick="toggleReady()">準備</button>
+    <button class="btn btn-primary" id="btnStart" onclick="doStart()" style="display:none">⚔️ 進入對戰</button>
+  </div>
+</div>
+
+<!-- Invite Modal -->
+<div class="invite-overlay" id="inviteOverlay" onclick="closeInviteModal()">
+  <div class="invite-sheet" onclick="event.stopPropagation()">
+    <div class="invite-handle"></div>
+    <div class="invite-title">邀請群組成員</div>
+    <div class="invite-sub">點擊成員旁的「邀請」，即可透過 LINE 傳送邀請卡</div>
+    <div id="inviteList"></div>
+  </div>
+</div>
+
+<!-- Countdown -->
+<div id="screenCountdown" class="screen">
+  <div class="cd-label">準備迎接挑戰！</div>
+  <div class="cd-num" id="cdNum">5</div>
+  <div class="cd-sub">題目即將出現...</div>
+</div>
+
+<!-- Question -->
+<div id="screenQuestion" class="screen">
+  <div class="q-hd">
+    <div class="q-idx" id="qIdx">第 1 / 5 題</div>
+    <div class="q-timer-wrap">
+      <svg width="60" height="60" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="44" fill="none" stroke="var(--border)" stroke-width="8"/>
+        <circle id="timerRing" cx="50" cy="50" r="44" fill="none" stroke="var(--primary)" stroke-width="8"
+          stroke-dasharray="276.46" stroke-dashoffset="0"
+          style="transition:stroke-dashoffset 0.5s linear;stroke-linecap:round"/>
+      </svg>
+      <div class="q-timer-num" id="timerNum">15</div>
+    </div>
+  </div>
+  <div class="q-text" id="qText">載入題目...</div>
+  <div class="q-opts" id="qOpts"></div>
+  <div class="q-strip" id="qStrip"></div>
+</div>
+
+<!-- Reveal -->
+<div id="screenReveal" class="screen">
+  <div class="screen-hd">
+    <div class="screen-title" id="rvTitle">第 1 題 解答</div>
+  </div>
+  <div class="rv-q" id="rvQ"></div>
+  <div class="rv-opts" id="rvOpts"></div>
+  <div class="sec-label">所有人的回答</div>
+  <div id="rvPlayers"></div>
+  <div class="rv-next">
+    <span id="rvNextLabel">下一題</span>
+    <span class="rv-next-n" id="rvNextNum">5</span>
+    <span>秒後開始</span>
+  </div>
+</div>
+
+<!-- Final -->
+<div id="screenFinal" class="screen">
+  <div class="final-title">🏆 對戰結束</div>
+  <div class="final-sub" id="finalSub">精彩一戰！</div>
+  <div class="podium" id="finalRanking"></div>
+  <div>
+    <button class="btn btn-primary" onclick="playAgain()">再來一場</button>
+    <button class="btn btn-secondary" onclick="goBack()">離開房間</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API     = 'https://webbermars.app.n8n.cloud/webhook';
+const LIFF_ID = '2009047186-MXDITyXh';
+const CIRC    = 276.46;
+
+let uid        = '';
+let battle_id  = '';
+let group_id   = '';
+let group_name = '';
+let invite_code = '';
+
+let _poll       = null;
+let _lastStatus = '';
+let _qLastIdx   = -1;
+let _rvLastIdx  = -1;
+let _myAnswer   = null;
+let _myReady    = false;
+let _advPending = false;
+let _lastCdNum  = -1;
+let _isHost     = false;
+let _setupP     = 2;
+let _setupQ     = 5;
+let _memberCache = {};
+let _membersPreloaded = false;
+let _roomCode = '';
+let _settingsTs = 0;
+let _leaving = false;
+let _readyTs = 0;
+let _groupMembers = [];
+
+/* ── Helpers ── */
+function gp(k) {
+  const s = new URLSearchParams(location.search);
+  const v = s.get(k);
+  if (v) return v;
+  const ls = s.get('liff.state');
+  if (ls) { try { return new URLSearchParams(decodeURIComponent(ls).replace(/^\?/,'')).get(k) || ''; } catch {} }
+  return '';
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type} show`;
+  setTimeout(() => { t.className = 'toast'; }, 2300);
+}
+
+function showScreen(id) {
+  document.getElementById('screenLoading').style.display = 'none';
+  ['screenEntry','screenSetup','screenLobby','screenCountdown','screenQuestion','screenReveal','screenFinal'].forEach(s => {
+    document.getElementById(s).classList.remove('active');
+  });
+  document.getElementById('screenError').style.display = 'none';
+  if (id === 'screenError') {
+    document.getElementById('screenError').style.display = 'block';
+  } else {
+    document.getElementById(id).classList.add('active');
+  }
+}
+
+function showError(msg) {
+  stopPoll();
+  document.getElementById('errMsg').textContent = msg;
+  showScreen('screenError');
+}
+
+function goBack() {
+  stopPoll();
+  const p = new URLSearchParams({ group_id, group_name, uid });
+  if (invite_code) p.set('invite_code', invite_code);
+  location.href = `group_room.html?${p}`;
+}
+
+/* ── Preload members (for avatar/name in lobby) ── */
+async function preloadMembers() {
+  if (!group_id) return;
+  try {
+    const r = await fetch(`${API}/group-members`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ group_id })
+    });
+    const d = await r.json();
+    _groupMembers = d.members || [];
+    for (const m of _groupMembers) {
+      if (m.uid) _memberCache[m.uid] = { avatar: m.line_avatar || '', nickname: m.nickname || '' };
+    }
+  } catch {}
+}
+
+function renderMemberList(members) {
+  const list = document.getElementById('inviteList');
+  if (!list) return;
+  const filtered = members.filter(m => m.uid !== uid);
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px">沒有其他群組成員</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(m => {
+    const avHtml = m.line_avatar
+      ? `<img src="${esc(m.line_avatar)}" alt="" onerror="this.parentElement.textContent='🌟'">`
+      : '🌟';
+    const name = m.nickname || m.uid.slice(-6);
+    return `<div class="member-row">
+      <div class="member-av">${avHtml}</div>
+      <div class="member-name">${esc(name)}</div>
+      <button class="m-invite-btn" onclick="shareInviteToMember('${esc(m.uid)}', this)">邀請</button>
+    </div>`;
+  }).join('');
+}
+
+/* ── Setup functions ── */
+function selPlayers(n) {
+  _setupP = n;
+  document.querySelectorAll('#playerSel .sel-btn').forEach(b => b.classList.toggle('active', +b.dataset.v === n));
+}
+function selQ(n) {
+  _setupQ = n;
+  document.querySelectorAll('#qSel .sel-btn').forEach(b => b.classList.toggle('active', +b.dataset.v === n));
+}
+async function doCreateBattle() {
+  if (!uid || uid === 'demo_user') { toast('示範模式'); return; }
+  const btn = document.getElementById('createBtn');
+  btn.disabled = true; btn.textContent = '建立中...';
+  try {
+    const r = await fetch(`${API}/battle-create`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, group_id, max_questions: _setupQ, max_players: _setupP })
+    });
+    const d = await r.json();
+    if (!d.success || !d.battle_id) throw new Error(d.error || '建立失敗');
+    battle_id = d.battle_id;
+    _isHost = true;
+    document.getElementById('lobbyGroup').textContent = group_name;
+    preloadMembers();
+    showScreen('screenLobby');
+    startPoll();
+  } catch (e) {
+    toast(e.message || '建立失敗，請重試');
+    btn.disabled = false; btn.textContent = '⚔️ 建立房間';
+  }
+}
+
+/* ── Init ── */
+async function init() {
+  battle_id   = gp('battle_id');
+  group_id    = gp('group_id');
+  group_name  = gp('group_name') || '星際群組';
+  uid         = gp('uid');
+  invite_code = gp('invite_code');
+  const isHostParam = gp('host') === '1';
+
+  try { await liff.init({ liffId: LIFF_ID }); } catch {}
+
+  try {
+    if (liff.isInClient()) {
+      const p = await liff.getProfile();
+      if (!uid) uid = p.userId;
+      _memberCache[p.userId] = { avatar: p.pictureUrl || '', nickname: p.displayName || '' };
+    }
+  } catch {}
+  if (!uid) uid = 'demo_user';
+
+  // Direct join via invite link (battle_id in URL)
+  if (battle_id) {
+    document.getElementById('lobbyGroup').textContent = group_name;
+    if (uid !== 'demo_user') {
+      try {
+        await fetch(`${API}/battle-join`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid, battle_id })
+        });
+      } catch {}
+    }
+    preloadMembers();
+    _membersPreloaded = true;
+    startPoll();
+    return;
+  }
+
+  // Legacy: host=1 param → go to setup directly
+  if (isHostParam) {
+    showScreen('screenSetup');
+    return;
+  }
+
+  // Default: show entry screen
+  showScreen('screenEntry');
+}
+
+function goToSetup() {
+  doCreateBattle();
+}
+
+function goToEntry() {
+  stopPoll();
+  _leaving    = true;
+  battle_id   = '';
+  _roomCode   = '';
+  _lastStatus = '';
+  _isHost     = false;
+  showScreen('screenEntry');
+}
+
+async function leaveRoom() {
+  const bid = battle_id;
+  stopPoll();
+  _leaving    = true;
+  battle_id   = '';
+  _roomCode   = '';
+  _lastStatus = '';
+  _isHost     = false;
+  showScreen('screenEntry');
+  if (uid !== 'demo_user' && bid) {
+    fetch(`${API}/battle-kick`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, battle_id: bid, target_uid: uid })
+    }).catch(() => {});
+  }
+}
+
+async function kickPlayer(targetUid) {
+  if (!_isHost || !battle_id) return;
+  try {
+    await fetch(`${API}/battle-kick`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, battle_id, target_uid: targetUid })
+    });
+  } catch { toast('踢出失敗，請重試'); }
+}
+
+async function joinByCode() {
+  const inp = document.getElementById('joinCodeInput');
+  const code = (inp?.value || '').trim().toUpperCase();
+  if (code.length < 4) { toast('請輸入正確房號'); return; }
+  const btn = document.getElementById('joinCodeBtn');
+  btn.disabled = true; btn.textContent = '搜尋中...';
+  try {
+    const r = await fetch(`${API}/battle-find`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ room_code: code, uid })
+    });
+    const d = await r.json();
+    if (!d.success || !d.battle_id) {
+      toast(d.error || '找不到該房號');
+      btn.disabled = false; btn.textContent = '加入房間';
+      return;
+    }
+    battle_id = d.battle_id;
+    if (d.group_id) group_id = d.group_id;
+    document.getElementById('lobbyGroup').textContent = group_name;
+    if (uid !== 'demo_user') {
+      try {
+        await fetch(`${API}/battle-join`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid, battle_id })
+        });
+      } catch {}
+    }
+    preloadMembers();
+    _membersPreloaded = true;
+    startPoll();
+  } catch {
+    toast('加入失敗，請重試');
+    btn.disabled = false; btn.textContent = '加入房間';
+  }
+}
+
+/* ── Polling ── */
+function getPollInterval() {
+  if (_lastStatus === 'countdown' || _lastStatus === 'question') return 1000;
+  if (_lastStatus === 'reveal') return 2000;
+  if (_lastStatus === 'finished') return null;
+  return 3000; // waiting 或初始
+}
+
+function startPoll() { _leaving = false; poll(); }
+function stopPoll()  { if (_poll) { clearTimeout(_poll); _poll = null; } }
+
+async function poll() {
+  if (_leaving || !battle_id) return;
+  try {
+    const r = await fetch(`${API}/battle-state`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, battle_id })
+    });
+    const s = await r.json();
+    if (s && !s.error) renderState(s);
+  } catch {}
+  if (_leaving) return;
+  const ms = getPollInterval();
+  if (ms !== null) _poll = setTimeout(poll, ms);
+}
+
+async function advance() {
+  if (_advPending) return;
+  _advPending = true;
+  try {
+    await fetch(`${API}/battle-advance`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, battle_id })
+    });
+  } catch {}
+  setTimeout(() => { _advPending = false; }, 1800);
+}
+
+/* ── State router ── */
+function renderState(s) {
+  if (_leaving) return;
+
+  if (!group_id && s.group_id) {
+    group_id = s.group_id;
+    if (!_membersPreloaded) { _membersPreloaded = true; preloadMembers(); }
+  }
+
+  if (s.you_are_kicked) {
+    stopPoll();
+    _leaving = true;
+    toast('您已被踢出房間');
+    setTimeout(() => {
+      battle_id = ''; _roomCode = ''; _lastStatus = ''; _isHost = false;
+      showScreen('screenEntry');
+    }, 1800);
+    return;
+  }
+
+  const { status, players = [], question, current_answers = [],
+          max_questions, current_index, question_started_at, host_uid } = s;
+
+  const elapsed = question_started_at
+    ? (Date.now() - new Date(question_started_at).getTime()) / 1000
+    : 0;
+  const idx = parseInt(current_index) || 0;
+
+  switch (status) {
+
+    case 'waiting':
+      if (_lastStatus !== 'waiting') showScreen('screenLobby');
+      renderLobby(s);
+      break;
+
+    case 'countdown': {
+      if (_lastStatus !== 'countdown') { showScreen('screenCountdown'); _lastCdNum = -1; }
+      const rem  = Math.max(0, 5 - elapsed);
+      const num  = Math.max(1, Math.ceil(rem));
+      if (num !== _lastCdNum) {
+        _lastCdNum = num;
+        const el = document.getElementById('cdNum');
+        el.textContent = num;
+        el.style.animation = 'none';
+        void el.offsetWidth;
+        el.style.animation = 'pulse-in 0.85s ease-out';
+      }
+      if (elapsed > 5.3) advance();
+      break;
+    }
+
+    case 'question': {
+      const changed = _lastStatus !== 'question' || idx !== _qLastIdx;
+      if (changed) {
+        showScreen('screenQuestion');
+        _myAnswer  = null;
+        _qLastIdx  = idx;
+        renderQuestion(s);
+      }
+      updateTimer(Math.max(0, 15 - elapsed));
+      renderStrip(players, current_answers);
+      if (players.length > 0 && current_answers.length >= players.length) advance();
+      else if (elapsed > 15.5) advance();
+      break;
+    }
+
+    case 'reveal': {
+      const changed = _lastStatus !== 'reveal' || idx !== _rvLastIdx;
+      if (changed) {
+        showScreen('screenReveal');
+        _rvLastIdx = idx;
+        renderReveal(s);
+      }
+      const rem = Math.max(0, 5 - elapsed);
+      const numEl = document.getElementById('rvNextNum');
+      if (numEl) numEl.textContent = Math.max(1, Math.ceil(rem));
+      // Last question: change label
+      const isLast = idx >= parseInt(max_questions) - 1;
+      const lbl = document.getElementById('rvNextLabel');
+      if (lbl) lbl.textContent = isLast ? '對戰結束' : '下一題';
+      if (elapsed > 5.3) advance();
+      break;
+    }
+
+    case 'finished':
+      if (_lastStatus !== 'finished') {
+        stopPoll();
+        renderFinal(s);
+        showScreen('screenFinal');
+      }
+      break;
+  }
+
+  _lastStatus = status;
+}
+
+/* ── Lobby ── */
+function renderLobby({ players = [], host_uid, max_questions, max_players = 4, room_code = '' }) {
+  if (room_code) _roomCode = room_code;
+  const rcEl = document.getElementById('lobbyRoomCode');
+  if (rcEl) rcEl.textContent = _roomCode || '------';
+
+  _isHost = uid === host_uid;
+  if (Date.now() - _settingsTs > 1500) {
+    _setupP = parseInt(max_players) || _setupP;
+    _setupQ = parseInt(max_questions) || _setupQ;
+  }
+
+  // Settings panel: always visible; only host buttons are clickable
+  const settEl = document.getElementById('lobbySettings');
+  if (settEl) {
+    settEl.style.display = 'block';
+    document.querySelectorAll('.ls-btn[data-type="players"]').forEach(b => {
+      b.classList.toggle('active', +b.dataset.v === _setupP);
+      b.disabled = !_isHost;
+    });
+    document.querySelectorAll('.ls-btn[data-type="questions"]').forEach(b => {
+      b.classList.toggle('active', +b.dataset.v === _setupQ);
+      b.disabled = !_isHost;
+    });
+  }
+
+  const me = players.find(p => p.uid === uid);
+  if (Date.now() - _readyTs > 1500) {
+    _myReady = me?.status === 'ready';
+  }
+
+  const totalSlots = parseInt(max_players) || 4;
+  let html = '';
+  for (let i = 0; i < totalSlots; i++) {
+    const p = players[i];
+    if (p) {
+      const isSelf  = p.uid === uid;
+      const isHost  = p.uid === host_uid;
+      const isReady = p.status === 'ready';
+      const cached  = _memberCache[p.uid] || {};
+      const avSrc   = cached.avatar || p.avatar || '';
+      const name    = cached.nickname || p.nickname || p.uid.slice(-6);
+      const avHtml  = avSrc
+        ? `<img src="${esc(avSrc)}" alt="" onerror="this.parentElement.textContent='🌟'">`
+        : '🌟';
+      const kickBtn = (_isHost && !isSelf) ? `<button class="slot-kick-btn" onclick="kickPlayer('${esc(p.uid)}')">✕</button>` : '';
+      html += `<div class="slot-card${isSelf ? ' is-self' : ''}">
+        ${kickBtn}
+        ${isHost ? '<span class="slot-host-tag">房主</span>' : ''}
+        <div class="slot-av">${avHtml}</div>
+        <div class="slot-name">${esc(name)}</div>
+        <span class="slot-ready-tag ${isReady ? 'ready' : 'waiting'}">${isReady ? '✓ 已準備' : '未準備'}</span>
+      </div>`;
+    } else {
+      const clickAttr = _isHost ? 'onclick="openInviteModal()"' : '';
+      html += `<div class="slot-card empty" ${clickAttr}>
+        <div class="slot-plus">+</div>
+        <div class="slot-name" style="color:var(--muted)">${_isHost ? '點擊邀請' : '等待加入'}</div>
+      </div>`;
+    }
+  }
+  document.getElementById('slotsGrid').innerHTML = html;
+
+  const allReady = players.length >= 2 && players.every(p => p.status === 'ready');
+  const readyCnt = players.filter(p => p.status === 'ready').length;
+
+  const btnReady = document.getElementById('btnReady');
+  if (btnReady && !btnReady.disabled) {
+    btnReady.textContent = _myReady ? '取消準備' : '準備';
+    btnReady.className   = _myReady ? 'btn btn-outline' : 'btn btn-success';
+  }
+
+  const btnStart = document.getElementById('btnStart');
+  if (_isHost) {
+    btnStart.style.display = 'block';
+    btnStart.disabled      = !allReady;
+    btnStart.textContent   = allReady ? '⚔️ 進入對戰' : `等待全員準備 (${readyCnt}/${totalSlots})`;
+  } else {
+    btnStart.style.display = 'none';
+  }
+
+  document.getElementById('lobbyHint').textContent = allReady
+    ? (_isHost ? '所有人已準備！快開始吧 ⚔️' : '等待房主開始對戰...')
+    : `已加入 ${players.length} / ${totalSlots} 人`;
+}
+
+/* ── Question render ── */
+function renderQuestion({ question, current_index, max_questions }) {
+  if (!question) return;
+  const n = parseInt(current_index) + 1;
+  document.getElementById('qIdx').textContent  = `第 ${n} / ${max_questions} 題`;
+  document.getElementById('qText').textContent = question.text;
+
+  const optMap = { A: question.option_a, B: question.option_b, C: question.option_c };
+  document.getElementById('qOpts').innerHTML = ['A','B','C'].map(k => {
+    const txt = optMap[k];
+    if (!txt) return '';
+    return `<div class="q-opt" id="qo-${k}" onclick="selectAnswer('${k}')">
+      <div class="q-opt-k">${k}</div>
+      <span>${esc(txt)}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderStrip(players, current_answers) {
+  const answered = new Set((current_answers || []).map(a => a.uid));
+  const el = document.getElementById('qStrip');
+  if (!el) return;
+  el.innerHTML = (players || []).map(p => {
+    const done = answered.has(p.uid);
+    const cached = _memberCache[p.uid] || {};
+    const avSrc = cached.avatar || '';
+    const name = cached.nickname || p.uid.slice(-4);
+    const av = avSrc
+      ? `<img src="${esc(avSrc)}" alt="" onerror="this.parentElement.textContent='⭐'">`
+      : '⭐';
+    return `<div class="q-pip${done ? ' done' : ''}">
+      <div class="q-pip-av">${av}</div>
+      <span>${esc(name.slice(0,4))}</span>
+      <span style="font-size:10px">${done ? '已答' : '⋯'}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── Timer ring ── */
+function updateTimer(remaining) {
+  const n  = Math.ceil(remaining);
+  const ne = document.getElementById('timerNum');
+  const re = document.getElementById('timerRing');
+  if (!ne || !re) return;
+  ne.textContent = n;
+  ne.className   = `q-timer-num${n <= 5 ? ' urgent' : ''}`;
+  re.style.strokeDashoffset = CIRC * (1 - remaining / 15);
+  re.style.stroke = n <= 5 ? 'var(--red)' : 'var(--primary)';
+}
+
+/* ── Answer ── */
+async function selectAnswer(key) {
+  if (_myAnswer) return;
+  _myAnswer = key;
+  document.querySelectorAll('.q-opt').forEach(el => {
+    el.classList.add('disabled');
+    if (el.id === `qo-${key}`) el.classList.add('selected');
+  });
+  if (uid === 'demo_user') return;
+  try {
+    await fetch(`${API}/battle-answer`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, battle_id, answer: key })
+    });
+  } catch { toast('提交失敗'); }
+}
+
+/* ── Reveal render ── */
+function renderReveal({ question, current_answers = [], players = [], current_index, max_questions }) {
+  if (!question) return;
+  const n = parseInt(current_index) + 1;
+  document.getElementById('rvTitle').textContent = `第 ${n} / ${max_questions} 題 解答`;
+  document.getElementById('rvQ').textContent     = question.text;
+
+  const correct = question.answer;
+  const rvOptMap = { A: question.option_a, B: question.option_b, C: question.option_c };
+  document.getElementById('rvOpts').innerHTML = ['A','B','C'].map(k => {
+    const txt = rvOptMap[k];
+    if (!txt) return '';
+    const isOk = k === correct;
+    return `<div class="rv-opt${isOk ? ' correct' : ' wrong'}">
+      <div class="rv-opt-k">${k}</div>
+      <span style="flex:1">${esc(txt)}</span>
+      ${isOk ? '<span style="font-size:16px">✓</span>' : ''}
+    </div>`;
+  }).join('');
+
+  const ansMap = {};
+  current_answers.forEach(a => { ansMap[a.uid] = a; });
+
+  document.getElementById('rvPlayers').innerHTML = players.map(p => {
+    const a     = ansMap[p.uid];
+    const isSelf = p.uid === uid;
+    const isOk  = a && (a.is_correct === true || a.is_correct === 'true' || a.is_correct === 1 || a.is_correct === '1');
+    const icon  = !a ? '—' : isOk ? '✅' : '❌';
+    const cached = _memberCache[p.uid] || {};
+    const avSrc = cached.avatar || '';
+    const name = cached.nickname || p.uid.slice(-6);
+    const av    = avSrc
+      ? `<img src="${esc(avSrc)}" alt="" onerror="this.parentElement.textContent='🌟'">`
+      : '🌟';
+    return `<div class="rv-player${isSelf ? ' is-self' : ''}">
+      <div class="rv-av">${av}</div>
+      <span class="rv-name">${esc(name)}</span>
+      <span class="rv-ans">${a ? a.answer : '未作答'}</span>
+      <span class="rv-icon">${icon}</span>
+      <span class="rv-score">${p.score ?? 0}分</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── Final render ── */
+function renderFinal({ players = [], max_questions }) {
+  const sorted = [...players].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  const medals  = ['🥇','🥈','🥉'];
+  const rowCls  = ['gold','silver','bronze'];
+  document.getElementById('finalSub').textContent = `${max_questions} 題對戰完成，精彩一戰！`;
+  document.getElementById('finalRanking').innerHTML = sorted.map((p, i) => {
+    const isSelf = p.uid === uid;
+    const cached = _memberCache[p.uid] || {};
+    const avSrc = cached.avatar || '';
+    const name = cached.nickname || p.uid.slice(-6);
+    const av = avSrc
+      ? `<img src="${esc(avSrc)}" alt="" onerror="this.parentElement.textContent='🌟'">`
+      : '🌟';
+    const cls = (i < 3 ? rowCls[i] : '') + (isSelf ? ' self' : '');
+    const medal = i < 3 ? medals[i] : `#${i + 1}`;
+    return `<div class="rk-row ${cls}">
+      <div class="rk-medal">${medal}</div>
+      <div class="rk-av">${av}</div>
+      <div class="rk-name">${esc(name)}</div>
+      <div class="rk-pts">${p.score ?? 0}<span class="rk-unit">分</span></div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Ready / Start ── */
+async function toggleReady() {
+  if (uid === 'demo_user') { toast('示範模式'); return; }
+  const newReady = !_myReady;
+  _readyTs = Date.now();
+  _myReady = newReady;
+  const btn = document.getElementById('btnReady');
+  btn.textContent = newReady ? '取消準備' : '準備';
+  btn.className   = newReady ? 'btn btn-outline' : 'btn btn-success';
+  try {
+    await fetch(`${API}/battle-ready`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, battle_id, ready: newReady })
+    });
+  } catch {
+    toast('操作失敗，請重試');
+    _myReady = !newReady;
+  }
+}
+
+/* ── Invite Modal ── */
+function openInviteModal() {
+  document.getElementById('inviteOverlay').classList.add('open');
+  loadGroupMembers();
+}
+function closeInviteModal() {
+  document.getElementById('inviteOverlay').classList.remove('open');
+}
+
+async function loadGroupMembers() {
+  // 若快取已有資料，立即顯示，同時背景更新
+  if (_groupMembers.length > 0) {
+    renderMemberList(_groupMembers);
+  } else {
+    const list = document.getElementById('inviteList');
+    if (list) list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px">載入成員中...</div>';
+  }
+  try {
+    const r = await fetch(`${API}/group-members`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ group_id })
+    });
+    const d = await r.json();
+    _groupMembers = d.members || [];
+    for (const m of _groupMembers) {
+      if (m.uid) _memberCache[m.uid] = { avatar: m.line_avatar || '', nickname: m.nickname || '' };
+    }
+    renderMemberList(_groupMembers);
+  } catch {
+    if (_groupMembers.length === 0) {
+      const list = document.getElementById('inviteList');
+      if (list) list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px">載入失敗，請重試</div>';
+    }
+  }
+}
+
+async function shareInviteToMember(targetUid, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = '傳送中...'; }
+  try {
+    const r = await fetch(`${API}/battle-invite`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, battle_id, target_uid: targetUid, group_id, group_name })
+    });
+    const d = await r.json();
+    if (d.success !== false) {
+      toast('邀請已傳送！', 'ok');
+      if (btn) { btn.textContent = '已傳送'; }
+    } else {
+      toast('傳送失敗，請稍後再試');
+      if (btn) { btn.disabled = false; btn.textContent = '邀請'; }
+    }
+  } catch {
+    toast('傳送失敗，請稍後再試');
+    if (btn) { btn.disabled = false; btn.textContent = '邀請'; }
+  }
+}
+
+async function copyRoomCode() {
+  if (!_roomCode) { toast('房號尚未載入'); return; }
+  try {
+    await navigator.clipboard.writeText(_roomCode);
+  } catch {
+    const el = document.createElement('textarea');
+    el.value = _roomCode; el.style.position = 'fixed'; el.style.opacity = '0';
+    document.body.appendChild(el); el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+  }
+  const btn = document.querySelector('.rcb-copy');
+  if (btn) {
+    btn.textContent = '已複製!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '複製房號'; btn.classList.remove('copied'); }, 2000);
+  }
+}
+
+async function updateLobbySettings(type, value) {
+  if (!_isHost || !battle_id) return;
+  _settingsTs = Date.now();
+  if (type === 'players') _setupP = value;
+  else _setupQ = value;
+  document.querySelectorAll(`.ls-btn[data-type="${type === 'players' ? 'players' : 'questions'}"]`).forEach(b =>
+    b.classList.toggle('active', +b.dataset.v === value));
+  try {
+    await fetch(`${API}/battle-settings`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, battle_id, max_players: _setupP, max_questions: _setupQ })
+    });
+  } catch { toast('設定更新失敗'); }
+}
+
+function playAgain() {
+  stopPoll();
+  const p = new URLSearchParams({ host: '1', uid, group_id, group_name });
+  if (invite_code) p.set('invite_code', invite_code);
+  location.href = `quiz_battle.html?${p}`;
+}
+
+async function doStart() {
+  if (uid === 'demo_user') { toast('示範模式'); return; }
+  const btn = document.getElementById('btnStart');
+  btn.disabled = true; btn.textContent = '開始中...';
+  try {
+    const r = await fetch(`${API}/battle-start`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, battle_id })
+    });
+    const d = await r.json();
+    if (!d.success) {
+      toast(d.error || '確認所有人已準備後再試');
+      btn.disabled = false; btn.textContent = '⚔️ 開始對戰';
+    }
+  } catch {
+    toast('開始失敗，請重試');
+    btn.disabled = false; btn.textContent = '⚔️ 開始對戰';
+  }
+}
+
+init();
+</script>
+</body>
+</html>

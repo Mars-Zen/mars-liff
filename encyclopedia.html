@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>星獸圖鑑</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      margin: 0; padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    :root {
+      --bg:        #07071a;
+      --sidebar-w: 172px;
+      --accent:    #b48cff;
+      --gold:      #ffd060;
+      --gold2:     #ffaa44;
+      --text:      #ede6ff;
+      --dim:       rgba(180,140,255,0.45);
+      --border:    rgba(180,140,255,0.16);
+      --card:      rgba(255,255,255,0.03);
+      --green:     #4ade80;
+    }
+    html, body {
+      height: 100%; width: 100%;
+      background: var(--bg); color: var(--text);
+      font-family: 'Noto Serif TC', 'Helvetica Neue', Arial, sans-serif;
+      overflow: hidden; user-select: none;
+    }
+    #starfield { position: fixed; inset: 0; pointer-events: none; z-index: -1; }
+    @keyframes spin    { to { transform: rotate(360deg); } }
+    @keyframes breathe {
+      0%, 100% { border-color: rgba(180,140,255,0.55); }
+      50%       { border-color: rgba(210,170,255,0.95); }
+    }
+    @keyframes breathe-green {
+      0%, 100% { border-color: rgba(74,222,128,0.55); }
+      50%       { border-color: rgba(74,222,128,0.95); }
+    }
+    #compare-carousel {
+      border-color: rgba(74,222,128,0.55);
+      animation-name: breathe-green;
+    }
+
+    #app { position: relative; height: 100vh; width: 100%; display: flex; }
+
+    #overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.55);
+      z-index: 300; opacity: 0; pointer-events: none; transition: opacity .3s;
+    }
+    #overlay.show { opacity: 1; pointer-events: all; }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      background: linear-gradient(180deg,#12082a 0%,#090818 100%);
+      border-right: 1px solid rgba(180,140,255,0.38);
+      display: flex; flex-direction: column;
+      width: var(--sidebar-w); flex-shrink: 0;
+    }
+    .sidebar-list {
+      flex: 1; overflow-y: auto;
+      padding: 14px 12px 10px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .sidebar-list::-webkit-scrollbar { width: 3px; }
+    .sidebar-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .sp-divider { height: 1px; background: rgba(180,140,255,0.45); margin: 6px 4px; flex-shrink: 0; }
+
+    #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+    /* ══ DESKTOP ══ */
+    @media (min-width: 768px) {
+      #app { flex-direction: row; }
+      #sidebar { position: relative; transform: none !important; z-index: 10; }
+      .hamburger { display: none !important; }
+      #overlay   { display: none !important; }
+      header { padding: 18px 22px 12px; background: transparent; border-bottom: none; }
+      header .header-title { font-size: 21px; }
+      #header-right .header-sp-en { font-size: 19px; }
+    }
+    /* ══ MOBILE ══ */
+    @media (max-width: 767px) {
+      #app { flex-direction: column; }
+      #sidebar {
+        position: fixed; top: 0; left: 0; bottom: 0;
+        z-index: 400; transform: translateX(-100%);
+        transition: transform .3s cubic-bezier(.4,0,.2,1);
+      }
+      #sidebar.open { transform: translateX(0); }
+      header {
+        padding: 13px 16px;
+        background: linear-gradient(135deg,#150830,#0c1840);
+        border-bottom: 1px solid rgba(180,140,255,0.38);
+      }
+    }
+
+    /* ── Header ── */
+    header { flex-shrink: 0; display: flex; align-items: center; gap: 12px; position: relative; }
+    #header-center {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      font-family: 'Cinzel', serif; font-size: 18px; font-weight: 600;
+      letter-spacing: 3px; color: rgba(255,255,255,0.88); white-space: nowrap;
+      pointer-events: none;
+    }
+    .hamburger {
+      width: 38px; height: 38px;
+      border: 1px solid rgba(180,140,255,0.45); border-radius: 10px;
+      background: rgba(180,140,255,.07); cursor: pointer;
+      display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
+      flex-shrink: 0;
+    }
+    .hamburger span { display: block; width: 17px; height: 1.5px; background: var(--accent); border-radius: 2px; }
+
+    .header-title {
+      font-family: 'Cinzel', 'Noto Serif TC', serif;
+      font-size: 18px; font-weight: 700; letter-spacing: 1px;
+      color: var(--gold); white-space: nowrap; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      transition: opacity .2s;
+    }
+    .header-title:hover  { opacity: .75; }
+    .header-title:active { opacity: .5;  }
+    .title-back {
+      font-size: 18px; font-weight: 400; font-family: sans-serif;
+      color: rgba(255,208,96,0.75);
+      opacity: 0; display: flex; align-items: center;
+      transition: opacity .22s ease;
+    }
+    .title-back.show { opacity: 1; }
+
+    /* right-side header area — swaps between species name / buttons */
+    #header-right { margin-left: auto; flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+    .header-sp-en {
+      font-family: 'Cinzel', serif; font-size: 18px; font-weight: 600; letter-spacing: 1.5px;
+      white-space: nowrap; color: rgba(255,255,255,0.88);
+    }
+    /* small pill buttons */
+    .hdr-btn {
+      font-family: 'Noto Serif TC', serif; font-size: 13px; font-weight: 600; letter-spacing: .5px;
+      padding: 5px 13px; border-radius: 20px; cursor: pointer; white-space: nowrap;
+      transition: background .15s, transform .1s;
+    }
+    .hdr-btn:active { transform: scale(.94); }
+    .hdr-btn-select  { border: 1px solid rgba(180,140,255,0.55); color: rgba(200,170,255,0.9); background: rgba(180,140,255,0.1); }
+    .hdr-btn-select:hover  { background: rgba(180,140,255,0.22); }
+    .hdr-btn-cancel  { border: 1px solid rgba(255,255,255,0.28); color: rgba(255,255,255,0.65); background: transparent; }
+    .hdr-btn-cancel:hover  { background: rgba(255,255,255,0.08); }
+    .hdr-btn-confirm { border: 1px solid rgba(74,222,128,0.55); color: rgba(74,222,128,0.92); background: rgba(74,222,128,0.1); }
+    .hdr-btn-confirm:hover { background: rgba(74,222,128,0.2); }
+    .hdr-btn-clear   { border: 1px solid rgba(255,110,110,0.5); color: rgba(255,140,140,0.9); background: rgba(255,80,80,0.08); }
+    .hdr-btn-clear:hover   { background: rgba(255,80,80,0.18); }
+
+    /* ── Content ── */
+    #content {
+      flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
+      background: radial-gradient(ellipse 90% 70% at 50% 35%, #1c0e40 0%, var(--bg) 100%);
+    }
+
+    /* ── Species buttons ── */
+    .sp-item {
+      padding: 11px 16px; border-radius: 12px; cursor: pointer;
+      border: 1px solid transparent; background: transparent;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+      will-change: transform;
+    }
+    .sp-item:hover  { transform: translateY(-3px); background: rgba(180,140,255,.1); border-color: rgba(180,140,255,.25); box-shadow: 0 6px 20px rgba(100,60,200,.35); }
+    .sp-item:active { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(100,60,200,.25); }
+    .sp-item.active { background: rgba(180,140,255,.14); border-color: rgba(180,140,255,.4); box-shadow: 0 4px 18px rgba(100,60,200,.4); transform: translateY(-2px); }
+    .sp-item.pressing { transform: translateY(-1px) scale(.98); box-shadow: 0 2px 8px rgba(100,60,200,.2); }
+    .sp-zh { font-family: 'Noto Serif TC', serif; font-size: 17px; font-weight: 600; color: var(--text); }
+    .sp-en { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 1px; color: rgba(200,175,255,.72); margin-top: 2px; }
+    .sp-item.active .sp-zh { color: var(--gold); }
+    .sp-item.active .sp-en { color: rgba(255,208,96,.6); }
+    /* 總覽 is green by default, turns gold when active */
+    .sp-item[data-key="overview"] .sp-zh         { color: rgba(74,222,128,0.82); }
+    .sp-item[data-key="overview"].active .sp-zh  { color: var(--gold); }
+    /* 比較 is red by default, turns gold when active */
+    .sp-item[data-key="compare"] .sp-zh          { color: rgba(255,100,100,0.85); }
+    .sp-item[data-key="compare"].active .sp-zh   { color: var(--gold); }
+
+    /* ══ CAROUSEL / COMPARE PANELS (shared layout) ══ */
+    .carousel-wrap {
+      flex: 1; min-height: 0; padding: 14px 16px 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; overflow: hidden;
+    }
+    .carousel {
+      width: min(100%, calc(100vh - 130px)); aspect-ratio: 1 / 1; flex-shrink: 0;
+      border-radius: 22px; border: 1.5px solid rgba(180,140,255,0.55);
+      background: rgba(255,255,255,0.03); position: relative; overflow: hidden;
+      animation: breathe 5.5s ease-in-out infinite;
+    }
+    .c-track { display: flex; height: 100%; transition: transform .38s cubic-bezier(.25,.46,.45,.94); will-change: transform; }
+    .c-slide  { flex-shrink: 0; height: 100%; position: relative; }
+    .c-img {
+      position: absolute; inset: 8px;
+      width: calc(100% - 16px); height: calc(100% - 16px);
+      object-fit: contain; border-radius: 14px; opacity: 0; transition: opacity .4s;
+    }
+    .c-img.loaded { opacity: 1; }
+    .c-loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2; }
+    .c-loader.hide { display: none; }
+    .spinner { width: 34px; height: 34px; border: 2.5px solid rgba(180,140,255,.18); border-top-color: var(--accent); border-radius: 50%; animation: spin .85s linear infinite; }
+
+    /* nav row */
+    .nav-row { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 10px 0 14px; flex-shrink: 0; }
+    .c-arrow {
+      width: 36px; height: 36px; background: rgba(255,255,255,.16);
+      border: 1.5px solid rgba(255,255,255,.38); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 21px; line-height: 1; color: rgba(255,255,255,.92);
+      cursor: pointer; flex-shrink: 0; transition: all .2s; font-family: sans-serif;
+      box-shadow: 0 2px 10px rgba(0,0,0,.3), 0 0 8px rgba(180,140,255,.2);
+    }
+    .c-arrow:hover  { background: rgba(180,140,255,.38); border-color: rgba(180,140,255,.72); color: #fff; box-shadow: 0 4px 16px rgba(100,60,200,.5), 0 0 12px rgba(180,140,255,.4); }
+    .c-arrow:active { transform: scale(.9); }
+    .c-arrow.hidden { opacity: 0; pointer-events: none; }
+    .dots-row { display: flex; align-items: flex-start; gap: 12px; }
+    .dot-item { width: 28px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 7px; }
+    .dot-circle { width: 7px; height: 7px; border-radius: 50%; background: rgba(180,140,255,.22); transition: all .3s; }
+    .dot-item.active .dot-circle { width: 22px; height: 7px; border-radius: 4px; background: var(--gold); box-shadow: 0 0 10px rgba(255,208,96,.55); }
+    .dot-label { font-family: 'Cinzel', serif; font-size: 13px; line-height: 1; color: rgba(180,140,255,0.35); transition: color .3s; }
+    .dot-item.active .dot-label { color: rgba(255,208,96,0.7); }
+    .cmp-page-box {
+      font-family: 'Cinzel', serif; font-size: 14px; font-weight: 600; letter-spacing: 1.5px;
+      color: rgba(255,208,96,0.85); background: rgba(180,140,255,0.1);
+      border: 1px solid rgba(180,140,255,0.38); border-radius: 8px; padding: 5px 18px;
+    }
+
+    /* ══ OVERVIEW PANEL ══ */
+    .overview-wrap {
+      display: none; flex: 1; min-height: 0; flex-direction: column;
+      overflow-y: auto; overflow-x: hidden; padding: 10px;
+    }
+    .overview-wrap::-webkit-scrollbar { width: 3px; }
+    .overview-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .overview-grid { width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+    .ov-cell {
+      aspect-ratio: 1; border-radius: 12px;
+      border: 1.5px solid rgba(180,140,255,0.45);
+      background: rgba(255,255,255,0.04); overflow: hidden; position: relative;
+      box-shadow: 0 0 12px rgba(100,60,200,0.14); cursor: pointer;
+      transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+    }
+    .ov-cell:hover  { transform: scale(1.05); border-color: rgba(180,140,255,0.8); }
+    .ov-cell:active { transform: scale(0.97); }
+    /* selected state (green, thicker border) */
+    .ov-cell.selected {
+      border: 2.5px solid rgba(74,222,128,0.92) !important;
+      box-shadow: 0 0 16px rgba(74,222,128,0.45) !important;
+    }
+    /* selection order badge */
+    .sel-badge {
+      position: absolute; bottom: 5px; right: 5px; z-index: 10;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(74,222,128,0.92);
+      color: #07071a;
+      font-family: 'Cinzel', serif; font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+    .ov-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; border-radius: 12px; opacity: 0; transition: opacity .5s; }
+    .ov-img.loaded { opacity: 1; }
+    .ov-loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2; }
+    .ov-loader.hide { display: none; }
+    .ov-spinner { width: 20px; height: 20px; border: 2px solid rgba(180,140,255,.18); border-top-color: var(--accent); border-radius: 50%; animation: spin .85s linear infinite; }
+
+    /* ── Stage label ── */
+    #carousel-wrap, #compare-wrap { justify-content: flex-start; }
+    #stage-area, #cmp-stage-area { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; width: 100%; padding: 0 16px; }
+    .stage-spacer { flex: 1; min-height: 0; }
+    #stage-label, #cmp-stage-label {
+      font-family: 'Cinzel', 'Noto Serif TC', serif; font-size: 27px; font-weight: 700;
+      letter-spacing: 1px; display: flex; align-items: center; gap: 14px;
+      width: 100%; max-width: 480px; transition: color .35s;
+    }
+    #stage-label::before, #stage-label::after,
+    #cmp-stage-label::before, #cmp-stage-label::after { content: ''; flex: 1; height: 1px; }
+    #stage-label::before, #cmp-stage-label::before { background: linear-gradient(to right, transparent, currentColor); opacity: .92; }
+    #stage-label::after,  #cmp-stage-label::after  { background: linear-gradient(to left,  transparent, currentColor); opacity: .92; }
+    #stage-label.stage-0, #cmp-stage-label.stage-0 {
+      color: rgba(210,212,230,0.9);
+      background: linear-gradient(to bottom, #ffffff, rgba(110,115,155,0.95));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    #stage-label.stage-1, #cmp-stage-label.stage-1 {
+      color: rgba(74,222,128,0.92);
+      background: linear-gradient(to bottom, #ccffdd, rgba(20,130,65,0.95));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    #stage-label.stage-2, #cmp-stage-label.stage-2 {
+      color: rgba(80,180,255,0.92);
+      background: linear-gradient(to bottom, #d0f0ff, rgba(20,80,220,0.95));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    #stage-label.stage-3, #cmp-stage-label.stage-3 {
+      color: rgba(190,100,255,0.92);
+      background: linear-gradient(to bottom, rgba(190,100,255,0.95), rgba(255,90,130,0.95));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    /* ── Loading screen ── */
+    #loading-screen {
+      position: fixed; inset: 0; z-index: 999;
+      background: var(--bg);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+      transition: opacity .4s;
+    }
+    #loading-screen.hide { opacity: 0; pointer-events: none; }
+    #loading-screen .load-text {
+      font-family: 'Noto Serif TC', serif; font-size: 14px; letter-spacing: 1px;
+      color: rgba(180,140,255,0.65);
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+<div id="loading-screen">
+  <div class="spinner" style="width:44px;height:44px;border-width:3px"></div>
+  <div class="load-text">載入圖鑑中…</div>
+</div>
+<div id="overlay" onclick="closeSidebar()"></div>
+
+<div id="app">
+  <div id="sidebar">
+    <div class="sidebar-list" id="sp-list"></div>
+  </div>
+
+  <div id="main">
+    <header>
+      <div class="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="header-title" onclick="selectSpecies({key:'overview',zh:'總覽',en:''})">
+        <span class="title-back" id="title-back">‹</span>星獸圖鑑
+      </div>
+      <div id="header-center" style="display:none"></div>
+      <div id="header-right">
+        <!-- carousel mode: species name -->
+        <div class="header-sp-en" id="title-en" style="display:none">Dragon</div>
+        <!-- overview mode: 選取 button -->
+        <div class="hdr-btn hdr-btn-select" id="btn-select" onclick="enterSelectMode()" style="display:none">選取</div>
+        <!-- selection mode: 取消 + 確認 -->
+        <div id="btn-confirm-group" style="display:none; gap:8px; align-items:center; display:none">
+          <div class="hdr-btn hdr-btn-cancel"  onclick="cancelSelectMode()">取消</div>
+          <div class="hdr-btn hdr-btn-confirm" onclick="confirmSelection()">確認</div>
+        </div>
+        <!-- compare mode: 清除 -->
+        <div class="hdr-btn hdr-btn-clear" id="btn-clear" onclick="clearComparison()" style="display:none">清除</div>
+      </div>
+    </header>
+
+    <div id="content">
+
+      <!-- Species carousel -->
+      <div class="carousel-wrap" id="carousel-wrap">
+        <div id="stage-area"><div id="stage-label">誕生</div></div>
+        <div class="carousel" id="carousel">
+          <div class="c-track" id="c-track"></div>
+        </div>
+        <div class="nav-row">
+          <div class="c-arrow hidden" id="arrow-l" onclick="go(cur-1)">‹</div>
+          <div class="dots-row" id="dots-row"></div>
+          <div class="c-arrow" id="arrow-r" onclick="go(cur+1)">›</div>
+        </div>
+        <div class="stage-spacer"></div>
+      </div>
+
+      <!-- Overview grid -->
+      <div class="overview-wrap" id="overview-wrap">
+        <div class="overview-grid" id="overview-grid"></div>
+      </div>
+
+      <!-- Compare carousel -->
+      <div class="carousel-wrap" id="compare-wrap" style="display:none">
+        <div id="cmp-stage-area"><div id="cmp-stage-label"></div></div>
+        <div class="carousel" id="compare-carousel">
+          <div class="c-track" id="compare-track"></div>
+        </div>
+        <div class="nav-row">
+          <div class="c-arrow hidden" id="cmp-arrow-l" onclick="goCompare(cmpCur-1)">‹</div>
+          <div class="dots-row" id="cmp-dots-row"></div>
+          <div class="c-arrow hidden" id="cmp-arrow-r" onclick="goCompare(cmpCur+1)">›</div>
+        </div>
+        <div class="stage-spacer"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const STAGES = ['誕生', '幼年', '覺醒', '星神'];
+const WEBHOOK       = 'https://webbermars.app.n8n.cloud/webhook/get-signed-url';
+const BATCH_WEBHOOK = 'https://webbermars.app.n8n.cloud/webhook/get-signed-urls-batch';
+let urlCache = {};
+
+const SPECIES = [
+  { key:'Dragon',  zh:'龍',     en:'Dragon'  },
+  { key:'Phoenix', zh:'鳳凰',   en:'Phoenix' },
+  { key:'Fox',     zh:'狐',     en:'Fox'     },
+  { key:'Wolf',    zh:'狼',     en:'Wolf'    },
+  { key:'Unicorn', zh:'獨角獸', en:'Unicorn' },
+  { key:'Eagle',   zh:'老鷹',   en:'Eagle'   },
+  { key:'Tiger',   zh:'虎',     en:'Tiger'   },
+  { key:'Ghost',   zh:'幽靈',   en:'Ghost'   },
+];
+
+let cur = 0, activeSp = SPECIES[0];
+let tx = 0, touching = false;
+let overviewBuilt = false;
+let isSelecting = false, selectedImages = [], confirmedImages = [];
+let cmpCur = 0, cmpTotal = 0;
+
+function imgUrl(key, n) {
+  const path = `encyclopedia/${key}/stage_${n}.png`;
+  return urlCache[path] || `${WEBHOOK}?path=${encodeURIComponent(path)}`;
+}
+
+async function preloadAllUrls() {
+  const paths = [];
+  SPECIES.forEach(sp => {
+    for (let i = 1; i <= 4; i++) paths.push(`encyclopedia/${sp.key}/stage_${i}.png`);
+  });
+  try {
+    const res = await fetch(BATCH_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paths })
+    });
+    urlCache = await res.json();
+  } catch (e) {
+    console.warn('Batch preload failed, falling back to single requests');
+  }
+}
+
+/* ══ SPECIES CAROUSEL ══ */
+function buildCarousel(sp) {
+  const track = document.getElementById('c-track');
+  const dotsRow = document.getElementById('dots-row');
+  track.innerHTML = dotsRow.innerHTML = '';
+  track.style.width = '400%';
+
+  for (let i = 0; i < 4; i++) {
+    const slide = document.createElement('div');
+    slide.className = 'c-slide'; slide.style.width = '25%';
+    const loader = document.createElement('div');
+    loader.className = 'c-loader'; loader.innerHTML = '<div class="spinner"></div>';
+    const img = document.createElement('img'); img.className = 'c-img';
+    img.src = imgUrl(sp.key, i + 1);
+    img.onload  = () => { loader.classList.add('hide'); img.classList.add('loaded'); };
+    img.onerror = () => { loader.innerHTML = '<span style="color:rgba(255,120,120,.7);font-size:12px">—</span>'; };
+    slide.append(loader, img); track.appendChild(slide);
+
+    const dot = document.createElement('div');
+    dot.className = 'dot-item' + (i === 0 ? ' active' : '');
+    dot.onclick = () => go(i);
+    dot.innerHTML = '<div class="dot-circle"></div><div class="dot-label">' + (i + 1) + '</div>';
+    dotsRow.appendChild(dot);
+  }
+  go(0, false);
+}
+
+function go(index, animate = true) {
+  cur = Math.max(0, Math.min(3, index));
+  const track = document.getElementById('c-track');
+  track.style.transition = animate ? 'transform .38s cubic-bezier(.25,.46,.45,.94)' : 'none';
+  track.style.transform  = `translateX(-${cur * 25}%)`;
+  document.querySelectorAll('#dots-row .dot-item').forEach((d, i) => d.classList.toggle('active', i === cur));
+  document.getElementById('arrow-l').classList.toggle('hidden', cur === 0);
+  document.getElementById('arrow-r').classList.toggle('hidden', cur === 3);
+  const sl = document.getElementById('stage-label');
+  sl.textContent = STAGES[cur];
+  sl.className   = `stage-${cur}`;
+}
+
+/* touch swipe — species carousel */
+const carouselEl = document.getElementById('carousel');
+carouselEl.addEventListener('touchstart', e => { tx = e.touches[0].clientX; touching = true; }, { passive: true });
+carouselEl.addEventListener('touchmove',  e => { if (touching && Math.abs(e.touches[0].clientX - tx) > 10) e.preventDefault(); }, { passive: false });
+carouselEl.addEventListener('touchend',   e => {
+  if (!touching) return; touching = false;
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 45) dx < 0 ? go(cur + 1) : go(cur - 1);
+});
+
+/* ══ COMPARE CAROUSEL ══ */
+function buildCompareCarousel(images) {
+  cmpTotal = images.length;
+  cmpCur   = 0;
+  const track = document.getElementById('compare-track');
+  track.innerHTML = '';
+  track.style.width = (cmpTotal * 100) + '%';
+
+  images.forEach((item, i) => {
+    const slide = document.createElement('div');
+    slide.className = 'c-slide'; slide.style.width = (100 / cmpTotal) + '%';
+    const loader = document.createElement('div');
+    loader.className = 'c-loader'; loader.innerHTML = '<div class="spinner"></div>';
+    const img = document.createElement('img'); img.className = 'c-img';
+    img.src = imgUrl(item.spKey, item.stage);
+    img.onload  = () => { loader.classList.add('hide'); img.classList.add('loaded'); };
+    img.onerror = () => { loader.innerHTML = '<span style="color:rgba(255,120,120,.7);font-size:12px">—</span>'; };
+    slide.append(loader, img); track.appendChild(slide);
+  });
+  goCompare(0, false);
+}
+
+/* max dots shown when total ≤ this; otherwise use a sliding window of CMP_WIN */
+const CMP_MAX_DOTS = 5;
+const CMP_WIN_DOTS = 3;
+
+function updateCompareDots() {
+  const row = document.getElementById('cmp-dots-row');
+  row.innerHTML = '';
+  if (cmpTotal > CMP_MAX_DOTS) {
+    const box = document.createElement('div');
+    box.className = 'cmp-page-box';
+    box.innerHTML = '<span style="color:rgba(74,222,128,0.9)">' + (cmpCur + 1) + '</span><span style="color:rgba(255,208,96,0.85)"> / ' + cmpTotal + '</span>';
+    row.appendChild(box);
+  } else {
+    for (let i = 0; i < cmpTotal; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'dot-item' + (i === cmpCur ? ' active' : '');
+      dot.onclick   = () => goCompare(i);
+      dot.innerHTML = '<div class="dot-circle"></div><div class="dot-label">' + (i + 1) + '</div>';
+      row.appendChild(dot);
+    }
+  }
+}
+
+function goCompare(index, animate = true) {
+  cmpCur = Math.max(0, Math.min(cmpTotal - 1, index));
+  const track = document.getElementById('compare-track');
+  const pct   = 100 / cmpTotal;
+  track.style.transition = animate ? 'transform .38s cubic-bezier(.25,.46,.45,.94)' : 'none';
+  track.style.transform  = `translateX(-${cmpCur * pct}%)`;
+  updateCompareDots();
+  document.getElementById('cmp-arrow-l').classList.toggle('hidden', cmpCur === 0);
+  document.getElementById('cmp-arrow-r').classList.toggle('hidden', cmpCur === cmpTotal - 1);
+  const item = confirmedImages[cmpCur];
+  if (item) {
+    const cl = document.getElementById('cmp-stage-label');
+    cl.textContent = `${item.spKey.toUpperCase()} · ${STAGES[item.stage - 1]}`;
+    cl.className   = `stage-${item.stage - 1}`;
+  }
+}
+
+/* touch swipe — compare carousel */
+const compareEl = document.getElementById('compare-carousel');
+let ctx2 = 0, touching2 = false;
+compareEl.addEventListener('touchstart', e => { ctx2 = e.touches[0].clientX; touching2 = true; }, { passive: true });
+compareEl.addEventListener('touchmove',  e => { if (touching2 && Math.abs(e.touches[0].clientX - ctx2) > 10) e.preventDefault(); }, { passive: false });
+compareEl.addEventListener('touchend',   e => {
+  if (!touching2) return; touching2 = false;
+  const dx = e.changedTouches[0].clientX - ctx2;
+  if (Math.abs(dx) > 45) dx < 0 ? goCompare(cmpCur + 1) : goCompare(cmpCur - 1);
+});
+
+/* ══ OVERVIEW ══ */
+function buildOverview() {
+  if (overviewBuilt) return;
+  overviewBuilt = true;
+  const grid = document.getElementById('overview-grid');
+  SPECIES.forEach(sp => {
+    for (let stage = 1; stage <= 4; stage++) {
+      const cell = document.createElement('div');
+      cell.className = 'ov-cell';
+      cell.dataset.spKey = sp.key;
+      cell.dataset.stage = stage;
+
+      const loader = document.createElement('div');
+      loader.className = 'ov-loader'; loader.innerHTML = '<div class="ov-spinner"></div>';
+      const img = document.createElement('img'); img.className = 'ov-img';
+      img.src = imgUrl(sp.key, stage);
+      img.onload  = () => { loader.classList.add('hide'); img.classList.add('loaded'); };
+      img.onerror = () => { loader.classList.add('hide'); };
+      cell.append(loader, img);
+
+      const tSp = sp, tStage = stage - 1;
+      cell.addEventListener('click', () => {
+        if (isSelecting) {
+          toggleCellSelect(cell, sp.key, stage);
+        } else {
+          selectSpecies(tSp);
+          go(tStage, false);
+        }
+      });
+      grid.appendChild(cell);
+    }
+  });
+}
+
+/* ══ SELECTION MODE ══ */
+function toggleCellSelect(cell, spKey, stage) {
+  const idx = selectedImages.findIndex(i => i.spKey === spKey && i.stage === stage);
+  if (idx >= 0) {
+    selectedImages.splice(idx, 1);
+    cell.classList.remove('selected');
+  } else {
+    selectedImages.push({ spKey, stage });
+    cell.classList.add('selected');
+  }
+  updateSelectionBadges();
+}
+
+function updateSelectionBadges() {
+  document.querySelectorAll('.sel-badge').forEach(b => b.remove());
+  selectedImages.forEach((item, idx) => {
+    const cell = document.querySelector(`.ov-cell[data-sp-key="${item.spKey}"][data-stage="${item.stage}"]`);
+    if (!cell) return;
+    const badge = document.createElement('div');
+    badge.className = 'sel-badge';
+    badge.textContent = idx + 1;
+    cell.appendChild(badge);
+  });
+}
+
+function enterSelectMode() {
+  isSelecting = true;
+  // restore previously confirmed selection if any
+  selectedImages = confirmedImages.length > 0 ? [...confirmedImages] : [];
+  document.querySelectorAll('.ov-cell').forEach(c => c.classList.remove('selected'));
+  selectedImages.forEach(item => {
+    const cell = document.querySelector(`.ov-cell[data-sp-key="${item.spKey}"][data-stage="${item.stage}"]`);
+    if (cell) cell.classList.add('selected');
+  });
+  updateSelectionBadges();
+  setHeaderRight('selecting');
+}
+
+function cancelSelectMode() {
+  isSelecting = false;
+  selectedImages = [];
+  document.querySelectorAll('.ov-cell').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.sel-badge').forEach(b => b.remove());
+  setHeaderRight('overview');
+}
+
+function confirmSelection() {
+  if (selectedImages.length === 0) { cancelSelectMode(); return; }
+  confirmedImages = [...selectedImages];
+  isSelecting = false;
+  addCompareToSidebar();
+  selectSpecies({ key: 'compare', zh: '比較', en: '' });
+}
+
+function clearComparison() {
+  confirmedImages = [];
+  selectedImages  = [];
+  document.querySelectorAll('.ov-cell').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.sel-badge').forEach(b => b.remove());
+  removeCompareFromSidebar();
+  selectSpecies({ key: 'overview', zh: '總覽', en: '' });
+}
+
+function addCompareToSidebar() {
+  if (document.getElementById('compare-sidebar-section')) return;
+  const list    = document.getElementById('sp-list');
+  const section = document.createElement('div');
+  section.id    = 'compare-sidebar-section';
+  section.style.cssText = 'display:flex; flex-direction:column;';
+  const div = document.createElement('div'); div.className = 'sp-divider';
+  section.appendChild(div);
+  const el = document.createElement('div');
+  el.className = 'sp-item'; el.dataset.key = 'compare';
+  el.style.marginTop = '6px';
+  el.innerHTML = '<div class="sp-zh">比較</div>';
+  el.addEventListener('click', () => selectSpecies({ key: 'compare', zh: '比較', en: '' }));
+  el.addEventListener('touchstart', () => el.classList.add('pressing'),   { passive: true });
+  el.addEventListener('touchend',   () => el.classList.remove('pressing'), { passive: true });
+  el.addEventListener('touchcancel',() => el.classList.remove('pressing'), { passive: true });
+  section.appendChild(el);
+  list.appendChild(section);
+}
+
+function removeCompareFromSidebar() {
+  const s = document.getElementById('compare-sidebar-section');
+  if (s) s.remove();
+}
+
+/* ══ PANEL SWITCHING ══ */
+function setHeaderRight(mode) {
+  const enEl    = document.getElementById('title-en');
+  const selBtn  = document.getElementById('btn-select');
+  const confGrp = document.getElementById('btn-confirm-group');
+  const clrBtn  = document.getElementById('btn-clear');
+  const center  = document.getElementById('header-center');
+  enEl.style.display    = mode === 'carousel'  ? '' : 'none';
+  selBtn.style.display  = mode === 'overview'  ? '' : 'none';
+  confGrp.style.display = mode === 'selecting' ? 'flex' : 'none';
+  clrBtn.style.display  = mode === 'compare'   ? '' : 'none';
+  if (mode === 'compare') {
+    center.textContent = 'VS'; center.style.display = '';
+  } else if (mode === 'overview' || mode === 'selecting') {
+    center.textContent = 'ALL'; center.style.display = '';
+  } else {
+    center.style.display = 'none';
+  }
+}
+
+function showCarousel() {
+  document.getElementById('carousel-wrap').style.display  = 'flex';
+  document.getElementById('overview-wrap').style.display  = 'none';
+  document.getElementById('compare-wrap').style.display   = 'none';
+  setHeaderRight('carousel');
+  document.getElementById('title-back').classList.add('show');
+}
+function showOverview() {
+  document.getElementById('carousel-wrap').style.display  = 'none';
+  document.getElementById('overview-wrap').style.display  = 'flex';
+  document.getElementById('compare-wrap').style.display   = 'none';
+  setHeaderRight('overview');
+  document.getElementById('title-back').classList.remove('show');
+  buildOverview();
+  if (!isSelecting) {
+    document.querySelectorAll('.ov-cell').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.sel-badge').forEach(b => b.remove());
+  }
+}
+function showCompare() {
+  document.getElementById('carousel-wrap').style.display  = 'none';
+  document.getElementById('overview-wrap').style.display  = 'none';
+  document.getElementById('compare-wrap').style.display   = 'flex';
+  setHeaderRight('compare');
+  document.getElementById('title-back').classList.add('show');
+  buildCompareCarousel(confirmedImages);
+}
+
+/* ══ SPECIES LIST ══ */
+function buildSpeciesList() {
+  const list = document.getElementById('sp-list');
+
+  SPECIES.forEach(sp => {
+    const el = document.createElement('div');
+    el.className = 'sp-item' + (sp.key === activeSp.key ? ' active' : '');
+    el.dataset.key = sp.key;
+    el.innerHTML = `<div class="sp-zh">${sp.zh}</div><div class="sp-en">${sp.en}</div>`;
+    el.addEventListener('click', () => selectSpecies(sp));
+    el.addEventListener('touchstart', () => el.classList.add('pressing'),   { passive: true });
+    el.addEventListener('touchend',   () => el.classList.remove('pressing'), { passive: true });
+    el.addEventListener('touchcancel',() => el.classList.remove('pressing'), { passive: true });
+    list.appendChild(el);
+  });
+
+  /* divider + 總覽 */
+  addDivider(list);
+  addSidebarItem(list, 'overview', '總覽', '');
+  /* 比較 will be added dynamically after user confirms a selection */
+}
+
+function addDivider(parent) {
+  const d = document.createElement('div'); d.className = 'sp-divider'; parent.appendChild(d);
+}
+function addSidebarItem(parent, key, zh, en) {
+  const el = document.createElement('div');
+  el.className = 'sp-item'; el.dataset.key = key;
+  el.innerHTML = `<div class="sp-zh">${zh}</div>`;
+  el.addEventListener('click', () => selectSpecies({ key, zh, en }));
+  el.addEventListener('touchstart', () => el.classList.add('pressing'),   { passive: true });
+  el.addEventListener('touchend',   () => el.classList.remove('pressing'), { passive: true });
+  el.addEventListener('touchcancel',() => el.classList.remove('pressing'), { passive: true });
+  parent.appendChild(el);
+}
+
+function selectSpecies(sp) {
+  activeSp = sp;
+  document.querySelectorAll('.sp-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.key === sp.key));
+
+  if (sp.key === 'overview') {
+    isSelecting = false;
+    showOverview();
+  } else if (sp.key === 'compare') {
+    if (confirmedImages.length === 0) { showOverview(); return; }
+    showCompare();
+  } else {
+    document.getElementById('title-en').textContent = sp.en;
+    showCarousel();
+    buildCarousel(sp);
+  }
+  closeSidebar();
+}
+
+/* ══ SIDEBAR ══ */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+/* ══ STARFIELD ══ */
+(function () {
+  const cv = document.getElementById('starfield');
+  function resize() { cv.width = window.innerWidth; cv.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  const ctx = cv.getContext('2d');
+  const S = Array.from({ length: 90 }, () => ({
+    x: Math.random(), y: Math.random(),
+    r: Math.random() * 1.1 + 0.25,
+    ph: Math.random() * Math.PI * 2,
+    sp: 0.004 + Math.random() * 0.01,
+  }));
+  function draw(t) {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    S.forEach(s => {
+      const a = 0.12 + 0.72 * (0.5 + 0.5 * Math.sin(t * s.sp + s.ph));
+      ctx.beginPath(); ctx.arc(s.x * cv.width, s.y * cv.height, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${a})`; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+/* ══ INIT ══ */
+buildSpeciesList();
+preloadAllUrls().then(() => {
+  const ls = document.getElementById('loading-screen');
+  ls.classList.add('hide');
+  setTimeout(() => { ls.style.display = 'none'; }, 400);
+  showCarousel();
+  buildCarousel(activeSp);
+});
+</script>
+</body>
+</html>
