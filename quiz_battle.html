@@ -217,6 +217,18 @@
     /* ── Kick / Leave ── */
     .slot-kick-btn { position: absolute; top: 6px; left: 6px; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--red); background: rgba(239,68,68,0.1); color: var(--red); font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: inherit; padding: 0; line-height: 1; }
     .slot-kick-btn:active { background: rgba(239,68,68,0.3); }
+
+    /* ── Kick Confirm Dialog ── */
+    .kick-dialog-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .kick-dialog-overlay.open { display: flex; }
+    .kick-dialog { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 24px 20px; width: 100%; max-width: 320px; text-align: center; }
+    .kick-dialog-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .kick-dialog-sub   { font-size: 13px; color: var(--sub); margin-bottom: 22px; line-height: 1.5; }
+    .kick-dialog-btns  { display: flex; gap: 10px; }
+    .kick-dialog-btns button { flex: 1; padding: 13px 0; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity 0.12s; }
+    .kick-dialog-btns button:active { opacity: 0.78; }
+    .kick-dialog-cancel  { background: var(--card2); color: var(--sub); border: 1px solid var(--border) !important; }
+    .kick-dialog-confirm { background: var(--red); color: #fff; }
     .leave-btn { padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--red); background: rgba(239,68,68,0.1); color: var(--red); font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.12s; white-space: nowrap; }
     .leave-btn:active { background: rgba(239,68,68,0.28); }
     .entry-back { position: absolute; top: 20px; left: 16px; z-index: 2; }
@@ -291,7 +303,7 @@
 <!-- Lobby -->
 <div id="screenLobby" class="screen">
   <div class="screen-hd">
-    <div class="back-btn" onclick="goToEntry()">←</div>
+    <div class="back-btn" onclick="leaveRoom()">←</div>
     <div class="lobby-hd-room">
       <div class="lobby-hd-code" id="lobbyRoomCode">------</div>
       <div class="lobby-hd-group" id="lobbyGroup">---</div>
@@ -341,6 +353,18 @@
     <div class="invite-title">邀請群組成員</div>
     <div class="invite-sub">點擊成員旁的「邀請」，即可透過 LINE 傳送邀請卡</div>
     <div id="inviteList"></div>
+  </div>
+</div>
+
+<!-- Kick Confirm Dialog -->
+<div class="kick-dialog-overlay" id="kickDialogOverlay" onclick="closeKickDialog()">
+  <div class="kick-dialog" onclick="event.stopPropagation()">
+    <div class="kick-dialog-title">踢出房間？</div>
+    <div class="kick-dialog-sub" id="kickDialogSub"></div>
+    <div class="kick-dialog-btns">
+      <button class="kick-dialog-cancel" onclick="closeKickDialog()">取消</button>
+      <button class="kick-dialog-confirm" onclick="doKick()">踢出房間</button>
+    </div>
   </div>
 </div>
 
@@ -400,7 +424,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const API     = 'https://webbermars.app.n8n.cloud/webhook';
+const API     = 'https://mars-magicapp.com/webhook';
 const LIFF_ID = '2009047186-MXDITyXh';
 const CIRC    = 276.46;
 
@@ -428,6 +452,7 @@ let _settingsTs = 0;
 let _leaving = false;
 let _readyTs = 0;
 let _groupMembers = [];
+let _currentPlayers = [];
 
 /* ── Helpers ── */
 function gp(k) {
@@ -494,7 +519,8 @@ async function preloadMembers() {
 function renderMemberList(members) {
   const list = document.getElementById('inviteList');
   if (!list) return;
-  const filtered = members.filter(m => m.uid !== uid);
+  const inRoomUids = new Set(_currentPlayers.map(p => p.uid));
+  const filtered = members.filter(m => !inRoomUids.has(m.uid));
   if (filtered.length === 0) {
     list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px">沒有其他群組成員</div>';
     return;
@@ -521,14 +547,16 @@ function selQ(n) {
   _setupQ = n;
   document.querySelectorAll('#qSel .sel-btn').forEach(b => b.classList.toggle('active', +b.dataset.v === n));
 }
-async function doCreateBattle() {
+async function doCreateBattle(forcedRoomCode = '') {
   if (!uid || uid === 'demo_user') { toast('示範模式'); return; }
   const btn = document.getElementById('createBtn');
-  btn.disabled = true; btn.textContent = '建立中...';
+  if (btn) { btn.disabled = true; btn.textContent = '建立中...'; }
   try {
+    const body = { uid, group_id, max_questions: _setupQ, max_players: _setupP };
+    if (forcedRoomCode) body.room_code = forcedRoomCode;
     const r = await fetch(`${API}/battle-create`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid, group_id, max_questions: _setupQ, max_players: _setupP })
+      body: JSON.stringify(body)
     });
     const d = await r.json();
     if (!d.success || !d.battle_id) throw new Error(d.error || '建立失敗');
@@ -540,7 +568,7 @@ async function doCreateBattle() {
     startPoll();
   } catch (e) {
     toast(e.message || '建立失敗，請重試');
-    btn.disabled = false; btn.textContent = '⚔️ 建立房間';
+    if (btn) { btn.disabled = false; btn.textContent = '⚔️ 建立房間'; }
   }
 }
 
@@ -569,10 +597,17 @@ async function init() {
     document.getElementById('lobbyGroup').textContent = group_name;
     if (uid !== 'demo_user') {
       try {
-        await fetch(`${API}/battle-join`, {
+        const jr = await fetch(`${API}/battle-join`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ uid, battle_id })
         });
+        const jd = await jr.json();
+        if (jd && jd.success === false) {
+          battle_id = '';
+          showScreen('screenEntry');
+          setTimeout(() => toast(jd.error || '無法加入房間'), 100);
+          return;
+        }
       } catch {}
     }
     preloadMembers();
@@ -603,6 +638,10 @@ function goToEntry() {
   _lastStatus = '';
   _isHost     = false;
   showScreen('screenEntry');
+  const inp = document.getElementById('joinCodeInput');
+  if (inp) inp.value = '';
+  const btn = document.getElementById('joinCodeBtn');
+  if (btn) { btn.disabled = false; btn.textContent = '加入房間'; }
 }
 
 async function leaveRoom() {
@@ -614,12 +653,36 @@ async function leaveRoom() {
   _lastStatus = '';
   _isHost     = false;
   showScreen('screenEntry');
+  const inp = document.getElementById('joinCodeInput');
+  if (inp) inp.value = '';
+  const btn = document.getElementById('joinCodeBtn');
+  if (btn) { btn.disabled = false; btn.textContent = '加入房間'; }
   if (uid !== 'demo_user' && bid) {
     fetch(`${API}/battle-kick`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ uid, battle_id: bid, target_uid: uid })
     }).catch(() => {});
   }
+}
+
+let _kickTarget = null;
+
+function confirmKick(targetUid, name) {
+  _kickTarget = targetUid;
+  document.getElementById('kickDialogSub').textContent = `確定將「${name}」踢出房間？`;
+  document.getElementById('kickDialogOverlay').classList.add('open');
+}
+
+function closeKickDialog() {
+  _kickTarget = null;
+  document.getElementById('kickDialogOverlay').classList.remove('open');
+}
+
+async function doKick() {
+  if (!_kickTarget) return;
+  const t = _kickTarget;
+  closeKickDialog();
+  await kickPlayer(t);
 }
 
 async function kickPlayer(targetUid) {
@@ -654,10 +717,16 @@ async function joinByCode() {
     document.getElementById('lobbyGroup').textContent = group_name;
     if (uid !== 'demo_user') {
       try {
-        await fetch(`${API}/battle-join`, {
+        const jr = await fetch(`${API}/battle-join`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ uid, battle_id })
         });
+        const jd = await jr.json();
+        if (jd && jd.success === false) {
+          toast(jd.error || '無法加入房間');
+          btn.disabled = false; btn.textContent = '加入房間';
+          return;
+        }
       } catch {}
     }
     preloadMembers();
@@ -674,7 +743,7 @@ function getPollInterval() {
   if (_lastStatus === 'countdown' || _lastStatus === 'question') return 1000;
   if (_lastStatus === 'reveal') return 2000;
   if (_lastStatus === 'finished') return null;
-  return 3000; // waiting 或初始
+  return 1000; // waiting 或初始
 }
 
 function startPoll() { _leaving = false; poll(); }
@@ -754,7 +823,7 @@ function renderState(s) {
         void el.offsetWidth;
         el.style.animation = 'pulse-in 0.85s ease-out';
       }
-      if (elapsed > 5.3) advance();
+      if (_isHost && elapsed > 5.3) advance();
       break;
     }
 
@@ -768,8 +837,10 @@ function renderState(s) {
       }
       updateTimer(Math.max(0, 15 - elapsed));
       renderStrip(players, current_answers);
-      if (players.length > 0 && current_answers.length >= players.length) advance();
-      else if (elapsed > 15.5) advance();
+      if (_isHost) {
+        if (players.length > 0 && current_answers.length >= players.length) advance();
+        else if (elapsed > 15.5) advance();
+      }
       break;
     }
 
@@ -783,11 +854,10 @@ function renderState(s) {
       const rem = Math.max(0, 5 - elapsed);
       const numEl = document.getElementById('rvNextNum');
       if (numEl) numEl.textContent = Math.max(1, Math.ceil(rem));
-      // Last question: change label
       const isLast = idx >= parseInt(max_questions) - 1;
       const lbl = document.getElementById('rvNextLabel');
       if (lbl) lbl.textContent = isLast ? '對戰結束' : '下一題';
-      if (elapsed > 5.3) advance();
+      if (_isHost && elapsed > 5.3) advance();
       break;
     }
 
@@ -805,11 +875,14 @@ function renderState(s) {
 
 /* ── Lobby ── */
 function renderLobby({ players = [], host_uid, max_questions, max_players = 4, room_code = '' }) {
+  _currentPlayers = players;
   if (room_code) _roomCode = room_code;
   const rcEl = document.getElementById('lobbyRoomCode');
   if (rcEl) rcEl.textContent = _roomCode || '------';
 
+  const _prevIsHost = _isHost;
   _isHost = uid === host_uid;
+  if (!_prevIsHost && _isHost) toast('您已成為房主');
   if (Date.now() - _settingsTs > 1500) {
     _setupP = parseInt(max_players) || _setupP;
     _setupQ = parseInt(max_questions) || _setupQ;
@@ -848,7 +921,7 @@ function renderLobby({ players = [], host_uid, max_questions, max_players = 4, r
       const avHtml  = avSrc
         ? `<img src="${esc(avSrc)}" alt="" onerror="this.parentElement.textContent='🌟'">`
         : '🌟';
-      const kickBtn = (_isHost && !isSelf) ? `<button class="slot-kick-btn" onclick="kickPlayer('${esc(p.uid)}')">✕</button>` : '';
+      const kickBtn = (_isHost && !isSelf) ? `<button class="slot-kick-btn" onclick="confirmKick('${esc(p.uid)}', '${esc(name)}')">✕</button>` : '';
       html += `<div class="slot-card${isSelf ? ' is-self' : ''}">
         ${kickBtn}
         ${isHost ? '<span class="slot-host-tag">房主</span>' : ''}
@@ -857,10 +930,9 @@ function renderLobby({ players = [], host_uid, max_questions, max_players = 4, r
         <span class="slot-ready-tag ${isReady ? 'ready' : 'waiting'}">${isReady ? '✓ 已準備' : '未準備'}</span>
       </div>`;
     } else {
-      const clickAttr = _isHost ? 'onclick="openInviteModal()"' : '';
-      html += `<div class="slot-card empty" ${clickAttr}>
+      html += `<div class="slot-card empty" onclick="openInviteModal()">
         <div class="slot-plus">+</div>
-        <div class="slot-name" style="color:var(--muted)">${_isHost ? '點擊邀請' : '等待加入'}</div>
+        <div class="slot-name" style="color:var(--muted)">點擊邀請</div>
       </div>`;
     }
   }
@@ -1086,7 +1158,7 @@ async function shareInviteToMember(targetUid, btn) {
   try {
     const r = await fetch(`${API}/battle-invite`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid, battle_id, target_uid: targetUid, group_id, group_name })
+      body: JSON.stringify({ uid, battle_id, target_uid: targetUid, group_id, group_name, nickname: _memberCache[uid]?.nickname || '' })
     });
     const d = await r.json();
     if (d.success !== false) {
@@ -1136,11 +1208,35 @@ async function updateLobbySettings(type, value) {
   } catch { toast('設定更新失敗'); }
 }
 
-function playAgain() {
+async function playAgain() {
   stopPoll();
-  const p = new URLSearchParams({ host: '1', uid, group_id, group_name });
-  if (invite_code) p.set('invite_code', invite_code);
-  location.href = `quiz_battle.html?${p}`;
+  if (!_roomCode) { showScreen('screenSetup'); return; }
+  try {
+    const fr = await fetch(`${API}/battle-find`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ room_code: _roomCode, uid })
+    });
+    const fd = await fr.json();
+    if (fd.success && fd.battle_id) {
+      battle_id = fd.battle_id;
+      _isHost = false;
+      if (fd.group_id) group_id = fd.group_id;
+      if (uid !== 'demo_user') {
+        await fetch(`${API}/battle-join`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid, battle_id })
+        });
+      }
+      document.getElementById('lobbyGroup').textContent = group_name;
+      preloadMembers();
+      showScreen('screenLobby');
+      startPoll();
+    } else {
+      await doCreateBattle(_roomCode);
+    }
+  } catch {
+    await doCreateBattle(_roomCode);
+  }
 }
 
 async function doStart() {
