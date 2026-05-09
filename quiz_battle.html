@@ -85,9 +85,9 @@
     .cd-label { font-size: 13px; letter-spacing: 0.15em; color: var(--sub); margin-bottom: 28px; }
     .cd-num   { font-size: 120px; font-weight: 700; line-height: 1; color: var(--pri-l); text-shadow: 0 0 40px rgba(124,58,237,0.8), 0 0 80px rgba(124,58,237,0.4); animation: pulse-in 0.85s ease-out; }
     @keyframes pulse-in { 0% { transform: scale(1.4); opacity: 0.4; } 60% { transform: scale(0.92); } 100% { transform: scale(1); opacity: 1; } }
-    @keyframes urgentPulse { 0%,100% { box-shadow: inset 0 0 18px rgba(239,68,68,0.18); } 50% { box-shadow: inset 0 0 48px rgba(239,68,68,0.48); } }
-    #urgentVignette { position: fixed; inset: 0; pointer-events: none; z-index: 999; opacity: 0; transition: opacity 0.5s ease; }
-    #urgentVignette.active { opacity: 1; animation: urgentPulse 1s ease-in-out infinite; }
+    @keyframes urgentPulse { from { box-shadow: inset 0 0 50px rgba(239,68,68,0.38); } to { box-shadow: inset 0 0 110px rgba(239,68,68,0.72); } }
+    #urgentVignette { position: fixed; inset: 0; pointer-events: none; z-index: 999; opacity: 0; transition: opacity 0.4s ease; box-shadow: inset 0 0 80px rgba(239,68,68,0.6); }
+    #urgentVignette.active { opacity: 1; animation: urgentPulse 0.85s ease-in-out infinite alternate; }
     .cd-sub   { margin-top: 28px; font-size: 14px; color: var(--sub); letter-spacing: 0.05em; }
 
     /* ── Question ── */
@@ -511,29 +511,23 @@ function startCountdownTimer(startedAt, duration) {
   }, 200);
 }
 
-function playTick(urgent) {
+function playTick() {
   try {
     if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const ctx = _audioCtx;
     const t   = ctx.currentTime;
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = 'triangle';
-    if (urgent) {
-      osc.frequency.setValueAtTime(1319, t);
-      osc.frequency.exponentialRampToValueAtTime(880, t + 0.06);
-      gain.gain.setValueAtTime(0.42, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
-      osc.start(t); osc.stop(t + 0.32);
-    } else {
-      osc.frequency.setValueAtTime(880, t);
-      osc.frequency.exponentialRampToValueAtTime(660, t + 0.08);
-      gain.gain.setValueAtTime(0.26, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
-      osc.start(t); osc.stop(t + 0.38);
-    }
+    [[1047, 0.42, 0.8], [2093, 0.16, 0.3]].forEach(([freq, vol, dur]) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(vol, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + dur);
+    });
   } catch(e) {}
 }
 
@@ -829,9 +823,9 @@ async function joinByCode() {
 function getPollInterval() {
   if (_lastStatus === 'countdown') return 200;
   if (_lastStatus === 'question')  return 1000;
-  if (_lastStatus === 'reveal')    return 500;
+  if (_lastStatus === 'reveal')    return 300;
   if (_lastStatus === 'finished')  return null;
-  return 1000;
+  return 300;
 }
 
 function startPoll() { _leaving = false; poll(); }
@@ -1092,9 +1086,9 @@ function updateTimer(remaining) {
   ne.className   = `q-timer-num${n <= 5 ? ' urgent' : ''}`;
   re.style.strokeDashoffset = CIRC * (1 - remaining / 15);
   re.style.stroke = n <= 5 ? 'var(--red)' : 'var(--primary)';
-  if (n !== _lastTickSec && n > 0 && n <= 15) {
+  if (n !== _lastTickSec && n > 0 && n <= 13) {
     _lastTickSec = n;
-    playTick(n <= 5);
+    playTick();
   }
   const vg = document.getElementById('urgentVignette');
   if (vg) vg.classList.toggle('active', n <= 5 && n > 0);
