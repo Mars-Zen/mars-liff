@@ -85,6 +85,9 @@
     .cd-label { font-size: 13px; letter-spacing: 0.15em; color: var(--sub); margin-bottom: 28px; }
     .cd-num   { font-size: 120px; font-weight: 700; line-height: 1; color: var(--pri-l); text-shadow: 0 0 40px rgba(124,58,237,0.8), 0 0 80px rgba(124,58,237,0.4); animation: pulse-in 0.85s ease-out; }
     @keyframes pulse-in { 0% { transform: scale(1.4); opacity: 0.4; } 60% { transform: scale(0.92); } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes urgentPulse { from { box-shadow: inset 0 0 50px rgba(239,68,68,0.38); } to { box-shadow: inset 0 0 110px rgba(239,68,68,0.72); } }
+    #urgentVignette { position: fixed; inset: 0; pointer-events: none; z-index: 999; opacity: 0; transition: opacity 0.4s ease; box-shadow: inset 0 0 80px rgba(239,68,68,0.55); }
+    #urgentVignette.active { opacity: 1; animation: urgentPulse 0.85s ease-in-out infinite alternate; }
     .cd-sub   { margin-top: 28px; font-size: 14px; color: var(--sub); letter-spacing: 0.05em; }
 
     /* ── Question ── */
@@ -94,7 +97,7 @@
     .q-timer-wrap svg { transform: rotate(-90deg); display: block; }
     .q-timer-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: var(--pri-l); }
     .q-timer-num.urgent { color: var(--red); }
-    .q-text  { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; font-size: 16px; font-weight: 600; line-height: 1.6; margin-bottom: 18px; text-align: center; min-height: 88px; display: flex; align-items: center; justify-content: center; }
+    .q-text  { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; font-size: 16px; font-weight: 600; line-height: 1.6; margin-bottom: 18px; text-align: justify; text-align-last: left; min-height: 88px; display: block; }
     .q-opts  { display: flex; flex-direction: column; gap: 10px; }
     .q-opt   { padding: 14px 16px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--card); display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all 0.14s; font-size: 14px; font-weight: 500; }
     .q-opt:active { transform: scale(0.99); }
@@ -102,11 +105,14 @@
     .q-opt.selected .q-opt-k { background: var(--primary); color: #fff; border-color: var(--primary); }
     .q-opt.disabled { cursor: default; opacity: 0.55; }
     .q-opt-k { width: 28px; height: 28px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--card2); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--pri-l); flex-shrink: 0; }
-    .q-strip { margin-top: 16px; display: flex; gap: 6px; flex-wrap: wrap; }
-    .q-pip   { display: flex; align-items: center; gap: 5px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px 4px 5px; font-size: 12px; font-weight: 600; }
-    .q-pip-av { width: 20px; height: 20px; border-radius: 5px; background: var(--card2); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+    .q-strip { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .q-pip   { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; font-size: 13px; font-weight: 600; }
+    .q-pip-av { width: 28px; height: 28px; border-radius: 7px; background: var(--card2); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; }
     .q-pip-av img { width: 100%; height: 100%; object-fit: cover; }
+    .q-pip-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .q-pip-status { font-size: 12px; color: var(--muted); flex-shrink: 0; }
     .q-pip.done { border-color: var(--green); background: rgba(16,185,129,0.1); }
+    .q-pip.done .q-pip-status { color: var(--green); }
 
     /* ── Reveal ── */
     .rv-q    { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; font-size: 15px; font-weight: 600; line-height: 1.6; text-align: center; margin-bottom: 14px; }
@@ -227,7 +233,7 @@
     .kick-dialog-btns  { display: flex; gap: 10px; }
     .kick-dialog-btns button { flex: 1; padding: 13px 0; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity 0.12s; }
     .kick-dialog-btns button:active { opacity: 0.78; }
-    .kick-dialog-cancel  { background: var(--card2); color: var(--sub); border: 1px solid var(--border) !important; }
+    .kick-dialog-cancel  { background: #d1d5db; color: #1f2937; border: none !important; }
     .kick-dialog-confirm { background: var(--red); color: #fff; }
     .leave-btn { padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--red); background: rgba(239,68,68,0.1); color: var(--red); font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.12s; white-space: nowrap; }
     .leave-btn:active { background: rgba(239,68,68,0.28); }
@@ -394,6 +400,8 @@
   <div class="q-strip" id="qStrip"></div>
 </div>
 
+<div id="urgentVignette"></div>
+
 <!-- Reveal -->
 <div id="screenReveal" class="screen">
   <div class="screen-hd">
@@ -435,6 +443,7 @@ let group_name = '';
 let invite_code = '';
 
 let _poll       = null;
+let _cdTimer    = null;
 let _lastStatus = '';
 let _qLastIdx   = -1;
 let _rvLastIdx  = -1;
@@ -442,6 +451,9 @@ let _myAnswer   = null;
 let _myReady    = false;
 let _advPending = false;
 let _lastCdNum  = -1;
+let _lastTickSec = -1;
+let _audioCtx    = null;
+let _qTimer      = null;
 let _isHost     = false;
 let _setupP     = 2;
 let _setupQ     = 5;
@@ -474,7 +486,58 @@ function toast(msg, type = '') {
   setTimeout(() => { t.className = 'toast'; }, 2300);
 }
 
+function startCountdownTimer(startedAt, duration) {
+  if (_cdTimer) clearInterval(_cdTimer);
+  _cdTimer = setInterval(() => {
+    const el = document.getElementById('cdNum');
+    if (!el) { clearInterval(_cdTimer); _cdTimer = null; return; }
+    const e = (Date.now() - new Date(startedAt).getTime()) / 1000;
+    const rem = Math.max(0, duration - e);
+    const num = Math.max(1, Math.ceil(rem));
+    if (num !== _lastCdNum) {
+      _lastCdNum = num;
+      el.textContent = num;
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = 'pulse-in 0.85s ease-out';
+    }
+  }, 200);
+}
+
+function playTick(urgent) {
+  try {
+    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx  = _audioCtx;
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    const freq = urgent ? 1047 : 784;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.75, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(urgent ? 0.38 : 0.22, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.28);
+  } catch(e) {}
+}
+
+function startQuestionTimer(startedAt) {
+  if (_qTimer) clearInterval(_qTimer);
+  _qTimer = setInterval(() => {
+    const el = document.getElementById('timerNum');
+    if (!el) { clearInterval(_qTimer); _qTimer = null; return; }
+    const elapsed = (Date.now() - new Date(startedAt).getTime()) / 1000;
+    updateTimer(Math.max(0, 15 - elapsed));
+  }, 200);
+}
+
 function showScreen(id) {
+  if (_cdTimer) { clearInterval(_cdTimer); _cdTimer = null; }
+  if (_qTimer)  { clearInterval(_qTimer);  _qTimer  = null; }
+  const vg = document.getElementById('urgentVignette');
+  if (vg) vg.classList.remove('active');
   document.getElementById('screenLoading').style.display = 'none';
   ['screenEntry','screenSetup','screenLobby','screenCountdown','screenQuestion','screenReveal','screenFinal'].forEach(s => {
     document.getElementById(s).classList.remove('active');
@@ -740,10 +803,11 @@ async function joinByCode() {
 
 /* ── Polling ── */
 function getPollInterval() {
-  if (_lastStatus === 'countdown' || _lastStatus === 'question') return 1000;
-  if (_lastStatus === 'reveal') return 2000;
-  if (_lastStatus === 'finished') return null;
-  return 1000; // waiting 或初始
+  if (_lastStatus === 'countdown') return 200;
+  if (_lastStatus === 'question')  return 1000;
+  if (_lastStatus === 'reveal')    return 2000;
+  if (_lastStatus === 'finished')  return null;
+  return 1000;
 }
 
 function startPoll() { _leaving = false; poll(); }
@@ -812,16 +876,10 @@ function renderState(s) {
       break;
 
     case 'countdown': {
-      if (_lastStatus !== 'countdown') { showScreen('screenCountdown'); _lastCdNum = -1; }
-      const rem  = Math.max(0, 5 - elapsed);
-      const num  = Math.max(1, Math.ceil(rem));
-      if (num !== _lastCdNum) {
-        _lastCdNum = num;
-        const el = document.getElementById('cdNum');
-        el.textContent = num;
-        el.style.animation = 'none';
-        void el.offsetWidth;
-        el.style.animation = 'pulse-in 0.85s ease-out';
+      if (_lastStatus !== 'countdown') {
+        showScreen('screenCountdown');
+        _lastCdNum = -1;
+        startCountdownTimer(question_started_at, 5);
       }
       if (_isHost && elapsed > 5.3) advance();
       break;
@@ -831,11 +889,12 @@ function renderState(s) {
       const changed = _lastStatus !== 'question' || idx !== _qLastIdx;
       if (changed) {
         showScreen('screenQuestion');
-        _myAnswer  = null;
-        _qLastIdx  = idx;
+        _myAnswer    = null;
+        _qLastIdx    = idx;
+        _lastTickSec = -1;
+        startQuestionTimer(question_started_at);
         renderQuestion(s);
       }
-      updateTimer(Math.max(0, 15 - elapsed));
       renderStrip(players, current_answers);
       if (_isHost) {
         if (players.length > 0 && current_answers.length >= players.length) advance();
@@ -993,8 +1052,8 @@ function renderStrip(players, current_answers) {
       : '⭐';
     return `<div class="q-pip${done ? ' done' : ''}">
       <div class="q-pip-av">${av}</div>
-      <span>${esc(name.slice(0,4))}</span>
-      <span style="font-size:10px">${done ? '已答' : '⋯'}</span>
+      <span class="q-pip-name">${esc(name)}</span>
+      <span class="q-pip-status">${done ? '✓ 已答' : '⋯'}</span>
     </div>`;
   }).join('');
 }
@@ -1009,6 +1068,12 @@ function updateTimer(remaining) {
   ne.className   = `q-timer-num${n <= 5 ? ' urgent' : ''}`;
   re.style.strokeDashoffset = CIRC * (1 - remaining / 15);
   re.style.stroke = n <= 5 ? 'var(--red)' : 'var(--primary)';
+  if (n !== _lastTickSec && n > 0 && n <= 15) {
+    _lastTickSec = n;
+    playTick(n <= 5);
+  }
+  const vg = document.getElementById('urgentVignette');
+  if (vg) vg.classList.toggle('active', n <= 5 && n > 0);
 }
 
 /* ── Answer ── */
@@ -1158,7 +1223,7 @@ async function shareInviteToMember(targetUid, btn) {
   try {
     const r = await fetch(`${API}/battle-invite`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid, battle_id, target_uid: targetUid, group_id, group_name, nickname: _memberCache[uid]?.nickname || '' })
+      body: JSON.stringify({ uid, battle_id, target_uid: targetUid, group_id, group_name, nickname: _memberCache[uid]?.nickname || '', room_code: _roomCode })
     });
     const d = await r.json();
     if (d.success !== false) {
