@@ -826,7 +826,7 @@
   }
 
   function goRoom(gid, gname, code) {
-    const params = new URLSearchParams({ group_id: gid, group_name: gname, uid, invite_code: code });
+    const params = new URLSearchParams({ group_id: gid, group_name: gname, uid, invite_code: code || '' });
     location.href = `group_room.html?${params}`;
   }
 
