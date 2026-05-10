@@ -121,10 +121,12 @@
     .rv-q    { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; font-size: 15px; font-weight: 600; line-height: 1.6; text-align: justify; text-align-last: left; margin-bottom: 14px; }
     .rv-opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
     .rv-opt  { padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--card); display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; }
-    .rv-opt.correct { border-color: var(--green); background: rgba(16,185,129,0.12); }
-    .rv-opt.wrong   { opacity: 0.45; }
+    .rv-opt.correct  { border-color: var(--green); background: rgba(16,185,129,0.12); }
+    .rv-opt.wrong    { opacity: 0.45; }
+    .rv-opt.my-wrong { border-color: var(--red); background: rgba(239,68,68,0.15); opacity: 1; }
     .rv-opt-k { width: 24px; height: 24px; border-radius: 6px; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-    .rv-opt.correct .rv-opt-k { background: var(--green); color: #fff; border-color: var(--green); }
+    .rv-opt.correct  .rv-opt-k { background: var(--green); color: #fff; border-color: var(--green); }
+    .rv-opt.my-wrong .rv-opt-k { background: var(--red);   color: #fff; border-color: var(--red); }
     .rv-player { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 6px; }
     .rv-player.is-self { border-color: var(--primary); }
     .rv-av   { width: 32px; height: 32px; border-radius: 8px; background: var(--card2); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; }
@@ -525,18 +527,16 @@ function playTick(urgent) {
     const ctx = _audioCtx;
     const t   = ctx.currentTime;
     if (urgent) {
-      [0, 0.13].forEach(delay => {
-        const osc  = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = 1319;
-        gain.gain.setValueAtTime(0.52, t + delay);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.16);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(t + delay);
-        osc.stop(t + delay + 0.16);
-      });
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.28, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.19);
     } else {
       [[1047, 0.42, 0.8], [2093, 0.16, 0.3]].forEach(([freq, vol, dur]) => {
         const osc  = ctx.createOscillator();
@@ -1085,7 +1085,7 @@ function renderStrip(players, current_answers) {
   const el = document.getElementById('qStrip');
   if (!el) return;
   el.innerHTML = (players || []).map(p => {
-    const done = answered.has(p.uid);
+    const done = answered.has(p.uid) || (p.uid === uid && !!_pendingAnswer);
     const cached = _memberCache[p.uid] || {};
     const avSrc = cached.avatar || '';
     const name = cached.nickname || p.uid.slice(-4);
@@ -1153,11 +1153,13 @@ function renderReveal({ question, current_answers = [], players = [], current_in
   document.getElementById('rvOpts').innerHTML = ['A','B','C'].map(k => {
     const txt = rvOptMap[k];
     if (!txt) return '';
-    const isOk = k === correct;
-    return `<div class="rv-opt${isOk ? ' correct' : ' wrong'}">
+    const isOk      = k === correct;
+    const isMyWrong = !isOk && k === _myAnswer;
+    const cls = isOk ? ' correct' : (isMyWrong ? ' my-wrong' : ' wrong');
+    return `<div class="rv-opt${cls}">
       <div class="rv-opt-k">${k}</div>
       <span style="flex:1">${esc(txt)}</span>
-      ${isOk ? '<span style="font-size:16px">✓</span>' : ''}
+      ${isOk ? '<span style="font-size:16px">✓</span>' : (isMyWrong ? '<span style="font-size:16px">✗</span>' : '')}
     </div>`;
   }).join('');
 
