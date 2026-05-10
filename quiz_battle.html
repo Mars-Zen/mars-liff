@@ -458,7 +458,7 @@ let _qLastIdx   = -1;
 let _rvLastIdx  = -1;
 let _myAnswer        = null;
 let _pendingAnswer   = null;
-let _answerSent      = false;
+let _pendingFetchCtrl = null;
 let _myReady    = false;
 let _advPending = false;
 let _lastCdNum  = -1;
@@ -561,7 +561,7 @@ function enterQuestionScreen(s) {
   showScreen('screenQuestion');
   _myAnswer      = null;
   _pendingAnswer = null;
-  _answerSent    = false;
+  if (_pendingFetchCtrl) { _pendingFetchCtrl.abort(); _pendingFetchCtrl = null; }
   _qLastIdx    = parseInt(s.current_index) || 0;
   _lastTickSec = -1;
   startQuestionTimer(s.question_started_at);
@@ -1134,24 +1134,27 @@ function selectAnswer(key) {
   document.querySelectorAll('.q-opt').forEach(el => {
     el.classList.toggle('selected', el.id === `qo-${key}`);
   });
-  if (!_answerSent && uid !== 'demo_user') {
-    _answerSent = true;
+  if (uid !== 'demo_user') {
+    if (_pendingFetchCtrl) _pendingFetchCtrl.abort();
+    _pendingFetchCtrl = new AbortController();
     fetch(`${API}/battle-answer`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid, battle_id, answer: key })
+      body: JSON.stringify({ uid, battle_id, answer: key, is_final: false }),
+      signal: _pendingFetchCtrl.signal
     }).catch(() => {});
   }
 }
 
 async function _submitAnswer(key) {
   if (_myAnswer) return;
+  if (_pendingFetchCtrl) { _pendingFetchCtrl.abort(); _pendingFetchCtrl = null; }
   _myAnswer = key;
   document.querySelectorAll('.q-opt').forEach(el => el.classList.add('disabled'));
   if (uid === 'demo_user') return;
   try {
     await fetch(`${API}/battle-answer`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid, battle_id, answer: key })
+      body: JSON.stringify({ uid, battle_id, answer: key, is_final: true })
     });
   } catch { toast('提交失敗'); }
 }
