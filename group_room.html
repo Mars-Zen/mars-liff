@@ -1720,7 +1720,7 @@
       const today = _getTodayStr();
       const r = await fetch(`${API}/journal-group-today`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ group_id, date: today })
+        body: JSON.stringify({ group_id, date: today, uid })
       });
       const data = await r.json();
       renderGroupJournal(data.entries || []);
