@@ -945,7 +945,7 @@ function renderState(s) {
       renderStrip(players, current_answers);
       if (_isHost) {
         if (players.length > 0 && current_answers.length >= players.length) advance();
-        else if (elapsed > 15.5) advance();
+        else if (elapsed > 17) advance();
       }
       break;
     }
@@ -953,6 +953,7 @@ function renderState(s) {
     case 'reveal': {
       const changed = _lastStatus !== 'reveal' || idx !== _rvLastIdx;
       if (changed) {
+        if (!_myAnswer && _pendingAnswer) _myAnswer = _pendingAnswer;
         showScreen('screenReveal');
         _rvLastIdx = idx;
         renderReveal(s);
@@ -1287,7 +1288,7 @@ async function shareInviteToMember(targetUid, btn) {
   try {
     const r = await fetch(`${API}/battle-invite`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid, battle_id, target_uid: targetUid, group_id, group_name, nickname: _memberCache[uid]?.nickname || '', room_code: _roomCode })
+      body: JSON.stringify({ uid, battle_id, target_uid: targetUid, group_id, group_name, nickname: _memberCache[uid]?.nickname || '', room_code: _roomCode, invite_code })
     });
     const d = await r.json();
     if (d.success !== false) {
