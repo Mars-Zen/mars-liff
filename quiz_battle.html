@@ -454,7 +454,8 @@ let _cdTimer    = null;
 let _lastStatus = '';
 let _qLastIdx   = -1;
 let _rvLastIdx  = -1;
-let _myAnswer   = null;
+let _myAnswer        = null;
+let _pendingAnswer   = null;
 let _myReady    = false;
 let _advPending = false;
 let _lastCdNum  = -1;
@@ -555,7 +556,8 @@ function playTick(urgent) {
 
 function enterQuestionScreen(s) {
   showScreen('screenQuestion');
-  _myAnswer    = null;
+  _myAnswer      = null;
+  _pendingAnswer = null;
   _qLastIdx    = parseInt(s.current_index) || 0;
   _lastTickSec = -1;
   startQuestionTimer(s.question_started_at);
@@ -1114,16 +1116,22 @@ function updateTimer(remaining) {
   }
   const vg = document.getElementById('urgentVignette');
   if (vg) vg.classList.toggle('active', n <= 5 && n > 0);
+  if (remaining <= 0 && _pendingAnswer && !_myAnswer) _submitAnswer(_pendingAnswer);
 }
 
 /* ── Answer ── */
-async function selectAnswer(key) {
+function selectAnswer(key) {
+  if (_myAnswer) return;
+  _pendingAnswer = key;
+  document.querySelectorAll('.q-opt').forEach(el => {
+    el.classList.toggle('selected', el.id === `qo-${key}`);
+  });
+}
+
+async function _submitAnswer(key) {
   if (_myAnswer) return;
   _myAnswer = key;
-  document.querySelectorAll('.q-opt').forEach(el => {
-    el.classList.add('disabled');
-    if (el.id === `qo-${key}`) el.classList.add('selected');
-  });
+  document.querySelectorAll('.q-opt').forEach(el => el.classList.add('disabled'));
   if (uid === 'demo_user') return;
   try {
     await fetch(`${API}/battle-answer`, {
