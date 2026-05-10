@@ -115,7 +115,7 @@
     .q-pip.done .q-pip-status { color: var(--green); }
 
     /* ── Reveal ── */
-    .rv-q    { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; font-size: 15px; font-weight: 600; line-height: 1.6; text-align: center; margin-bottom: 14px; }
+    .rv-q    { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; font-size: 15px; font-weight: 600; line-height: 1.6; text-align: justify; text-align-last: left; margin-bottom: 14px; }
     .rv-opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
     .rv-opt  { padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--card); display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; }
     .rv-opt.correct { border-color: var(--green); background: rgba(16,185,129,0.12); }
@@ -511,23 +511,38 @@ function startCountdownTimer(startedAt, duration) {
   }, 200);
 }
 
-function playTick() {
+function playTick(urgent) {
   try {
     if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const ctx = _audioCtx;
     const t   = ctx.currentTime;
-    [[1047, 0.42, 0.8], [2093, 0.16, 0.3]].forEach(([freq, vol, dur]) => {
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(vol, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + dur);
-    });
+    if (urgent) {
+      [0, 0.13].forEach(delay => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 1319;
+        gain.gain.setValueAtTime(0.52, t + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.16);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t + delay);
+        osc.stop(t + delay + 0.16);
+      });
+    } else {
+      [[1047, 0.42, 0.8], [2093, 0.16, 0.3]].forEach(([freq, vol, dur]) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(vol, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + dur);
+      });
+    }
   } catch(e) {}
 }
 
@@ -1088,7 +1103,7 @@ function updateTimer(remaining) {
   re.style.stroke = n <= 5 ? 'var(--red)' : 'var(--primary)';
   if (n !== _lastTickSec && n > 0 && n <= 13) {
     _lastTickSec = n;
-    playTick();
+    playTick(n <= 5);
   }
   const vg = document.getElementById('urgentVignette');
   if (vg) vg.classList.toggle('active', n <= 5 && n > 0);
