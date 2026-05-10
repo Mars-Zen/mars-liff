@@ -105,7 +105,10 @@
     .q-opt.selected .q-opt-k { background: var(--primary); color: #fff; border-color: var(--primary); }
     .q-opt.disabled { cursor: default; opacity: 0.55; }
     .q-opt-k { width: 28px; height: 28px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--card2); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--pri-l); flex-shrink: 0; }
-    .q-strip { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .q-sect-div  { margin-top: 16px; }
+    .q-sect-line { height: 1px; background: var(--border); }
+    .q-sect-lbl  { display: inline-block; margin-top: 5px; font-size: 11px; color: var(--muted); font-weight: 500; letter-spacing: 0.04em; }
+    .q-strip { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
     .q-pip   { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; font-size: 13px; font-weight: 600; }
     .q-pip-av { width: 28px; height: 28px; border-radius: 7px; background: var(--card2); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; }
     .q-pip-av img { width: 100%; height: 100%; object-fit: cover; }
@@ -397,6 +400,10 @@
   </div>
   <div class="q-text" id="qText">載入題目...</div>
   <div class="q-opts" id="qOpts"></div>
+  <div class="q-sect-div">
+    <div class="q-sect-line"></div>
+    <span class="q-sect-lbl">玩家狀態</span>
+  </div>
   <div class="q-strip" id="qStrip"></div>
 </div>
 
