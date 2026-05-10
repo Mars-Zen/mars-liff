@@ -968,7 +968,7 @@
   const group_name = getUrlParam('group_name') || '星際群組';
   const uid        = getUrlParam('uid');
   const _rawCode   = getUrlParam('invite_code');
-  const inv_code   = (_rawCode && _rawCode !== 'undefined') ? _rawCode : '';
+  let inv_code     = (_rawCode && _rawCode !== 'undefined') ? _rawCode : '';
 
   document.getElementById('groupName').textContent = group_name;
   document.getElementById('codeChip').textContent  = inv_code || '------';
@@ -1061,6 +1061,20 @@
     } catch {}
 
     if (!group_id || !uid || uid === 'demo_user') { renderDemo(); return; }
+    if (!inv_code) {
+      try {
+        const _gr = await fetch(`${API}/group-list`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid })
+        });
+        const _gd = await _gr.json();
+        const _gf = (_gd.groups || []).find(g => g.group_id === group_id);
+        if (_gf?.invite_code) {
+          inv_code = _gf.invite_code;
+          document.getElementById('codeChip').textContent = inv_code;
+        }
+      } catch {}
+    }
     await loadMembers();
     await loadRankings();
 
