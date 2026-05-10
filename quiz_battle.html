@@ -706,19 +706,26 @@ async function init() {
   if (battle_id) {
     document.getElementById('lobbyGroup').textContent = group_name;
     if (uid !== 'demo_user') {
+      let jd = {};
+      let joinOk = false;
       try {
         const jr = await fetch(`${API}/battle-join`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ uid, battle_id })
         });
-        const jd = await jr.json();
-        if (jd && jd.success === false) {
-          battle_id = '';
-          showScreen('screenEntry');
-          setTimeout(() => toast(jd.error || '無法加入房間'), 100);
-          return;
-        }
+        try { jd = await jr.json(); } catch {}
+        joinOk = jr.ok && jd.success !== false;
       } catch {}
+      if (!joinOk) {
+        battle_id = '';
+        showScreen('screenEntry');
+        const reason = jd.reason || '';
+        const msg = reason === 'not_found' ? '房間已被銷毀' :
+                    (reason === 'finished' || reason === 'started') ? '此對戰已結束' :
+                    jd.error || '無法加入房間';
+        setTimeout(() => toast(msg), 100);
+        return;
+      }
     }
     preloadMembers();
     _membersPreloaded = true;
