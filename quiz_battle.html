@@ -458,6 +458,7 @@ let _qLastIdx   = -1;
 let _rvLastIdx  = -1;
 let _myAnswer        = null;
 let _pendingAnswer   = null;
+let _answerSent      = false;
 let _myReady    = false;
 let _advPending = false;
 let _lastCdNum  = -1;
@@ -560,6 +561,7 @@ function enterQuestionScreen(s) {
   showScreen('screenQuestion');
   _myAnswer      = null;
   _pendingAnswer = null;
+  _answerSent    = false;
   _qLastIdx    = parseInt(s.current_index) || 0;
   _lastTickSec = -1;
   startQuestionTimer(s.question_started_at);
@@ -1131,7 +1133,8 @@ function selectAnswer(key) {
   document.querySelectorAll('.q-opt').forEach(el => {
     el.classList.toggle('selected', el.id === `qo-${key}`);
   });
-  if (uid !== 'demo_user') {
+  if (!_answerSent && uid !== 'demo_user') {
+    _answerSent = true;
     fetch(`${API}/battle-answer`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ uid, battle_id, answer: key })
