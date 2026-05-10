@@ -967,7 +967,8 @@
   const group_id   = getUrlParam('group_id');
   const group_name = getUrlParam('group_name') || '星際群組';
   const uid        = getUrlParam('uid');
-  const inv_code   = getUrlParam('invite_code');
+  const _rawCode   = getUrlParam('invite_code');
+  const inv_code   = (_rawCode && _rawCode !== 'undefined') ? _rawCode : '';
 
   document.getElementById('groupName').textContent = group_name;
   document.getElementById('codeChip').textContent  = inv_code || '------';
