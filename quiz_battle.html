@@ -527,16 +527,18 @@ function playTick(urgent) {
     const ctx = _audioCtx;
     const t   = ctx.currentTime;
     if (urgent) {
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'square';
-      osc.frequency.value = 880;
-      gain.gain.setValueAtTime(0.28, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + 0.19);
+      [[1760, 0.38, 0.45], [3520, 0.14, 0.18]].forEach(([freq, vol, dur]) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(vol, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + dur);
+      });
     } else {
       [[1047, 0.42, 0.8], [2093, 0.16, 0.3]].forEach(([freq, vol, dur]) => {
         const osc  = ctx.createOscillator();
@@ -562,6 +564,7 @@ function enterQuestionScreen(s) {
   _lastTickSec = -1;
   startQuestionTimer(s.question_started_at);
   renderQuestion(s);
+  renderStrip(s.players || [], s.current_answers || []);
 }
 
 function startQuestionTimer(startedAt) {
@@ -1085,7 +1088,9 @@ function renderStrip(players, current_answers) {
   const el = document.getElementById('qStrip');
   if (!el) return;
   el.innerHTML = (players || []).map(p => {
-    const done = answered.has(p.uid) || (p.uid === uid && !!_pendingAnswer);
+    const done = p.uid === uid
+      ? (_myAnswer !== null || _pendingAnswer !== null)
+      : answered.has(p.uid);
     const cached = _memberCache[p.uid] || {};
     const avSrc = cached.avatar || '';
     const name = cached.nickname || p.uid.slice(-4);
@@ -1126,6 +1131,12 @@ function selectAnswer(key) {
   document.querySelectorAll('.q-opt').forEach(el => {
     el.classList.toggle('selected', el.id === `qo-${key}`);
   });
+  if (uid !== 'demo_user') {
+    fetch(`${API}/battle-answer`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, battle_id, answer: key })
+    }).catch(() => {});
+  }
 }
 
 async function _submitAnswer(key) {
