@@ -910,6 +910,10 @@ function renderState(s) {
     setTimeout(() => {
       battle_id = ''; _roomCode = ''; _lastStatus = ''; _isHost = false;
       showScreen('screenEntry');
+      const inp = document.getElementById('joinCodeInput');
+      if (inp) inp.value = '';
+      const btn = document.getElementById('joinCodeBtn');
+      if (btn) { btn.disabled = false; btn.textContent = '加入房間'; }
     }, 1800);
     return;
   }
