@@ -456,9 +456,9 @@ let _cdTimer    = null;
 let _lastStatus = '';
 let _qLastIdx   = -1;
 let _rvLastIdx  = -1;
-let _myAnswer        = null;
-let _pendingAnswer   = null;
-let _pendingFetchCtrl = null;
+let _myAnswer          = null;
+let _pendingAnswer     = null;
+let _hasMarkedAnswered = false;
 let _myReady    = false;
 let _advPending = false;
 let _lastCdNum  = -1;
@@ -559,9 +559,9 @@ function playTick(urgent) {
 
 function enterQuestionScreen(s) {
   showScreen('screenQuestion');
-  _myAnswer      = null;
-  _pendingAnswer = null;
-  if (_pendingFetchCtrl) { _pendingFetchCtrl.abort(); _pendingFetchCtrl = null; }
+  _myAnswer          = null;
+  _pendingAnswer     = null;
+  _hasMarkedAnswered = false;
   _qLastIdx    = parseInt(s.current_index) || 0;
   _lastTickSec = -1;
   startQuestionTimer(s.question_started_at);
@@ -1145,20 +1145,19 @@ function selectAnswer(key) {
   document.querySelectorAll('.q-opt').forEach(el => {
     el.classList.toggle('selected', el.id === `qo-${key}`);
   });
-  if (uid !== 'demo_user') {
-    if (_pendingFetchCtrl) _pendingFetchCtrl.abort();
-    _pendingFetchCtrl = new AbortController();
+  // 只在第一次點選時送一筆 is_final:false，讓主持人的已作答計數即時更新
+  // 之後換選幾次都不再送 API，只改前端顯示；最終答案由 _submitAnswer 保證送出
+  if (uid !== 'demo_user' && !_hasMarkedAnswered) {
+    _hasMarkedAnswered = true;
     fetch(`${API}/battle-answer`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid, battle_id, answer: key, is_final: false }),
-      signal: _pendingFetchCtrl.signal
+      body: JSON.stringify({ uid, battle_id, answer: key, is_final: false })
     }).catch(() => {});
   }
 }
 
 async function _submitAnswer(key) {
   if (_myAnswer) return;
-  if (_pendingFetchCtrl) { _pendingFetchCtrl.abort(); _pendingFetchCtrl = null; }
   _myAnswer = key;
   document.querySelectorAll('.q-opt').forEach(el => el.classList.add('disabled'));
   if (uid === 'demo_user') return;
