@@ -744,6 +744,105 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     .toast.ok   { background: var(--success); }
+
+    /* ── Profile Overlay ── */
+    .profile-overlay {
+      position: fixed; inset: 0;
+      background: rgba(28,26,46,0.45);
+      z-index: 350;
+      display: flex; align-items: flex-end;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.25s, visibility 0.25s;
+    }
+    .profile-overlay.open { opacity: 1; visibility: visible; }
+    .profile-panel {
+      width: 100%; height: 88vh;
+      background: #fafaf9;
+      border-radius: 22px 22px 0 0;
+      display: flex; flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+      overflow: hidden;
+    }
+    .profile-overlay.open .profile-panel { transform: translateY(0); }
+    .profile-hd {
+      background: linear-gradient(145deg, #fef9ee 0%, #fdf4ff 100%);
+      padding: 0 20px 16px; flex-shrink: 0;
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+    }
+    .profile-handle {
+      width: 36px; height: 4px;
+      background: rgba(0,0,0,0.12);
+      border-radius: 2px; margin: 14px auto 14px;
+    }
+    .profile-hd-row { display: flex; align-items: center; gap: 10px; }
+    .profile-back-btn {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(0,0,0,0.07); border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+    }
+    .profile-title { font-size: 17px; font-weight: 700; color: #1c1a2e; }
+    .profile-body {
+      flex: 1; overflow-y: auto;
+      padding: 20px 16px 32px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .prof-user-row {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 22px;
+    }
+    .prof-avatar {
+      width: 60px; height: 60px; border-radius: 50%;
+      object-fit: cover; flex-shrink: 0;
+      background: #e5e7eb;
+    }
+    .prof-name { font-size: 17px; font-weight: 700; color: #1c1a2e; }
+    .prof-days { font-size: 13px; color: #78716c; margin-top: 4px; }
+    .prof-section-title {
+      font-size: 12px; font-weight: 700; color: #a16207;
+      letter-spacing: 0.4px; margin: 0 0 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .prof-section-title::after {
+      content: ''; flex: 1; height: 1px; background: rgba(0,0,0,0.08);
+    }
+    .prof-card {
+      background: #fff; border-radius: 16px;
+      padding: 14px 16px; margin-bottom: 16px;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .prof-sign-row {
+      display: flex; align-items: center; gap: 8px; padding: 6px 0;
+    }
+    .prof-sign-label { font-size: 13px; color: #78716c; width: 54px; flex-shrink: 0; }
+    .prof-sign-value { font-size: 15px; font-weight: 600; color: #1c1a2e; }
+    .prof-divider { height: 1px; background: rgba(0,0,0,0.06); }
+    .prof-elem-row {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+    }
+    .prof-elem-label { font-size: 12px; color: #78716c; width: 34px; flex-shrink: 0; }
+    .prof-elem-track {
+      flex: 1; height: 7px; background: #f0efec; border-radius: 4px; overflow: hidden;
+    }
+    .prof-elem-fill {
+      height: 100%; border-radius: 4px;
+      transition: width 0.6s cubic-bezier(0.23,1,0.32,1);
+    }
+    .prof-elem-fill.fire  { background: linear-gradient(90deg, #fb923c, #f97316); }
+    .prof-elem-fill.water { background: linear-gradient(90deg, #38bdf8, #0ea5e9); }
+    .prof-elem-fill.air   { background: linear-gradient(90deg, #86efac, #22c55e); }
+    .prof-elem-fill.earth { background: linear-gradient(90deg, #d4b483, #a37c5b); }
+    .prof-elem-pct { font-size: 12px; color: #9ca3af; width: 30px; text-align: right; flex-shrink: 0; }
+    .prof-pet-row { display: flex; align-items: center; gap: 14px; }
+    .prof-pet-img {
+      width: 80px; height: 80px; border-radius: 14px;
+      object-fit: cover; flex-shrink: 0; background: #f0efec;
+    }
+    .prof-pet-name { font-size: 16px; font-weight: 700; color: #1c1a2e; }
+    .prof-pet-stage { font-size: 13px; color: #78716c; margin-top: 3px; }
+    .prof-pet-aura { font-size: 14px; color: #d97706; font-weight: 600; margin-top: 6px; }
   </style>
 </head>
 <body>
@@ -817,7 +916,7 @@
         </span>
       </div>
     </div>
-    <div class="drawer-item" onclick="showToast('即將推出')">個人檔案</div>
+    <div class="drawer-item" onclick="closeMenu(); openProfile()">個人檔案</div>
     <div class="drawer-item" onclick="showToast('即將推出')">星獸收集</div>
     <div class="drawer-item" onclick="closeMenu(); goToBattleLobby()">測驗對戰</div>
     <div class="drawer-item"             onclick="closeMenu(); openJournal()">心情札記</div>
@@ -926,6 +1025,26 @@
       </div>
     </div>
     <div class="journal-body" id="journalBody">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Overlay -->
+<div class="profile-overlay" id="profileOverlay" onclick="if(event.target===this)closeProfile()">
+  <div class="profile-panel">
+    <div class="profile-hd">
+      <div class="profile-handle"></div>
+      <div class="profile-hd-row">
+        <button class="profile-back-btn" onclick="closeProfile()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        <span class="profile-title">個人檔案</span>
+      </div>
+    </div>
+    <div class="profile-body" id="profileBody">
       <div class="loading"><div class="spinner"></div></div>
     </div>
   </div>
@@ -1798,6 +1917,107 @@
       btn.textContent = '儲存'; btn.disabled = false;
       showToast('儲存失敗，請重試');
     }
+  }
+
+  /* ── Profile ────────────────────────────────────────────────── */
+  function openProfile() {
+    if (!uid || uid === 'demo_user') { showToast('示範模式無法使用個人檔案'); return; }
+    document.getElementById('profileOverlay').classList.add('open');
+    loadProfile();
+  }
+  function closeProfile() {
+    document.getElementById('profileOverlay').classList.remove('open');
+  }
+  async function loadProfile() {
+    const bodyEl = document.getElementById('profileBody');
+    bodyEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    try {
+      const r = await fetch(`${API}/profile-get`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid })
+      });
+      const d = await r.json();
+      renderProfile(d);
+    } catch {
+      bodyEl.innerHTML = '<div style="text-align:center;padding:40px 16px;color:#78716c;">無法載入，請稍後再試 🌙</div>';
+    }
+  }
+  function renderProfile(d) {
+    const bodyEl = document.getElementById('profileBody');
+    if (!d || !d.success) {
+      bodyEl.innerHTML = '<div style="text-align:center;padding:40px 16px;color:#78716c;">尚未建立星盤<br><small style="font-size:12px;">請先與機器人完成星盤設定</small></div>';
+      return;
+    }
+    const avatarHtml = myAvatar
+      ? `<img src="${x(myAvatar)}" alt="" class="prof-avatar" onerror="this.parentElement.textContent='🌟'">`
+      : `<div class="prof-avatar" style="display:flex;align-items:center;justify-content:center;font-size:28px;border:1px solid #e5e7eb;">🌟</div>`;
+    const daysHtml = d.reg_days != null
+      ? `已踏上星途 <strong>${d.reg_days}</strong> 天`
+      : '星途旅人';
+    const { sun, moon, asc } = d.identity || {};
+    const el = d.elements || {};
+    const pet = d.pet || {};
+    const petImgHtml = pet.image_url
+      ? `<img src="${x(pet.image_url)}" alt="" class="prof-pet-img" onerror="this.style.background='#f0efec'">`
+      : `<div class="prof-pet-img" style="display:flex;align-items:center;justify-content:center;font-size:32px;">🐾</div>`;
+    bodyEl.innerHTML = `
+      <div class="prof-user-row">
+        ${avatarHtml}
+        <div>
+          <div class="prof-name">${x(myNickname || '---')}</div>
+          <div class="prof-days">${daysHtml}</div>
+        </div>
+      </div>
+      <div class="prof-section-title">✨ 占星身份</div>
+      <div class="prof-card">
+        <div class="prof-sign-row">
+          <span class="prof-sign-label">☀️ 太陽</span>
+          <span class="prof-sign-value">${x(sun?.sign || '未知')}</span>
+        </div>
+        <div class="prof-divider"></div>
+        <div class="prof-sign-row">
+          <span class="prof-sign-label">🌙 月亮</span>
+          <span class="prof-sign-value">${x(moon?.sign || '未知')}</span>
+        </div>
+        <div class="prof-divider"></div>
+        <div class="prof-sign-row">
+          <span class="prof-sign-label">⬆ 上升</span>
+          <span class="prof-sign-value">${x(asc?.sign || '未知')}</span>
+        </div>
+        <div class="prof-divider" style="margin-top:10px;margin-bottom:12px;"></div>
+        <div class="prof-elem-row">
+          <span class="prof-elem-label">🔥 火</span>
+          <div class="prof-elem-track"><div class="prof-elem-fill fire" style="width:${el.fire_pct||0}%"></div></div>
+          <span class="prof-elem-pct">${el.fire_pct||0}%</span>
+        </div>
+        <div class="prof-elem-row">
+          <span class="prof-elem-label">🌊 水</span>
+          <div class="prof-elem-track"><div class="prof-elem-fill water" style="width:${el.water_pct||0}%"></div></div>
+          <span class="prof-elem-pct">${el.water_pct||0}%</span>
+        </div>
+        <div class="prof-elem-row">
+          <span class="prof-elem-label">💨 風</span>
+          <div class="prof-elem-track"><div class="prof-elem-fill air" style="width:${el.air_pct||0}%"></div></div>
+          <span class="prof-elem-pct">${el.air_pct||0}%</span>
+        </div>
+        <div class="prof-elem-row" style="margin-bottom:0">
+          <span class="prof-elem-label">⛰ 土</span>
+          <div class="prof-elem-track"><div class="prof-elem-fill earth" style="width:${el.earth_pct||0}%"></div></div>
+          <span class="prof-elem-pct">${el.earth_pct||0}%</span>
+        </div>
+      </div>
+      <div class="prof-section-title">🐾 我的星獸</div>
+      <div class="prof-card">
+        <div class="prof-pet-row">
+          ${petImgHtml}
+          <div>
+            <div class="prof-pet-name">${x(pet.name || '神秘星獸')}</div>
+            <div class="prof-pet-stage">${x(pet.stage_name || '幼獸')} · ${pet.stage || 1} 階</div>
+            <div class="prof-pet-aura">★ ${(pet.aura_points || 0).toLocaleString()} 靈氣點數</div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   /* ── Battle Lobby ────────────────────────────────────────────── */
