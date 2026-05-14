@@ -816,13 +816,14 @@
     .prof-sign-row {
       display: flex; align-items: center; gap: 8px; padding: 6px 0;
     }
-    .prof-sign-label { font-size: 13px; color: #78716c; width: 54px; flex-shrink: 0; }
+    .prof-sign-ic { display: inline-block; min-width: 22px; text-align: left; }
+    .prof-sign-label { font-size: 13px; color: #78716c; width: 58px; flex-shrink: 0; }
     .prof-sign-value { font-size: 15px; font-weight: 600; color: #1c1a2e; }
     .prof-divider { height: 1px; background: rgba(0,0,0,0.06); }
     .prof-elem-row {
       display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
     }
-    .prof-elem-label { font-size: 12px; color: #78716c; width: 34px; flex-shrink: 0; }
+    .prof-elem-label { font-size: 13px; color: #78716c; width: 44px; flex-shrink: 0; }
     .prof-elem-track {
       flex: 1; height: 7px; background: #f0efec; border-radius: 4px; overflow: hidden;
     }
@@ -834,7 +835,7 @@
     .prof-elem-fill.water { background: linear-gradient(90deg, #38bdf8, #0ea5e9); }
     .prof-elem-fill.air   { background: linear-gradient(90deg, #86efac, #22c55e); }
     .prof-elem-fill.earth { background: linear-gradient(90deg, #d4b483, #a37c5b); }
-    .prof-elem-pct { font-size: 12px; color: #9ca3af; width: 30px; text-align: right; flex-shrink: 0; }
+    .prof-elem-score { font-size: 12px; color: #9ca3af; width: 36px; text-align: right; flex-shrink: 0; }
     .prof-pet-row { display: flex; align-items: center; gap: 14px; }
     .prof-pet-img {
       width: 80px; height: 80px; border-radius: 14px;
@@ -1971,39 +1972,39 @@
       <div class="prof-section-title">✨ 占星身份</div>
       <div class="prof-card">
         <div class="prof-sign-row">
-          <span class="prof-sign-label">☀️ 太陽</span>
+          <span class="prof-sign-label"><span class="prof-sign-ic">☀️</span>太陽</span>
           <span class="prof-sign-value">${x(sun?.sign || '未知')}</span>
         </div>
         <div class="prof-divider"></div>
         <div class="prof-sign-row">
-          <span class="prof-sign-label">🌙 月亮</span>
+          <span class="prof-sign-label"><span class="prof-sign-ic">🌙</span>月亮</span>
           <span class="prof-sign-value">${x(moon?.sign || '未知')}</span>
         </div>
         <div class="prof-divider"></div>
         <div class="prof-sign-row">
-          <span class="prof-sign-label">⬆ 上升</span>
+          <span class="prof-sign-label"><span class="prof-sign-ic">⬆️</span>上升</span>
           <span class="prof-sign-value">${x(asc?.sign || '未知')}</span>
         </div>
         <div class="prof-divider" style="margin-top:10px;margin-bottom:12px;"></div>
         <div class="prof-elem-row">
-          <span class="prof-elem-label">🔥 火</span>
-          <div class="prof-elem-track"><div class="prof-elem-fill fire" style="width:${el.fire_pct||0}%"></div></div>
-          <span class="prof-elem-pct">${el.fire_pct||0}%</span>
+          <span class="prof-elem-label"><span class="prof-sign-ic">🔥</span>火</span>
+          <div class="prof-elem-track"><div class="prof-elem-fill fire" style="width:${(el.fire||0)*10}%"></div></div>
+          <span class="prof-elem-score">${el.fire||0}/10</span>
         </div>
         <div class="prof-elem-row">
-          <span class="prof-elem-label">🌊 水</span>
-          <div class="prof-elem-track"><div class="prof-elem-fill water" style="width:${el.water_pct||0}%"></div></div>
-          <span class="prof-elem-pct">${el.water_pct||0}%</span>
+          <span class="prof-elem-label"><span class="prof-sign-ic">⛰️</span>土</span>
+          <div class="prof-elem-track"><div class="prof-elem-fill earth" style="width:${(el.earth||0)*10}%"></div></div>
+          <span class="prof-elem-score">${el.earth||0}/10</span>
         </div>
         <div class="prof-elem-row">
-          <span class="prof-elem-label">💨 風</span>
-          <div class="prof-elem-track"><div class="prof-elem-fill air" style="width:${el.air_pct||0}%"></div></div>
-          <span class="prof-elem-pct">${el.air_pct||0}%</span>
+          <span class="prof-elem-label"><span class="prof-sign-ic">💨</span>風</span>
+          <div class="prof-elem-track"><div class="prof-elem-fill air" style="width:${(el.air||0)*10}%"></div></div>
+          <span class="prof-elem-score">${el.air||0}/10</span>
         </div>
         <div class="prof-elem-row" style="margin-bottom:0">
-          <span class="prof-elem-label">⛰ 土</span>
-          <div class="prof-elem-track"><div class="prof-elem-fill earth" style="width:${el.earth_pct||0}%"></div></div>
-          <span class="prof-elem-pct">${el.earth_pct||0}%</span>
+          <span class="prof-elem-label"><span class="prof-sign-ic">💧</span>水</span>
+          <div class="prof-elem-track"><div class="prof-elem-fill water" style="width:${(el.water||0)*10}%"></div></div>
+          <span class="prof-elem-score">${el.water||0}/10</span>
         </div>
       </div>
       <div class="prof-section-title">🐾 我的星獸</div>
@@ -2011,7 +2012,6 @@
         <div class="prof-pet-row">
           ${petImgHtml}
           <div>
-            <div class="prof-pet-name">${x(pet.name || '神秘星獸')}</div>
             <div class="prof-pet-stage">${x(pet.stage_name || '幼獸')} · ${pet.stage || 1} 階</div>
             <div class="prof-pet-aura">★ ${(pet.aura_points || 0).toLocaleString()} 靈氣點數</div>
           </div>
