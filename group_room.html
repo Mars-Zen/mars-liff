@@ -850,8 +850,7 @@
     .prof-pet-species { font-size: 16px; font-weight: 700; color: #1c1a2e; }
     .prof-pet-badge {
       display: inline-block;
-      background: linear-gradient(120deg, #1e1b4b 0%, #3730a3 100%);
-      color: #c7d2fe; font-size: 12px; font-weight: 600;
+      font-size: 12px; font-weight: 700;
       padding: 3px 11px; border-radius: 20px; width: fit-content;
     }
     .prof-pet-aura { font-size: 13px; color: #b45309; font-weight: 600; }
@@ -2029,8 +2028,8 @@
         <div class="prof-pet-row">
           ${petImgHtml}
           <div class="prof-pet-info">
-            <div class="prof-pet-species">${x(pet.name || '神秘星獸')}</div>
-            <div class="prof-pet-badge">${pet.stage || 1}階：${x(pet.stage_name || '星幼')}</div>
+            ${pet.type ? `<div class="prof-pet-species">${x(pet.type)}</div>` : ''}
+            <div class="prof-pet-badge" style="background:${x(pet.stage_color||'#6b7280')};color:${x(pet.stage_text||'#fff')}">${pet.stage || 1}階：${x(pet.stage_name || '誕生')}</div>
             <div class="prof-pet-aura">✦ ${(pet.aura_points || 0).toLocaleString()} 靈氣點數</div>
           </div>
         </div>
