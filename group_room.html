@@ -515,6 +515,9 @@
     .confirm-btn:active { opacity: 0.75; }
     .confirm-btn.cancel { background: var(--bg); border: 1px solid var(--border); color: var(--text); }
     .confirm-btn.leave  { background: #dc2626; color: #fff; }
+    .confirm-btn.view   { background: var(--primary); color: #fff; }
+    .member-card:not(.is-self) { cursor: pointer; }
+    .member-card:not(.is-self):active { background: var(--pri-bg); }
 
     /* ── Journal Overlay ── */
     .journal-overlay {
@@ -956,6 +959,18 @@
   </div>
 </div>
 
+<!-- Member Profile Confirm -->
+<div class="confirm-overlay" id="memberConfirmOverlay" onclick="closeMemberConfirm()">
+  <div class="confirm-box" onclick="event.stopPropagation()">
+    <div class="confirm-title" style="color:var(--primary)">好友檔案</div>
+    <div class="confirm-msg" id="memberConfirmMsg"></div>
+    <div class="confirm-btns">
+      <button class="confirm-btn cancel" onclick="closeMemberConfirm()">取消</button>
+      <button class="confirm-btn view"   onclick="doOpenFriendProfile()">查看檔案</button>
+    </div>
+  </div>
+</div>
+
 <!-- Rename Modal -->
 <div class="help-overlay" id="renameOverlay" onclick="closeRename()">
   <div class="help-sheet" onclick="event.stopPropagation()">
@@ -1058,7 +1073,7 @@
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </button>
-        <span class="profile-title">個人檔案</span>
+        <span class="profile-title" id="profileTitle">個人檔案</span>
       </div>
     </div>
     <div class="profile-body" id="profileBody">
@@ -1088,6 +1103,17 @@
   const LIFF_ID = '2009047186-MXDITyXh'; // Reuse home LIFF session; avoids LINE app-switch notification
   let myNickname  = '';
   let myAvatar    = '';
+  let profileTargetUid      = null;
+  let profileTargetNickname = '';
+  let profileTargetAvatar   = '';
+
+  function addTapHandler(el, cb) {
+    let sy = 0, moved = false;
+    el.addEventListener('touchstart', e => { sy = e.touches[0].clientY; moved = false; }, { passive: true });
+    el.addEventListener('touchmove',  e => { if (Math.abs(e.touches[0].clientY - sy) > 8) moved = true; }, { passive: true });
+    el.addEventListener('touchend',   e => { if (!moved) { e.preventDefault(); cb(); } });
+    el.addEventListener('click', cb);
+  }
   let _liffReady  = false;
 
   // LIFF URL 導航時 params 會被包在 liff.state 裡，需額外解碼
@@ -1275,8 +1301,9 @@
           <span class="el-icon">${e.icon}</span><span class="el-label">${e.label}</span><span class="el-val">${val}</span>
         </span>`;
       }).join('');
+      const dataAttrs = isSelf ? '' : `data-muid="${x(m.uid)}" data-mnick="${x(m.nickname||'')}" data-mavatar="${x(m.line_avatar||'')}"`;
       return `
-        <div class="member-card${isSelf ? ' is-self' : ''}">
+        <div class="member-card${isSelf ? ' is-self' : ''}" ${dataAttrs}>
           <div class="member-avatar">${avatar}</div>
           <div class="member-info">
             <div class="member-top">
@@ -1307,6 +1334,9 @@
         </button>`;
     }
     document.getElementById('memberList').innerHTML = html;
+    document.querySelectorAll('.member-card[data-muid]').forEach(card => {
+      addTapHandler(card, () => showMemberConfirm(card.dataset.muid, card.dataset.mnick, card.dataset.mavatar));
+    });
   }
 
   function toggleMemberExtra() {
@@ -1937,21 +1967,40 @@
   }
 
   /* ── Profile ────────────────────────────────────────────────── */
-  function openProfile() {
+  function openProfile(targetUid, nickname, avatar) {
     if (!uid || uid === 'demo_user') { showToast('示範模式無法使用個人檔案'); return; }
+    const isFriend = targetUid && targetUid !== uid;
+    profileTargetUid      = isFriend ? targetUid : null;
+    profileTargetNickname = isFriend ? (nickname || '') : '';
+    profileTargetAvatar   = isFriend ? (avatar   || '') : '';
+    document.getElementById('profileTitle').textContent = isFriend ? '好友檔案' : '個人檔案';
     document.getElementById('profileOverlay').classList.add('open');
-    loadProfile();
+    loadProfile(isFriend ? targetUid : uid);
   }
   function closeProfile() {
     document.getElementById('profileOverlay').classList.remove('open');
   }
-  async function loadProfile() {
+  function showMemberConfirm(targetUid, nickname, avatar) {
+    profileTargetUid      = targetUid;
+    profileTargetNickname = nickname;
+    profileTargetAvatar   = avatar;
+    document.getElementById('memberConfirmMsg').textContent = `查看 ${nickname || '成員'} 的個人檔案？`;
+    document.getElementById('memberConfirmOverlay').classList.add('open');
+  }
+  function closeMemberConfirm() {
+    document.getElementById('memberConfirmOverlay').classList.remove('open');
+  }
+  function doOpenFriendProfile() {
+    closeMemberConfirm();
+    openProfile(profileTargetUid, profileTargetNickname, profileTargetAvatar);
+  }
+  async function loadProfile(fetchUid) {
     const bodyEl = document.getElementById('profileBody');
     bodyEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
     try {
       const r = await fetch(`${API}/profile-get`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid })
+        body: JSON.stringify({ uid: fetchUid || uid })
       });
       const d = await r.json();
       renderProfile(d);
@@ -1965,8 +2014,10 @@
       bodyEl.innerHTML = '<div style="text-align:center;padding:40px 16px;color:#78716c;">尚未建立星盤<br><small style="font-size:12px;">請先與機器人完成星盤設定</small></div>';
       return;
     }
-    const avatarHtml = myAvatar
-      ? `<img src="${x(myAvatar)}" alt="" class="prof-avatar" onerror="this.parentElement.textContent='🌟'">`
+    const dispAvatar   = profileTargetAvatar   || myAvatar;
+    const dispNickname = profileTargetNickname || myNickname;
+    const avatarHtml = dispAvatar
+      ? `<img src="${x(dispAvatar)}" alt="" class="prof-avatar" onerror="this.parentElement.textContent='🌟'">`
       : `<div class="prof-avatar" style="display:flex;align-items:center;justify-content:center;font-size:28px;border:1px solid #e5e7eb;">🌟</div>`;
     let joinDateHtml = '';
     if (d.reg_date) {
@@ -1991,7 +2042,7 @@
       <div class="prof-user-row">
         ${avatarHtml}
         <div class="prof-user-mid">
-          <div class="prof-name">${x(myNickname || '---')}</div>
+          <div class="prof-name">${x(dispNickname || '---')}</div>
         </div>
         <div class="prof-user-right">
           ${joinDateHtml}
