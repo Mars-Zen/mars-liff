@@ -801,7 +801,7 @@
     .prof-user-right {
       display: flex; flex-direction: column;
       align-items: flex-start; justify-content: center;
-      flex-shrink: 0; margin-right: 8px;
+      flex-shrink: 0; margin-right: 18px;
     }
     .prof-name { font-size: 17px; font-weight: 700; color: #7c3aed; }
     .prof-days { font-size: 12px; color: #78716c; margin-top: 2px; }
@@ -851,8 +851,9 @@
       border: 2px solid rgba(124,58,237,0.15);
     }
     .prof-pet-info { display: flex; flex-direction: column; gap: 6px; justify-content: center; flex: 1; }
-    .prof-pet-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-    .prof-pet-species { font-size: 16px; font-weight: 700; color: #1c1a2e; }
+    .prof-pet-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .prof-pet-main { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .prof-pet-species { font-size: 14px; font-weight: 700; color: #1c1a2e; }
     .prof-pet-badge {
       display: inline-block;
       font-size: 12px; font-weight: 700;
@@ -2041,10 +2042,12 @@
           ${petImgHtml}
           <div class="prof-pet-info">
             <div class="prof-pet-top">
-              ${petDisplayName ? `<div class="prof-pet-species">${x(petDisplayName)}</div>` : '<div></div>'}
+              <div class="prof-pet-main">
+                ${petDisplayName ? `<span class="prof-pet-species">${x(petDisplayName)}</span>` : ''}
+                <div class="prof-pet-badge" style="background:${x(pet.stage_color||'#6b7280')};color:${x(pet.stage_text||'#fff')}">${pet.stage || 1}階：${x(pet.stage_name || '誕生')}</div>
+              </div>
               <div class="prof-pet-aura">✦ ${(pet.aura_points || 0).toLocaleString()} 靈氣</div>
             </div>
-            <div class="prof-pet-badge" style="background:${x(pet.stage_color||'#6b7280')};color:${x(pet.stage_text||'#fff')}">${pet.stage || 1}階：${x(pet.stage_name || '誕生')}</div>
           </div>
         </div>
       </div>
