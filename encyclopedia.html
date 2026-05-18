@@ -423,20 +423,29 @@ function imgUrl(key, n) {
 }
 
 async function preloadAllUrls() {
-  const paths = [];
-  SPECIES.forEach(sp => {
-    for (let i = 1; i <= 4; i++) paths.push(`encyclopedia/${sp.key}/stage_${i}.png`);
-  });
-  try {
-    const res = await fetch(BATCH_WEBHOOK, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paths })
-    });
-    urlCache = await res.json();
-  } catch (e) {
-    console.warn('Batch preload failed, falling back to single requests');
+  const cacheKey = 'enc_urls_' + Math.floor(Date.now() / 1800000);
+  const stored = sessionStorage.getItem(cacheKey);
+  if (stored) {
+    try { urlCache = JSON.parse(stored); } catch {}
   }
+  if (Object.keys(urlCache).length === 0) {
+    const paths = [];
+    SPECIES.forEach(sp => {
+      for (let i = 1; i <= 4; i++) paths.push(`encyclopedia/${sp.key}/stage_${i}.png`);
+    });
+    try {
+      const res = await fetch(BATCH_WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paths })
+      });
+      urlCache = await res.json();
+      sessionStorage.setItem(cacheKey, JSON.stringify(urlCache));
+    } catch (e) {
+      console.warn('Batch preload failed, falling back to single requests');
+    }
+  }
+  Object.values(urlCache).forEach(url => { new Image().src = url; });
 }
 
 /* ══ SPECIES CAROUSEL ══ */
