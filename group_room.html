@@ -2011,6 +2011,7 @@
         body: JSON.stringify({ uid: fetchUid || uid })
       });
       const d = await r.json();
+      if (d.pet?.image_url) new Image().src = d.pet.image_url;
       renderProfile(d);
     } catch {
       bodyEl.innerHTML = '<div style="text-align:center;padding:40px 16px;color:#78716c;">無法載入，請稍後再試 🌙</div>';
