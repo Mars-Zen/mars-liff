@@ -797,9 +797,15 @@
       object-fit: cover; flex-shrink: 0;
       background: #e5e7eb;
     }
+    .prof-user-mid { flex: 1; min-width: 0; }
+    .prof-user-right {
+      display: flex; flex-direction: column;
+      align-items: flex-start; justify-content: center;
+      flex-shrink: 0;
+    }
     .prof-name { font-size: 17px; font-weight: 700; color: #7c3aed; }
-    .prof-days { font-size: 12px; color: #78716c; margin-top: 3px; }
-    .prof-join-date { font-size: 12px; color: #a8a29e; margin-top: 3px; }
+    .prof-days { font-size: 12px; color: #78716c; margin-top: 2px; }
+    .prof-join-date { font-size: 12px; color: #a8a29e; margin-top: 2px; }
     .prof-section-title {
       font-size: 12px; font-weight: 700; color: #a16207;
       letter-spacing: 0.4px; margin: 0 0 10px;
@@ -837,9 +843,7 @@
     .prof-elem-fill.air   { background: linear-gradient(90deg, #86efac, #22c55e); }
     .prof-elem-fill.earth { background: linear-gradient(90deg, #d4b483, #a37c5b); }
     .prof-elem-score { font-size: 12px; color: #9ca3af; width: 36px; text-align: right; flex-shrink: 0; }
-    .prof-pet-card {
-      background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
-    }
+    .prof-pet-card { background: #fff; }
     .prof-pet-row { display: flex; align-items: center; gap: 14px; }
     .prof-pet-img {
       width: 82px; height: 82px; border-radius: 14px;
@@ -1979,8 +1983,10 @@
     bodyEl.innerHTML = `
       <div class="prof-user-row">
         ${avatarHtml}
-        <div>
+        <div class="prof-user-mid">
           <div class="prof-name">${x(myNickname || '---')}</div>
+        </div>
+        <div class="prof-user-right">
           ${joinDateHtml}
           ${daysHtml}
         </div>
