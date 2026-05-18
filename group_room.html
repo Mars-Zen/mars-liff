@@ -1967,6 +1967,14 @@
   }
 
   /* ── Profile ────────────────────────────────────────────────── */
+  function onPetImgError(el) {
+    const wrap = el.parentElement;
+    wrap.innerHTML = '🐾';
+    wrap.style.display = 'flex';
+    wrap.style.alignItems = 'center';
+    wrap.style.justifyContent = 'center';
+    wrap.style.fontSize = '32px';
+  }
   function openProfile(targetUid, nickname, avatar) {
     if (!uid || uid === 'demo_user') { showToast('示範模式無法使用個人檔案'); return; }
     const isFriend = targetUid && targetUid !== uid;
@@ -2014,7 +2022,7 @@
       bodyEl.innerHTML = '<div style="text-align:center;padding:40px 16px;color:#78716c;">尚未建立星盤<br><small style="font-size:12px;">請先與機器人完成星盤設定</small></div>';
       return;
     }
-    const dispAvatar   = profileTargetAvatar   || myAvatar;
+    const dispAvatar   = profileTargetUid ? profileTargetAvatar : myAvatar;
     const dispNickname = profileTargetNickname || myNickname;
     const avatarHtml = dispAvatar
       ? `<img src="${x(dispAvatar)}" alt="" class="prof-avatar" onerror="this.parentElement.textContent='🌟'">`
@@ -2029,14 +2037,14 @@
       : (!joinDateHtml ? '<div class="prof-days">星途旅人</div>' : '');
     const { sun, moon, asc } = d.identity || {};
     const el = d.elements || {};
-    const pet = d.pet || {};
+    const pet = d.pet || null;
     const SPECIES_ZH = { Dragon:'龍', Phoenix:'鳳凰', Fox:'狐', Wolf:'狼', Unicorn:'獨角獸', Eagle:'鷹', Tiger:'虎', Ghost:'幽靈' };
-    const petZh = pet.type ? (SPECIES_ZH[pet.type] || pet.type) : null;
-    const petDisplayName = petZh && pet.type
+    const petZh = pet?.type ? (SPECIES_ZH[pet.type] || pet.type) : null;
+    const petDisplayName = petZh && pet?.type
       ? (petZh !== pet.type ? `${petZh} (${pet.type})` : pet.type)
-      : (pet.type || null);
-    const petImgHtml = pet.image_url
-      ? `<img src="${x(pet.image_url)}" alt="" class="prof-pet-img" onerror="this.style.background='#f0efec'">`
+      : (pet?.type || null);
+    const petImgHtml = pet?.image_url
+      ? `<div class="prof-pet-img" style="overflow:hidden;padding:0"><img src="${x(pet.image_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:14px" onerror="onPetImgError(this)"></div>`
       : `<div class="prof-pet-img" style="display:flex;align-items:center;justify-content:center;font-size:32px;">🐾</div>`;
     bodyEl.innerHTML = `
       <div class="prof-user-row">
@@ -2088,7 +2096,7 @@
         </div>
       </div>
       <div class="prof-section-title">🐾 我的星獸</div>
-      <div class="prof-card prof-pet-card">
+      ${pet ? `<div class="prof-card prof-pet-card">
         <div class="prof-pet-row">
           ${petImgHtml}
           <div class="prof-pet-info">
@@ -2101,7 +2109,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </div>` : `<div style="text-align:center;padding:20px 16px;color:#a8a29e;font-size:14px;">✨ 尚未召喚星獸</div>`}
     `;
   }
 
