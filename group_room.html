@@ -801,7 +801,7 @@
     .prof-user-right {
       display: flex; flex-direction: column;
       align-items: flex-start; justify-content: center;
-      flex-shrink: 0;
+      flex-shrink: 0; margin-right: 8px;
     }
     .prof-name { font-size: 17px; font-weight: 700; color: #7c3aed; }
     .prof-days { font-size: 12px; color: #78716c; margin-top: 2px; }
@@ -850,7 +850,8 @@
       object-fit: cover; flex-shrink: 0; background: #e8e3f8;
       border: 2px solid rgba(124,58,237,0.15);
     }
-    .prof-pet-info { display: flex; flex-direction: column; gap: 5px; justify-content: center; }
+    .prof-pet-info { display: flex; flex-direction: column; gap: 6px; justify-content: center; flex: 1; }
+    .prof-pet-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
     .prof-pet-species { font-size: 16px; font-weight: 700; color: #1c1a2e; }
     .prof-pet-badge {
       display: inline-block;
@@ -1977,6 +1978,11 @@
     const { sun, moon, asc } = d.identity || {};
     const el = d.elements || {};
     const pet = d.pet || {};
+    const SPECIES_ZH = { Dragon:'龍', Phoenix:'鳳凰', Fox:'狐', Wolf:'狼', Unicorn:'獨角獸', Eagle:'鷹', Tiger:'虎', Ghost:'幽靈' };
+    const petZh = pet.type ? (SPECIES_ZH[pet.type] || pet.type) : null;
+    const petDisplayName = petZh && pet.type
+      ? (petZh !== pet.type ? `${petZh} (${pet.type})` : pet.type)
+      : (pet.type || null);
     const petImgHtml = pet.image_url
       ? `<img src="${x(pet.image_url)}" alt="" class="prof-pet-img" onerror="this.style.background='#f0efec'">`
       : `<div class="prof-pet-img" style="display:flex;align-items:center;justify-content:center;font-size:32px;">🐾</div>`;
@@ -2034,9 +2040,11 @@
         <div class="prof-pet-row">
           ${petImgHtml}
           <div class="prof-pet-info">
-            ${pet.type ? `<div class="prof-pet-species">${x(pet.type)}</div>` : ''}
+            <div class="prof-pet-top">
+              ${petDisplayName ? `<div class="prof-pet-species">${x(petDisplayName)}</div>` : '<div></div>'}
+              <div class="prof-pet-aura">✦ ${(pet.aura_points || 0).toLocaleString()} 靈氣</div>
+            </div>
             <div class="prof-pet-badge" style="background:${x(pet.stage_color||'#6b7280')};color:${x(pet.stage_text||'#fff')}">${pet.stage || 1}階：${x(pet.stage_name || '誕生')}</div>
-            <div class="prof-pet-aura">✦ ${(pet.aura_points || 0).toLocaleString()} 靈氣點數</div>
           </div>
         </div>
       </div>
