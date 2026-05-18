@@ -228,8 +228,20 @@ html, body {
   -webkit-appearance: none; appearance: none;
 }
 .finput::placeholder { color: rgba(255,255,255,0.30); font-weight:400; }
-#nickname, #city { text-align: center; }
-#nickname::placeholder, #city::placeholder { text-align: center; }
+#nickname { text-align: center; }
+#nickname::placeholder { text-align: center; }
+select.finput {
+  cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  background-size: 16px 16px;
+  padding-right: 24px;
+  text-align: center;
+  min-height: 1.5em;
+}
+select.finput option { color: #333; background: #fff; }
 input[type="date"].finput,
 input[type="time"].finput {
   color-scheme: light;
@@ -260,6 +272,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 
 /* Date + Time row */
 .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+.frow > .fbox { min-width: 0; }
 
 /* Gender pills inside its own fbox */
 .gpills {
@@ -467,10 +480,16 @@ input[type="time"]::-webkit-calendar-picker-indicator {
         </div>
       </div>
 
-      <!-- 城市 -->
-      <div class="fbox">
-        <span class="flabel">出生城市</span>
-        <input type="text" id="city" class="finput" placeholder="例如：台北市" value="台北市" required autocomplete="off">
+      <!-- 出生地 -->
+      <div class="frow">
+        <div class="fbox">
+          <span class="flabel">縣市</span>
+          <select id="county" class="finput"></select>
+        </div>
+        <div class="fbox">
+          <span class="flabel">鄉鎮區</span>
+          <select id="district" class="finput"></select>
+        </div>
       </div>
 
       <!-- 性別 -->
@@ -854,6 +873,263 @@ liff.init({ liffId: LIFF_ID }).catch(err => console.warn("LIFF:", err));
 })();
 
 /* ══════════════════════════════════════
+   TAIWAN DISTRICT DATA
+══════════════════════════════════════ */
+const TW_DISTRICTS = {
+  '臺北市': [
+    {n:'中正區',lat:25.042,lon:121.520},{n:'大同區',lat:25.063,lon:121.513},
+    {n:'中山區',lat:25.063,lon:121.534},{n:'松山區',lat:25.058,lon:121.558},
+    {n:'大安區',lat:25.026,lon:121.543},{n:'萬華區',lat:25.037,lon:121.500},
+    {n:'信義區',lat:25.033,lon:121.564},{n:'士林區',lat:25.088,lon:121.526},
+    {n:'北投區',lat:25.132,lon:121.499},{n:'內湖區',lat:25.083,lon:121.587},
+    {n:'南港區',lat:25.055,lon:121.607},{n:'文山區',lat:24.998,lon:121.572}
+  ],
+  '新北市': [
+    {n:'板橋區',lat:25.014,lon:121.463},{n:'三重區',lat:25.061,lon:121.479},
+    {n:'中和區',lat:24.994,lon:121.493},{n:'永和區',lat:25.008,lon:121.514},
+    {n:'新莊區',lat:25.041,lon:121.449},{n:'新店區',lat:24.964,lon:121.538},
+    {n:'樹林區',lat:24.988,lon:121.417},{n:'鶯歌區',lat:24.954,lon:121.344},
+    {n:'三峽區',lat:24.933,lon:121.367},{n:'淡水區',lat:25.167,lon:121.443},
+    {n:'汐止區',lat:25.065,lon:121.648},{n:'瑞芳區',lat:25.107,lon:121.806},
+    {n:'土城區',lat:24.974,lon:121.443},{n:'蘆洲區',lat:25.083,lon:121.468},
+    {n:'五股區',lat:25.085,lon:121.432},{n:'泰山區',lat:25.054,lon:121.430},
+    {n:'林口區',lat:25.078,lon:121.388},{n:'深坑區',lat:25.000,lon:121.614},
+    {n:'石碇區',lat:24.975,lon:121.666},{n:'坪林區',lat:24.938,lon:121.716},
+    {n:'三芝區',lat:25.256,lon:121.502},{n:'石門區',lat:25.292,lon:121.567},
+    {n:'八里區',lat:25.152,lon:121.397},{n:'平溪區',lat:25.020,lon:121.740},
+    {n:'雙溪區',lat:25.027,lon:121.861},{n:'貢寮區',lat:25.020,lon:121.906},
+    {n:'金山區',lat:25.222,lon:121.637},{n:'萬里區',lat:25.185,lon:121.680},
+    {n:'烏來區',lat:24.867,lon:121.543}
+  ],
+  '桃園市': [
+    {n:'桃園區',lat:24.993,lon:121.298},{n:'中壢區',lat:24.966,lon:121.223},
+    {n:'大溪區',lat:24.882,lon:121.289},{n:'楊梅區',lat:24.915,lon:121.147},
+    {n:'蘆竹區',lat:25.073,lon:121.276},{n:'大園區',lat:25.057,lon:121.188},
+    {n:'龜山區',lat:24.999,lon:121.363},{n:'八德區',lat:24.946,lon:121.288},
+    {n:'龍潭區',lat:24.855,lon:121.208},{n:'平鎮區',lat:24.946,lon:121.216},
+    {n:'新屋區',lat:24.971,lon:121.079},{n:'觀音區',lat:25.019,lon:121.108},
+    {n:'復興區',lat:24.791,lon:121.375}
+  ],
+  '臺中市': [
+    {n:'中區',lat:24.145,lon:120.686},{n:'東區',lat:24.142,lon:120.702},
+    {n:'南區',lat:24.123,lon:120.685},{n:'西區',lat:24.148,lon:120.667},
+    {n:'北區',lat:24.162,lon:120.688},{n:'西屯區',lat:24.170,lon:120.620},
+    {n:'南屯區',lat:24.131,lon:120.638},{n:'北屯區',lat:24.185,lon:120.710},
+    {n:'豐原區',lat:24.252,lon:120.724},{n:'東勢區',lat:24.257,lon:120.820},
+    {n:'大甲區',lat:24.352,lon:120.618},{n:'清水區',lat:24.364,lon:120.560},
+    {n:'沙鹿區',lat:24.292,lon:120.567},{n:'梧棲區',lat:24.376,lon:120.534},
+    {n:'后里區',lat:24.309,lon:120.704},{n:'神岡區',lat:24.256,lon:120.666},
+    {n:'潭子區',lat:24.215,lon:120.744},{n:'大雅區',lat:24.231,lon:120.659},
+    {n:'新社區',lat:24.218,lon:120.812},{n:'石岡區',lat:24.264,lon:120.781},
+    {n:'外埔區',lat:24.334,lon:120.652},{n:'大安區',lat:24.385,lon:120.641},
+    {n:'烏日區',lat:24.101,lon:120.660},{n:'大肚區',lat:24.155,lon:120.543},
+    {n:'龍井區',lat:24.218,lon:120.534},{n:'霧峰區',lat:24.043,lon:120.726},
+    {n:'太平區',lat:24.110,lon:120.742},{n:'大里區',lat:24.084,lon:120.692},
+    {n:'和平區',lat:24.363,lon:121.044}
+  ],
+  '臺南市': [
+    {n:'中西區',lat:22.993,lon:120.201},{n:'東區',lat:23.004,lon:120.236},
+    {n:'南區',lat:22.961,lon:120.208},{n:'北區',lat:23.019,lon:120.212},
+    {n:'安平區',lat:22.994,lon:120.163},{n:'安南區',lat:23.065,lon:120.179},
+    {n:'永康區',lat:23.033,lon:120.265},{n:'歸仁區',lat:22.985,lon:120.295},
+    {n:'新化區',lat:23.039,lon:120.311},{n:'左鎮區',lat:23.059,lon:120.375},
+    {n:'玉井區',lat:23.119,lon:120.452},{n:'楠西區',lat:23.168,lon:120.484},
+    {n:'南化區',lat:23.076,lon:120.483},{n:'仁德區',lat:22.953,lon:120.234},
+    {n:'關廟區',lat:22.928,lon:120.315},{n:'龍崎區',lat:22.904,lon:120.375},
+    {n:'官田區',lat:23.131,lon:120.326},{n:'麻豆區',lat:23.174,lon:120.255},
+    {n:'佳里區',lat:23.161,lon:120.182},{n:'西港區',lat:23.126,lon:120.204},
+    {n:'七股區',lat:23.149,lon:120.088},{n:'將軍區',lat:23.204,lon:120.137},
+    {n:'學甲區',lat:23.230,lon:120.170},{n:'北門區',lat:23.270,lon:120.121},
+    {n:'新營區',lat:23.311,lon:120.313},{n:'後壁區',lat:23.370,lon:120.345},
+    {n:'白河區',lat:23.352,lon:120.422},{n:'東山區',lat:23.263,lon:120.423},
+    {n:'六甲區',lat:23.231,lon:120.349},{n:'下營區',lat:23.196,lon:120.296},
+    {n:'柳營區',lat:23.255,lon:120.325},{n:'鹽水區',lat:23.311,lon:120.264},
+    {n:'善化區',lat:23.137,lon:120.300},{n:'大內區',lat:23.077,lon:120.340},
+    {n:'山上區',lat:23.082,lon:120.281},{n:'新市區',lat:23.069,lon:120.314},
+    {n:'安定區',lat:23.099,lon:120.232}
+  ],
+  '高雄市': [
+    {n:'新興區',lat:22.633,lon:120.301},{n:'前金區',lat:22.627,lon:120.296},
+    {n:'苓雅區',lat:22.619,lon:120.320},{n:'鹽埕區',lat:22.626,lon:120.284},
+    {n:'鼓山區',lat:22.664,lon:120.271},{n:'旗津區',lat:22.613,lon:120.268},
+    {n:'前鎮區',lat:22.591,lon:120.330},{n:'三民區',lat:22.653,lon:120.315},
+    {n:'左營區',lat:22.686,lon:120.296},{n:'楠梓區',lat:22.734,lon:120.328},
+    {n:'小港區',lat:22.567,lon:120.347},{n:'仁武區',lat:22.701,lon:120.363},
+    {n:'大社區',lat:22.732,lon:120.373},{n:'岡山區',lat:22.797,lon:120.296},
+    {n:'路竹區',lat:22.853,lon:120.265},{n:'阿蓮區',lat:22.878,lon:120.343},
+    {n:'田寮區',lat:22.874,lon:120.383},{n:'燕巢區',lat:22.789,lon:120.372},
+    {n:'橋頭區',lat:22.755,lon:120.296},{n:'梓官區',lat:22.767,lon:120.246},
+    {n:'彌陀區',lat:22.793,lon:120.244},{n:'永安區',lat:22.825,lon:120.229},
+    {n:'湖內區',lat:22.895,lon:120.233},{n:'鳳山區',lat:22.626,lon:120.358},
+    {n:'大寮區',lat:22.602,lon:120.394},{n:'林園區',lat:22.508,lon:120.396},
+    {n:'鳥松區',lat:22.638,lon:120.396},{n:'大樹區',lat:22.651,lon:120.432},
+    {n:'旗山區',lat:22.888,lon:120.480},{n:'美濃區',lat:22.897,lon:120.548},
+    {n:'六龜區',lat:23.000,lon:120.634},{n:'甲仙區',lat:23.078,lon:120.591},
+    {n:'杉林區',lat:23.001,lon:120.548},{n:'內門區',lat:22.950,lon:120.460},
+    {n:'茂林區',lat:22.867,lon:120.679},{n:'桃源區',lat:23.154,lon:120.785},
+    {n:'那瑪夏區',lat:23.261,lon:120.702},{n:'茄萣區',lat:22.898,lon:120.191}
+  ],
+  '基隆市': [
+    {n:'中正區',lat:25.128,lon:121.741},{n:'七堵區',lat:25.102,lon:121.694},
+    {n:'暖暖區',lat:25.079,lon:121.724},{n:'仁愛區',lat:25.130,lon:121.744},
+    {n:'中山區',lat:25.113,lon:121.742},{n:'安樂區',lat:25.104,lon:121.736},
+    {n:'信義區',lat:25.122,lon:121.716}
+  ],
+  '新竹市': [
+    {n:'東區',lat:24.803,lon:121.013},{n:'北區',lat:24.832,lon:120.961},
+    {n:'香山區',lat:24.764,lon:120.932}
+  ],
+  '嘉義市': [
+    {n:'東區',lat:23.480,lon:120.463},{n:'西區',lat:23.481,lon:120.445}
+  ],
+  '新竹縣': [
+    {n:'竹北市',lat:24.833,lon:121.006},{n:'湖口鄉',lat:24.904,lon:121.009},
+    {n:'新豐鄉',lat:24.940,lon:120.978},{n:'新埔鎮',lat:24.836,lon:121.063},
+    {n:'關西鎮',lat:24.794,lon:121.168},{n:'芎林鄉',lat:24.784,lon:121.060},
+    {n:'寶山鄉',lat:24.760,lon:121.014},{n:'竹東鎮',lat:24.731,lon:121.091},
+    {n:'五峰鄉',lat:24.657,lon:121.178},{n:'橫山鄉',lat:24.751,lon:121.120},
+    {n:'尖石鄉',lat:24.695,lon:121.305},{n:'北埔鄉',lat:24.698,lon:121.040},
+    {n:'峨眉鄉',lat:24.673,lon:121.019}
+  ],
+  '苗栗縣': [
+    {n:'竹南鎮',lat:24.685,lon:120.885},{n:'頭份市',lat:24.692,lon:120.916},
+    {n:'三灣鄉',lat:24.670,lon:120.949},{n:'南庄鄉',lat:24.580,lon:121.013},
+    {n:'獅潭鄉',lat:24.560,lon:120.975},{n:'後龍鎮',lat:24.620,lon:120.796},
+    {n:'通霄鎮',lat:24.485,lon:120.706},{n:'苑裡鎮',lat:24.441,lon:120.641},
+    {n:'苗栗市',lat:24.560,lon:120.819},{n:'造橋鄉',lat:24.617,lon:120.877},
+    {n:'頭屋鄉',lat:24.573,lon:120.861},{n:'公館鄉',lat:24.514,lon:120.826},
+    {n:'大湖鄉',lat:24.406,lon:120.884},{n:'泰安鄉',lat:24.381,lon:120.982},
+    {n:'銅鑼鄉',lat:24.493,lon:120.773},{n:'三義鄉',lat:24.394,lon:120.749},
+    {n:'西湖鄉',lat:24.443,lon:120.736},{n:'卓蘭鎮',lat:24.323,lon:120.830}
+  ],
+  '彰化縣': [
+    {n:'彰化市',lat:24.081,lon:120.537},{n:'芬園鄉',lat:24.023,lon:120.615},
+    {n:'花壇鄉',lat:24.054,lon:120.563},{n:'秀水鄉',lat:24.077,lon:120.481},
+    {n:'鹿港鎮',lat:24.059,lon:120.437},{n:'福興鄉',lat:24.028,lon:120.460},
+    {n:'線西鄉',lat:24.117,lon:120.423},{n:'和美鎮',lat:24.103,lon:120.469},
+    {n:'伸港鄉',lat:24.137,lon:120.441},{n:'員林市',lat:23.960,lon:120.572},
+    {n:'社頭鄉',lat:23.924,lon:120.571},{n:'永靖鄉',lat:23.937,lon:120.525},
+    {n:'埔心鄉',lat:23.952,lon:120.520},{n:'溪湖鎮',lat:23.978,lon:120.476},
+    {n:'大村鄉',lat:24.023,lon:120.554},{n:'埔鹽鄉',lat:24.011,lon:120.497},
+    {n:'田中鎮',lat:23.876,lon:120.594},{n:'北斗鎮',lat:23.873,lon:120.528},
+    {n:'田尾鄉',lat:23.895,lon:120.526},{n:'埤頭鄉',lat:23.884,lon:120.488},
+    {n:'溪州鄉',lat:23.852,lon:120.488},{n:'竹塘鄉',lat:23.846,lon:120.450},
+    {n:'二林鎮',lat:23.915,lon:120.393},{n:'大城鄉',lat:23.852,lon:120.345},
+    {n:'芳苑鄉',lat:23.975,lon:120.357},{n:'二水鄉',lat:23.824,lon:120.632}
+  ],
+  '南投縣': [
+    {n:'南投市',lat:23.913,lon:120.686},{n:'中寮鄉',lat:23.856,lon:120.695},
+    {n:'草屯鎮',lat:23.976,lon:120.669},{n:'國姓鄉',lat:24.098,lon:120.857},
+    {n:'埔里鎮',lat:23.964,lon:120.948},{n:'仁愛鄉',lat:23.857,lon:121.099},
+    {n:'名間鄉',lat:23.843,lon:120.653},{n:'集集鎮',lat:23.838,lon:120.781},
+    {n:'水里鄉',lat:23.812,lon:120.848},{n:'魚池鄉',lat:23.894,lon:120.930},
+    {n:'信義鄉',lat:23.703,lon:120.978},{n:'竹山鎮',lat:23.754,lon:120.689},
+    {n:'鹿谷鄉',lat:23.783,lon:120.752}
+  ],
+  '雲林縣': [
+    {n:'斗六市',lat:23.712,lon:120.545},{n:'斗南鎮',lat:23.678,lon:120.479},
+    {n:'虎尾鎮',lat:23.711,lon:120.436},{n:'西螺鎮',lat:23.794,lon:120.467},
+    {n:'土庫鎮',lat:23.674,lon:120.388},{n:'北港鎮',lat:23.574,lon:120.300},
+    {n:'古坑鄉',lat:23.640,lon:120.600},{n:'大埤鄉',lat:23.659,lon:120.419},
+    {n:'莿桐鄉',lat:23.754,lon:120.491},{n:'林內鄉',lat:23.762,lon:120.590},
+    {n:'二崙鄉',lat:23.778,lon:120.408},{n:'崙背鄉',lat:23.764,lon:120.370},
+    {n:'麥寮鄉',lat:23.813,lon:120.270},{n:'東勢鄉',lat:23.666,lon:120.299},
+    {n:'褒忠鄉',lat:23.688,lon:120.327},{n:'台西鄉',lat:23.692,lon:120.190},
+    {n:'元長鄉',lat:23.637,lon:120.307},{n:'四湖鄉',lat:23.648,lon:120.238},
+    {n:'口湖鄉',lat:23.585,lon:120.185},{n:'水林鄉',lat:23.568,lon:120.247}
+  ],
+  '嘉義縣': [
+    {n:'太保市',lat:23.459,lon:120.333},{n:'朴子市',lat:23.460,lon:120.246},
+    {n:'布袋鎮',lat:23.378,lon:120.169},{n:'大林鎮',lat:23.610,lon:120.475},
+    {n:'民雄鄉',lat:23.543,lon:120.426},{n:'溪口鄉',lat:23.590,lon:120.383},
+    {n:'新港鄉',lat:23.550,lon:120.348},{n:'六腳鄉',lat:23.504,lon:120.292},
+    {n:'東石鄉',lat:23.459,lon:120.149},{n:'義竹鄉',lat:23.347,lon:120.257},
+    {n:'鹿草鄉',lat:23.402,lon:120.302},{n:'水上鄉',lat:23.432,lon:120.376},
+    {n:'中埔鄉',lat:23.444,lon:120.476},{n:'竹崎鄉',lat:23.509,lon:120.530},
+    {n:'梅山鄉',lat:23.568,lon:120.570},{n:'番路鄉',lat:23.494,lon:120.553},
+    {n:'大埔鄉',lat:23.289,lon:120.636},{n:'阿里山鄉',lat:23.508,lon:120.805}
+  ],
+  '屏東縣': [
+    {n:'屏東市',lat:22.671,lon:120.488},{n:'三地門鄉',lat:22.764,lon:120.614},
+    {n:'霧台鄉',lat:22.751,lon:120.723},{n:'瑪家鄉',lat:22.741,lon:120.557},
+    {n:'九如鄉',lat:22.729,lon:120.494},{n:'里港鄉',lat:22.769,lon:120.473},
+    {n:'高樹鄉',lat:22.815,lon:120.530},{n:'鹽埔鄉',lat:22.753,lon:120.444},
+    {n:'長治鄉',lat:22.709,lon:120.479},{n:'麟洛鄉',lat:22.684,lon:120.503},
+    {n:'竹田鄉',lat:22.618,lon:120.474},{n:'內埔鄉',lat:22.619,lon:120.531},
+    {n:'萬丹鄉',lat:22.582,lon:120.492},{n:'潮州鎮',lat:22.549,lon:120.547},
+    {n:'泰武鄉',lat:22.619,lon:120.580},{n:'來義鄉',lat:22.562,lon:120.590},
+    {n:'萬巒鄉',lat:22.573,lon:120.545},{n:'崁頂鄉',lat:22.527,lon:120.491},
+    {n:'新埤鄉',lat:22.524,lon:120.549},{n:'南州鄉',lat:22.490,lon:120.511},
+    {n:'林邊鄉',lat:22.435,lon:120.506},{n:'東港鎮',lat:22.463,lon:120.453},
+    {n:'琉球鄉',lat:22.342,lon:120.373},{n:'佳冬鄉',lat:22.452,lon:120.531},
+    {n:'新園鄉',lat:22.534,lon:120.432},{n:'枋寮鄉',lat:22.359,lon:120.594},
+    {n:'枋山鄉',lat:22.240,lon:120.657},{n:'春日鄉',lat:22.428,lon:120.668},
+    {n:'獅子鄉',lat:22.332,lon:120.680},{n:'車城鄉',lat:22.036,lon:120.692},
+    {n:'牡丹鄉',lat:22.127,lon:120.762},{n:'恆春鎮',lat:22.004,lon:120.746},
+    {n:'滿州鄉',lat:22.049,lon:120.831}
+  ],
+  '宜蘭縣': [
+    {n:'宜蘭市',lat:24.757,lon:121.753},{n:'頭城鎮',lat:24.865,lon:121.817},
+    {n:'礁溪鄉',lat:24.823,lon:121.776},{n:'壯圍鄉',lat:24.783,lon:121.780},
+    {n:'員山鄉',lat:24.764,lon:121.679},{n:'羅東鎮',lat:24.678,lon:121.769},
+    {n:'三星鄉',lat:24.666,lon:121.649},{n:'大同鄉',lat:24.620,lon:121.554},
+    {n:'五結鄉',lat:24.659,lon:121.800},{n:'冬山鄉',lat:24.645,lon:121.810},
+    {n:'蘇澳鎮',lat:24.600,lon:121.849},{n:'南澳鄉',lat:24.414,lon:121.752}
+  ],
+  '花蓮縣': [
+    {n:'花蓮市',lat:23.971,lon:121.601},{n:'新城鄉',lat:24.133,lon:121.654},
+    {n:'秀林鄉',lat:23.984,lon:121.393},{n:'吉安鄉',lat:23.946,lon:121.582},
+    {n:'壽豐鄉',lat:23.842,lon:121.531},{n:'鳳林鎮',lat:23.742,lon:121.477},
+    {n:'光復鄉',lat:23.659,lon:121.416},{n:'豐濱鄉',lat:23.596,lon:121.502},
+    {n:'瑞穗鄉',lat:23.499,lon:121.372},{n:'富里鄉',lat:23.272,lon:121.281},
+    {n:'卓溪鄉',lat:23.432,lon:121.223},{n:'玉里鎮',lat:23.337,lon:121.313},
+    {n:'萬榮鄉',lat:23.670,lon:121.316}
+  ],
+  '臺東縣': [
+    {n:'臺東市',lat:22.755,lon:121.144},{n:'成功鎮',lat:23.098,lon:121.373},
+    {n:'關山鎮',lat:23.051,lon:121.163},{n:'海端鄉',lat:23.116,lon:121.023},
+    {n:'池上鄉',lat:23.118,lon:121.218},{n:'東河鄉',lat:22.980,lon:121.287},
+    {n:'長濱鄉',lat:23.328,lon:121.437},{n:'太麻里鄉',lat:22.616,lon:120.981},
+    {n:'卑南鄉',lat:22.814,lon:121.063},{n:'鹿野鄉',lat:22.897,lon:121.134},
+    {n:'延平鄉',lat:22.921,lon:120.996},{n:'金峰鄉',lat:22.502,lon:120.875},
+    {n:'達仁鄉',lat:22.261,lon:120.826},{n:'綠島鄉',lat:22.659,lon:121.485},
+    {n:'蘭嶼鄉',lat:22.044,lon:121.551},{n:'大武鄉',lat:22.359,lon:120.893}
+  ],
+  '澎湖縣': [
+    {n:'馬公市',lat:23.564,lon:119.566},{n:'西嶼鄉',lat:23.589,lon:119.503},
+    {n:'望安鄉',lat:23.366,lon:119.500},{n:'七美鄉',lat:23.211,lon:119.426},
+    {n:'白沙鄉',lat:23.677,lon:119.594},{n:'湖西鄉',lat:23.601,lon:119.638}
+  ],
+  '金門縣': [
+    {n:'金城鎮',lat:24.432,lon:118.317},{n:'金湖鎮',lat:24.450,lon:118.395},
+    {n:'金沙鎮',lat:24.496,lon:118.440},{n:'金寧鄉',lat:24.459,lon:118.298},
+    {n:'烈嶼鄉',lat:24.436,lon:118.237},{n:'烏坵鄉',lat:25.001,lon:119.453}
+  ],
+  '連江縣': [
+    {n:'南竿鄉',lat:26.128,lon:119.938},{n:'北竿鄉',lat:26.224,lon:120.010},
+    {n:'莒光鄉',lat:25.975,lon:119.933},{n:'東引鄉',lat:26.376,lon:120.475}
+  ]
+};
+
+function populateCounty() {
+  const sel = document.getElementById('county');
+  sel.innerHTML = Object.keys(TW_DISTRICTS).map(c => `<option value="${c}">${c}</option>`).join('');
+  populateDistrict();
+}
+
+function populateDistrict() {
+  const county = document.getElementById('county').value;
+  const sel    = document.getElementById('district');
+  const dists  = TW_DISTRICTS[county] || [];
+  sel.innerHTML = dists.map(d =>
+    `<option value="${d.n}" data-lat="${d.lat}" data-lon="${d.lon}">${d.n}</option>`
+  ).join('');
+}
+
+document.getElementById('county').addEventListener('change', populateDistrict);
+populateCounty();
+
+/* ══════════════════════════════════════
    FORM LOGIC
 ══════════════════════════════════════ */
 let _pending = null;
@@ -868,7 +1144,7 @@ function openModal(data) {
     <div class="mrow"><span class="mk">暱稱</span><span class="mv">${data.nick}</span></div>
     <div class="mrow"><span class="mk">日期</span><span class="mv">${data.d}</span></div>
     <div class="mrow"><span class="mk">時間</span><span class="mv">${period} ${dispH}:${mm}</span></div>
-    <div class="mrow"><span class="mk">城市</span><span class="mv">${data.c}</span></div>
+    <div class="mrow"><span class="mk">出生地</span><span class="mv">${data.locName}</span></div>
     <div class="mrow"><span class="mk">性別</span><span class="mv">${data.gText}</span></div>
   `;
   document.getElementById('overlay').classList.add('open');
@@ -899,7 +1175,10 @@ async function confirmSend() {
         nickname: data.nick,
         date:     data.d,
         time:     data.t,
-        city:     data.c,
+        city:          data.locName,
+        location_name: data.locName,
+        lat:           data.lat,
+        lon:           data.lon,
         gender:   data.g,
         type:     "api_registration"
       })
@@ -917,17 +1196,24 @@ async function confirmSend() {
 }
 
 function send() {
-  const nick = document.getElementById('nickname').value.trim();
-  const d    = document.getElementById('date').value;
-  const t    = document.getElementById('time').value;
-  const c    = document.getElementById('city').value.trim();
-  const g    = document.querySelector('input[name="gender"]:checked').value;
-  if (!nick || !d || !t || !c || !g) {
+  const nick     = document.getElementById('nickname').value.trim();
+  const d        = document.getElementById('date').value;
+  const t        = document.getElementById('time').value;
+  const countyEl = document.getElementById('county');
+  const distEl   = document.getElementById('district');
+  const county   = countyEl.value;
+  const distOpt  = distEl.options[distEl.selectedIndex];
+  const district = distOpt?.value || '';
+  const lat      = distOpt?.dataset.lat || '';
+  const lon      = distOpt?.dataset.lon || '';
+  const g        = document.querySelector('input[name="gender"]:checked').value;
+  if (!nick || !d || !t || !county || !district || !g) {
     alert("請完整填寫資料喔！");
     return;
   }
-  const gText = { "F":"女性", "M":"男性", "U":"不透露/中性" }[g];
-  openModal({ nick, d, t, c, g, gText });
+  const locName = county + district;
+  const gText   = { "F":"女性", "M":"男性", "U":"不透露/中性" }[g];
+  openModal({ nick, d, t, locName, lat, lon, g, gText });
 }
 </script>
 </body>
