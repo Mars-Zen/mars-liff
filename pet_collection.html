@@ -139,7 +139,7 @@
       font-size: 12px; color: var(--subtext); text-align: center;
       display: flex; align-items: center; justify-content: center; gap: 5px;
     }
-    .pet-aura strong { color: #c47f00; font-weight: 700; }
+    .pet-aura strong { color: var(--text); font-weight: 700; }
     .aura-stage-badge {
       font-size: 9px; font-weight: 700; padding: 1px 5px;
       border-radius: 4px; white-space: nowrap;
@@ -147,11 +147,12 @@
 
     .active-badge {
       font-size: 11px; font-weight: 700; color: var(--primary);
-      background: var(--pri-bg); border-radius: 20px; padding: 3px 10px;
+      background: var(--pri-bg); border: 1.5px solid var(--primary);
+      border-radius: 20px; padding: 3px 10px;
       white-space: nowrap;
     }
     .set-active-btn {
-      width: 100%; padding: 5px 0;
+      width: 80px; padding: 5px 0;
       border: 1px solid var(--primary); border-radius: 8px;
       background: transparent; color: var(--primary);
       font-size: 11px; font-weight: 700; cursor: pointer;
@@ -299,6 +300,7 @@
   const STAGE_NAMES = { 1: '誕生', 2: '幼年', 3: '覺醒', 4: '星神' };
 
   let uid = '', group_id = '', group_name = '';
+  let summoningNewPet = false;
   let collectionData = null;
   let activeSlot = 1;
 
@@ -470,6 +472,8 @@
       closeUnlock();
       showToast('召喚已啟動！完成後將推播通知', 'ok');
 
+      summoningNewPet = true;
+
       // 將解鎖按鈕改成「召喚中」狀態
       setTimeout(() => {
         const card = document.querySelector('.unlock-card.unlockable');
@@ -478,7 +482,7 @@
         card.removeAttribute('onclick');
         card.querySelector('.unlock-icon').textContent = '⏳';
         card.querySelector('.unlock-title').textContent = '召喚中...';
-        card.querySelector('.unlock-desc').textContent = '完成後將推播通知';
+        card.querySelector('.unlock-desc').textContent = '完成後推播通知，回到此頁面將自動更新';
         const arrow = card.querySelector('.unlock-arrow');
         if (arrow) arrow.remove();
       }, 300);
@@ -503,6 +507,13 @@
     t.className = `toast ${type} show`;
     setTimeout(() => { t.className = 'toast'; }, 2500);
   }
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && summoningNewPet) {
+      summoningNewPet = false;
+      loadCollection();
+    }
+  });
 
   init();
 </script>
