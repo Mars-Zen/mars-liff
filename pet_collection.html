@@ -116,6 +116,7 @@
 
     /* ── PET CARD ── */
     .pet-card {
+      position: relative;
       width: 100%;
       background: var(--bg);
       border: 1.5px solid var(--border);
@@ -143,11 +144,12 @@
     .pet-img-placeholder { font-size: 34px; }
 
     .pet-slot-num {
-      position: absolute; top: 4px; left: 4px;
+      position: absolute; top: 5px; left: 5px;
       font-size: 9px; font-weight: 700; line-height: 1;
-      background: rgba(0,0,0,0.45); color: #fff;
+      background: var(--pri-bg); color: var(--pri-text);
+      border: 1px solid #c4b5fd;
       border-radius: 5px; padding: 2px 5px;
-      pointer-events: none;
+      pointer-events: none; z-index: 1;
     }
 
     .stage-badge {
@@ -413,9 +415,9 @@
 
           cardsHTML += `
             <div class="pet-card ${isActive ? 'is-active' : ''}" id="pc-${pet.pet_slot}">
+              <div class="pet-slot-num">${pet.pet_slot}</div>
               <div class="pet-img-wrap">
                 ${imgTag}
-                <div class="pet-slot-num">${pet.pet_slot}</div>
               </div>
               <div class="pet-aura">
                 <span class="aura-stage-badge stage-${stage}">${STAGE_NAMES[stage] || '誕生'}</span>
