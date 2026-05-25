@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>星獸收集</title>
+  <title>我的星獸</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -138,7 +138,7 @@
     .pet-aura {
       font-size: 12px; color: var(--subtext); text-align: center;
     }
-    .pet-aura strong { color: var(--text); font-weight: 700; }
+    .pet-aura strong { color: #c47f00; font-weight: 700; }
 
     .active-badge {
       font-size: 11px; font-weight: 700; color: var(--primary);
@@ -250,7 +250,7 @@
 <header>
   <button class="back-btn" onclick="goBack()">&#8592;</button>
   <div class="header-info">
-    <div class="header-title">星獸收集</div>
+    <div class="header-title">我的星獸</div>
     <div class="header-sub" id="headerSub">載入中...</div>
   </div>
 </header>
@@ -369,9 +369,8 @@
             <div class="pet-card ${isActive ? 'is-active' : ''}" id="pc-${pet.pet_slot}">
               <div class="pet-img-wrap">
                 ${imgTag}
-                <div class="stage-badge stage-${stage}">${STAGE_NAMES[stage] || '誕生'}</div>
               </div>
-              <div class="pet-aura">靈氣 <strong>${Number(pet.aura_points).toLocaleString()}</strong></div>
+              <div class="pet-aura"><strong>${Number(pet.aura_points).toLocaleString()}</strong></div>
               ${actionHTML}
             </div>`;
         }
