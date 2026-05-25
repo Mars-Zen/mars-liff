@@ -937,7 +937,7 @@
       </div>
     </div>
     <div class="drawer-item" onclick="closeMenu(); openProfile()">個人檔案</div>
-    <div class="drawer-item" onclick="showToast('即將推出')">星獸收集</div>
+    <div class="drawer-item" onclick="closeMenu(); goToPetCollection()">星獸收集</div>
     <div class="drawer-item" onclick="closeMenu(); goToBattleLobby()">測驗對戰</div>
     <div class="drawer-item"             onclick="closeMenu(); openJournal()">心情札記</div>
     <div class="drawer-item sep"         onclick="closeMenu(); window.open('https://youtu.be/DX0Z5u-tDys','_blank')">前導故事</div>
@@ -2112,6 +2112,12 @@
         </div>
       </div>` : `<div style="text-align:center;padding:20px 16px;color:#a8a29e;font-size:14px;">✨ 尚未召喚星獸</div>`}
     `;
+  }
+
+  /* ── Pet Collection ─────────────────────────────────────────── */
+  function goToPetCollection() {
+    const params = new URLSearchParams({ uid, group_id, group_name });
+    location.href = `pet_collection.html?${params}`;
   }
 
   /* ── Battle Lobby ────────────────────────────────────────────── */
