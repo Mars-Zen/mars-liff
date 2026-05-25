@@ -281,14 +281,14 @@
   const LIFF_ID = '2009047186-MXDITyXh';
 
   const SPECIES_ORDER = [
-    { key: '龍',    emoji: '🐉' },
-    { key: '鳳凰',  emoji: '🔥' },
-    { key: '狐',    emoji: '🦊' },
-    { key: '狼',    emoji: '🐺' },
-    { key: '獨角獸', emoji: '🦄' },
-    { key: '鷹',    emoji: '🦅' },
-    { key: '虎',    emoji: '🐯' },
-    { key: '幽靈',  emoji: '👻' },
+    { key: 'Dragon',  label: '龍',    emoji: '🐉' },
+    { key: 'Phoenix', label: '鳳凰',  emoji: '🐦‍🔥' },
+    { key: 'Fox',     label: '狐',    emoji: '🦊' },
+    { key: 'Wolf',    label: '狼',    emoji: '🐺' },
+    { key: 'Unicorn', label: '獨角獸', emoji: '🦄' },
+    { key: 'Eagle',   label: '鷹',    emoji: '🦅' },
+    { key: 'Tiger',   label: '虎',    emoji: '🐯' },
+    { key: 'Ghost',   label: '幽靈',  emoji: '👻' },
   ];
 
   const STAGE_NAMES = { 1: '誕生', 2: '幼年', 3: '覺醒', 4: '星神' };
@@ -359,7 +359,7 @@
           const isActive = pet.pet_slot === activeSlot;
           const stage   = pet.pet_stage || 1;
           const imgTag  = imgUrl
-            ? `<img src="${imgUrl}" alt="${sp.key}" onerror="this.outerHTML='<div class=\\'pet-img-placeholder\\'>${sp.emoji}</div>'">`
+            ? `<img src="${imgUrl}" alt="${sp.label}" onerror="this.outerHTML='<div class=\\'pet-img-placeholder\\'>${sp.emoji}</div>'">`
             : `<div class="pet-img-placeholder">${sp.emoji}</div>`;
           const actionHTML = isActive
             ? `<div class="active-badge">✦ 主獸</div>`
@@ -384,7 +384,7 @@
         <div class="species-section">
           <div class="species-header">
             <span class="species-emoji">${sp.emoji}</span>
-            <span class="species-name">${sp.key}</span>
+            <span class="species-name">${sp.label}</span>
             ${countBadge}
           </div>
           <div class="pet-row">${cardsHTML}</div>
