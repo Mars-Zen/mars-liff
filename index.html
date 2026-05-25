@@ -514,6 +514,13 @@ input[type="time"]::-webkit-calendar-picker-indicator {
         </div>
       </div>
 
+      <!-- 好友識別碼（選填） -->
+      <div class="fbox" style="margin-top:4px">
+        <span class="flabel">好友推薦碼</span>
+        <input type="text" id="inviteCode" class="finput" placeholder="可選填，輸入邀請你的好友推薦碼" maxlength="8" inputmode="numeric" style="letter-spacing:2px">
+        <p style="font-size:11px;color:#888;margin:4px 0 0">若您是受好友邀請加入，可填入對方的 8 位推薦碼，對方的星獸將獲得靈氣加成</p>
+      </div>
+
       <!-- Submit -->
       <button class="btn-submit" id="btn" onclick="send()">
         <span class="btn-text">確認送出</span>
@@ -1149,6 +1156,7 @@ function openModal(data) {
     <div class="mrow"><span class="mk">時間</span><span class="mv">${period} ${dispH}:${mm}</span></div>
     <div class="mrow"><span class="mk">出生地</span><span class="mv">${data.locName}</span></div>
     <div class="mrow"><span class="mk">性別</span><span class="mv">${data.gText}</span></div>
+    ${data.inviteCode ? `<div class="mrow"><span class="mk">好友推薦碼</span><span class="mv">${data.inviteCode}</span></div>` : ''}
   `;
   document.getElementById('overlay').classList.add('open');
 }
@@ -1182,8 +1190,9 @@ async function confirmSend() {
         location_name: data.locName,
         lat:           data.lat,
         lon:           data.lon,
-        gender:   data.g,
-        type:     "api_registration"
+        gender:      data.g,
+        invite_code: data.inviteCode || '',
+        type:        "api_registration"
       })
     });
     if (res.ok) {
@@ -1209,14 +1218,15 @@ function send() {
   const district = distOpt?.value || '';
   const lat      = distOpt?.dataset.lat || '';
   const lon      = distOpt?.dataset.lon || '';
-  const g        = document.querySelector('input[name="gender"]:checked').value;
+  const g          = document.querySelector('input[name="gender"]:checked').value;
+  const inviteCode = document.getElementById('inviteCode').value.trim().toUpperCase();
   if (!nick || !d || !t || !county || !district || !g) {
     alert("請完整填寫資料喔！");
     return;
   }
   const locName = county + district;
   const gText   = { "F":"女性", "M":"男性", "U":"不透露/中性" }[g];
-  openModal({ nick, d, t, locName, lat, lon, g, gText });
+  openModal({ nick, d, t, locName, lat, lon, g, gText, inviteCode });
 }
 </script>
 </body>
