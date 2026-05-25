@@ -137,8 +137,13 @@
 
     .pet-aura {
       font-size: 12px; color: var(--subtext); text-align: center;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
     }
     .pet-aura strong { color: #c47f00; font-weight: 700; }
+    .aura-stage-badge {
+      font-size: 9px; font-weight: 700; padding: 1px 5px;
+      border-radius: 4px; white-space: nowrap;
+    }
 
     .active-badge {
       font-size: 11px; font-weight: 700; color: var(--primary);
@@ -370,7 +375,10 @@
               <div class="pet-img-wrap">
                 ${imgTag}
               </div>
-              <div class="pet-aura"><strong>${Number(pet.aura_points).toLocaleString()}</strong></div>
+              <div class="pet-aura">
+                <span class="aura-stage-badge stage-${stage}">${STAGE_NAMES[stage] || '誕生'}</span>
+                <strong>${Number(pet.aura_points).toLocaleString()}</strong>
+              </div>
               ${actionHTML}
             </div>`;
         }
