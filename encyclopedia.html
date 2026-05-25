@@ -461,9 +461,10 @@ function buildCarousel(sp) {
     const loader = document.createElement('div');
     loader.className = 'c-loader'; loader.innerHTML = '<div class="spinner"></div>';
     const img = document.createElement('img'); img.className = 'c-img';
-    img.src = imgUrl(sp.key, i + 1);
     img.onload  = () => { loader.classList.add('hide'); img.classList.add('loaded'); };
     img.onerror = () => { loader.innerHTML = '<span style="color:rgba(255,120,120,.7);font-size:12px">—</span>'; };
+    img.src = imgUrl(sp.key, i + 1);
+    if (img.complete) { loader.classList.add('hide'); img.classList.add('loaded'); }
     slide.append(loader, img); track.appendChild(slide);
 
     const dot = document.createElement('div');
@@ -512,9 +513,10 @@ function buildCompareCarousel(images) {
     const loader = document.createElement('div');
     loader.className = 'c-loader'; loader.innerHTML = '<div class="spinner"></div>';
     const img = document.createElement('img'); img.className = 'c-img';
-    img.src = imgUrl(item.spKey, item.stage);
     img.onload  = () => { loader.classList.add('hide'); img.classList.add('loaded'); };
     img.onerror = () => { loader.innerHTML = '<span style="color:rgba(255,120,120,.7);font-size:12px">—</span>'; };
+    img.src = imgUrl(item.spKey, item.stage);
+    if (img.complete) { loader.classList.add('hide'); img.classList.add('loaded'); }
     slide.append(loader, img); track.appendChild(slide);
   });
   goCompare(0, false);
@@ -586,9 +588,10 @@ function buildOverview() {
       const loader = document.createElement('div');
       loader.className = 'ov-loader'; loader.innerHTML = '<div class="ov-spinner"></div>';
       const img = document.createElement('img'); img.className = 'ov-img';
-      img.src = imgUrl(sp.key, stage);
       img.onload  = () => { loader.classList.add('hide'); img.classList.add('loaded'); };
       img.onerror = () => { loader.classList.add('hide'); };
+      img.src = imgUrl(sp.key, stage);
+      if (img.complete) { loader.classList.add('hide'); img.classList.add('loaded'); }
       cell.append(loader, img);
 
       const tSp = sp, tStage = stage - 1;
