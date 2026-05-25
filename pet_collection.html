@@ -92,7 +92,7 @@
     /* ── PET ROW (3-column grid) ── */
     .pet-row {
       display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 8px; padding: 4px 6px 14px;
+      gap: 10px; padding: 4px 16px 14px;
     }
 
     /* ── CAROUSEL (4+ pets) ── */
@@ -116,12 +116,11 @@
 
     /* ── PET CARD ── */
     .pet-card {
-      position: relative;
       width: 100%;
       background: var(--bg);
       border: 1.5px solid var(--border);
       border-radius: 14px;
-      padding: 10px 6px;
+      padding: 10px 8px;
       display: flex; flex-direction: column; align-items: center; gap: 6px;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
@@ -133,23 +132,15 @@
 
     .pet-img-wrap {
       position: relative;
-      width: 68px; height: 68px;
-      border-radius: 10px; overflow: hidden;
+      width: 80px; height: 80px;
+      border-radius: 12px; overflow: hidden;
       background: #ece8f5;
       display: flex; align-items: center; justify-content: center;
     }
     .pet-img-wrap img {
       width: 100%; height: 100%; object-fit: cover; display: block;
     }
-    .pet-img-placeholder { font-size: 28px; }
-
-    .pet-slot-num {
-      position: absolute; top: 5px; left: 5px;
-      font-size: 8px; font-weight: 700; line-height: 1;
-      background: #dc2626; color: #fff;
-      border-radius: 4px; padding: 1px 4px;
-      pointer-events: none;
-    }
+    .pet-img-placeholder { font-size: 34px; }
 
     .stage-badge {
       position: absolute; bottom: 4px; right: 4px;
@@ -162,26 +153,33 @@
     .stage-4 { background: #fdcb6e; color: #78350f; }
 
     .pet-aura {
-      font-size: 10px; color: var(--subtext); text-align: center;
+      font-size: 12px; color: var(--subtext); text-align: center;
       display: flex; align-items: center; justify-content: center; gap: 4px;
     }
     .pet-aura strong { color: var(--text); font-weight: 700; }
+    .pet-num-label {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; border-radius: 50%;
+      background: #dc2626; color: #fff;
+      font-size: 10px; font-weight: 700; line-height: 1;
+      padding: 0 3px; flex-shrink: 0;
+    }
     .aura-stage-badge {
-      font-size: 8px; font-weight: 700; padding: 1px 4px;
+      font-size: 9px; font-weight: 700; padding: 1px 5px;
       border-radius: 4px; white-space: nowrap;
     }
 
     .active-badge {
-      font-size: 10px; font-weight: 700; color: #fff;
+      font-size: 11px; font-weight: 700; color: #fff;
       background: var(--primary); border: 1.5px solid var(--primary);
-      border-radius: 20px; padding: 2px 8px;
+      border-radius: 20px; padding: 3px 10px;
       white-space: nowrap;
     }
     .set-active-btn {
-      width: 100%; padding: 4px 0;
+      width: 100%; padding: 5px 0;
       border: 1px solid var(--primary); border-radius: 8px;
       background: transparent; color: var(--primary);
-      font-size: 10px; font-weight: 700; cursor: pointer;
+      font-size: 11px; font-weight: 700; cursor: pointer;
       font-family: 'Noto Sans TC', sans-serif;
       transition: background 0.12s;
     }
@@ -414,11 +412,11 @@
 
           cardsHTML += `
             <div class="pet-card ${isActive ? 'is-active' : ''}" id="pc-${pet.pet_slot}">
-              <div class="pet-slot-num">${pet.pet_slot}</div>
               <div class="pet-img-wrap">
                 ${imgTag}
               </div>
               <div class="pet-aura">
+                <span class="pet-num-label">${pet.pet_slot}</span>
                 <span class="aura-stage-badge stage-${stage}">${STAGE_NAMES[stage] || '誕生'}</span>
                 <strong>${Number(pet.aura_points).toLocaleString()}</strong>
               </div>
