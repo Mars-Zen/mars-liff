@@ -89,17 +89,34 @@
       border-radius: 20px; padding: 2px 8px;
     }
 
-    /* ── PET ROW (horizontal scroll) ── */
+    /* ── PET ROW (3-column grid) ── */
     .pet-row {
-      display: flex; gap: 10px;
-      overflow-x: auto; padding: 4px 16px 14px;
-      scrollbar-width: none;
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 10px; padding: 4px 16px 14px;
     }
-    .pet-row::-webkit-scrollbar { display: none; }
+
+    /* ── CAROUSEL (4+ pets) ── */
+    .pet-carousel {
+      display: flex; align-items: center;
+      padding: 4px 8px 14px; gap: 4px;
+    }
+    .pet-carousel .pet-row {
+      flex: 1; padding: 0;
+    }
+    .carousel-arrow {
+      flex-shrink: 0; width: 28px; height: 28px;
+      border-radius: 50%; border: 1.5px solid var(--border);
+      background: var(--card); color: var(--primary);
+      font-size: 20px; line-height: 1; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s;
+    }
+    .carousel-arrow:disabled { opacity: 0.18; cursor: default; }
+    .carousel-arrow:not(:disabled):active { background: var(--pri-bg); }
 
     /* ── PET CARD ── */
     .pet-card {
-      flex-shrink: 0; width: 116px;
+      width: 100%;
       background: var(--bg);
       border: 1.5px solid var(--border);
       border-radius: 14px;
@@ -125,6 +142,14 @@
     }
     .pet-img-placeholder { font-size: 34px; }
 
+    .pet-slot-num {
+      position: absolute; top: 4px; left: 4px;
+      font-size: 9px; font-weight: 700; line-height: 1;
+      background: rgba(0,0,0,0.45); color: #fff;
+      border-radius: 5px; padding: 2px 5px;
+      pointer-events: none;
+    }
+
     .stage-badge {
       position: absolute; bottom: 4px; right: 4px;
       font-size: 9px; font-weight: 700;
@@ -146,13 +171,13 @@
     }
 
     .active-badge {
-      font-size: 11px; font-weight: 700; color: var(--primary);
-      background: var(--pri-bg); border: 1.5px solid var(--primary);
+      font-size: 11px; font-weight: 700; color: #fff;
+      background: var(--primary); border: 1.5px solid var(--primary);
       border-radius: 20px; padding: 3px 10px;
       white-space: nowrap;
     }
     .set-active-btn {
-      width: 80px; padding: 5px 0;
+      width: 100%; padding: 5px 0;
       border: 1px solid var(--primary); border-radius: 8px;
       background: transparent; color: var(--primary);
       font-size: 11px; font-weight: 700; cursor: pointer;
@@ -301,6 +326,12 @@
 
   let uid = '', group_id = '', group_name = '';
   let summoningNewPet = false;
+  const speciesPages = {};
+
+  function changePage(key, newPage) {
+    speciesPages[key] = newPage;
+    renderCollection();
+  }
   let collectionData = null;
   let activeSlot = 1;
 
@@ -352,6 +383,8 @@
       const spPets = pets.filter(p => p.pet_species === sp.key);
       let cardsHTML = '';
 
+      let rowHTML = '';
+
       if (spPets.length === 0) {
         cardsHTML = `
           <div class="pet-card unknown">
@@ -360,8 +393,14 @@
             </div>
             <div class="unknown-text">尚未收集</div>
           </div>`;
+        rowHTML = `<div class="pet-row">${cardsHTML}</div>`;
       } else {
-        for (const pet of spPets) {
+        const page       = speciesPages[sp.key] || 0;
+        const pageSize   = 3;
+        const totalPages = Math.ceil(spPets.length / pageSize);
+        const pagePets   = spPets.slice(page * pageSize, (page + 1) * pageSize);
+
+        for (const pet of pagePets) {
           const imgUrl  = petImageUrl(pet);
           const isActive = pet.pet_slot === activeSlot;
           const stage   = pet.pet_stage || 1;
@@ -376,12 +415,26 @@
             <div class="pet-card ${isActive ? 'is-active' : ''}" id="pc-${pet.pet_slot}">
               <div class="pet-img-wrap">
                 ${imgTag}
+                <div class="pet-slot-num">${pet.pet_slot}</div>
               </div>
               <div class="pet-aura">
                 <span class="aura-stage-badge stage-${stage}">${STAGE_NAMES[stage] || '誕生'}</span>
                 <strong>${Number(pet.aura_points).toLocaleString()}</strong>
               </div>
               ${actionHTML}
+            </div>`;
+        }
+
+        if (totalPages <= 1) {
+          rowHTML = `<div class="pet-row">${cardsHTML}</div>`;
+        } else {
+          const prevDisabled = page === 0 ? 'disabled' : '';
+          const nextDisabled = page >= totalPages - 1 ? 'disabled' : '';
+          rowHTML = `
+            <div class="pet-carousel">
+              <button class="carousel-arrow" onclick="changePage('${sp.key}',${page - 1})" ${prevDisabled}>&#8249;</button>
+              <div class="pet-row">${cardsHTML}</div>
+              <button class="carousel-arrow" onclick="changePage('${sp.key}',${page + 1})" ${nextDisabled}>&#8250;</button>
             </div>`;
         }
       }
@@ -396,7 +449,7 @@
             <span class="species-name">${sp.label}</span>
             ${countBadge}
           </div>
-          <div class="pet-row">${cardsHTML}</div>
+          ${rowHTML}
         </div>`;
     }
 
