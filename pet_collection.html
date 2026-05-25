@@ -91,8 +91,9 @@
 
     /* ── PET ROW (3-column grid) ── */
     .pet-row {
-      display: grid; grid-template-columns: repeat(3, 1fr);
+      display: grid; grid-template-columns: repeat(3, minmax(0, 116px));
       gap: 10px; padding: 4px 16px 14px;
+      justify-content: center;
     }
 
     /* ── CAROUSEL (4+ pets) ── */
@@ -170,13 +171,15 @@
     }
 
     .active-badge {
+      display: flex; align-items: center; gap: 5px;
       font-size: 11px; font-weight: 700; color: #fff;
       background: var(--primary); border: 1.5px solid var(--primary);
-      border-radius: 20px; padding: 3px 10px;
+      border-radius: 20px; padding: 3px 10px 3px 5px;
       white-space: nowrap;
     }
     .set-active-btn {
-      width: 100%; padding: 5px 0;
+      width: 100%; padding: 5px 8px 5px 5px;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
       border: 1px solid var(--primary); border-radius: 8px;
       background: transparent; color: var(--primary);
       font-size: 11px; font-weight: 700; cursor: pointer;
@@ -406,9 +409,10 @@
           const imgTag  = imgUrl
             ? `<img src="${imgUrl}" alt="${sp.label}" onerror="this.outerHTML='<div class=\\'pet-img-placeholder\\'>${sp.emoji}</div>'">`
             : `<div class="pet-img-placeholder">${sp.emoji}</div>`;
+          const numBadge = `<span class="pet-num-label">${pet.pet_slot}</span>`;
           const actionHTML = isActive
-            ? `<div class="active-badge">✦ 主獸</div>`
-            : `<button class="set-active-btn" onclick="setActive(${pet.pet_slot})">設為主獸</button>`;
+            ? `<div class="active-badge">${numBadge} ✦ 主獸</div>`
+            : `<button class="set-active-btn" onclick="setActive(${pet.pet_slot})">${numBadge} 設為主獸</button>`;
 
           cardsHTML += `
             <div class="pet-card ${isActive ? 'is-active' : ''}" id="pc-${pet.pet_slot}">
@@ -416,7 +420,6 @@
                 ${imgTag}
               </div>
               <div class="pet-aura">
-                <span class="pet-num-label">${pet.pet_slot}</span>
                 <span class="aura-stage-badge stage-${stage}">${STAGE_NAMES[stage] || '誕生'}</span>
                 <strong>${Number(pet.aura_points).toLocaleString()}</strong>
               </div>
