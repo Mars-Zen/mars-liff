@@ -83,6 +83,13 @@
     .referral-box:active { opacity: 0.6; }
     .referral-box-label { font-size: 10px; color: var(--subtext); }
     .referral-box-code  { font-size: 13px; font-weight: 700; color: var(--pri); letter-spacing: 1.5px; }
+    .referral-help-btn {
+      width: 22px; height: 22px; flex-shrink: 0;
+      border-radius: 50%; background: #d1d5db; color: #6b7280;
+      border: none; font-size: 12px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      line-height: 1; padding: 0;
+    }
 
     /* ── Section ── */
     .section-label {
@@ -314,9 +321,10 @@
       <div class="user-sub"  id="userSub">連接中...</div>
     </div>
     <div class="referral-box" id="referralBox" onclick="copyReferralCode()" title="點擊複製推薦碼">
-      <div class="referral-box-label">推薦碼</div>
+      <div class="referral-box-label">好友推薦碼</div>
       <div class="referral-box-code" id="referralCode">⋯</div>
     </div>
+    <button class="referral-help-btn" onclick="openReferralHelp()" title="推薦碼說明">?</button>
   </div>
 
   <div class="section-head">
@@ -403,6 +411,18 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Referral Help Dialog -->
+<div id="referralHelpOverlay" onclick="closeReferralHelp()"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9000;align-items:center;justify-content:center;">
+  <div onclick="event.stopPropagation()"
+       style="background:#fff;border-radius:16px;padding:24px 20px;max-width:280px;width:90%;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.18);">
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:12px;">好友推薦碼</div>
+    <p style="font-size:14px;line-height:1.7;color:var(--subtext);margin-bottom:20px;">點擊可複製推薦碼。讓好友在註冊時輸入推薦碼，就可以讓我方的星獸獲得300點的靈氣加成!</p>
+    <button onclick="closeReferralHelp()"
+            style="background:var(--primary);color:#fff;border:none;border-radius:20px;padding:8px 28px;font-size:14px;font-weight:600;cursor:pointer;">確定</button>
+  </div>
+</div>
 
 <script>
   const API         = 'https://mars-magicapp.com/webhook';
@@ -888,6 +908,9 @@
 
   function openDragHelp()  { document.getElementById('dragHelpOverlay').classList.add('open'); }
   function closeDragHelp() { document.getElementById('dragHelpOverlay').classList.remove('open'); }
+
+  function openReferralHelp()  { document.getElementById('referralHelpOverlay').style.display = 'flex'; }
+  function closeReferralHelp() { document.getElementById('referralHelpOverlay').style.display = 'none'; }
 
   function showToast(msg, type = '') {
     const t = document.getElementById('toast');
