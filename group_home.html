@@ -74,6 +74,15 @@
     .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .user-name { font-size: 15px; font-weight: 700; color: var(--text); }
     .user-sub  { font-size: 12px; color: var(--subtext); margin-top: 1px; }
+    .referral-box {
+      cursor: pointer; flex-shrink: 0;
+      background: var(--pri-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 5px 10px; text-align: center;
+      user-select: none; transition: opacity 0.15s;
+    }
+    .referral-box:active { opacity: 0.6; }
+    .referral-box-label { font-size: 10px; color: var(--subtext); }
+    .referral-box-code  { font-size: 13px; font-weight: 700; color: var(--pri); letter-spacing: 1.5px; }
 
     /* ── Section ── */
     .section-label {
@@ -300,9 +309,13 @@
 
   <div class="user-card">
     <div class="user-avatar" id="userAvatar">🌟</div>
-    <div>
+    <div style="flex:1">
       <div class="user-name" id="userName">載入中...</div>
       <div class="user-sub"  id="userSub">連接中...</div>
+    </div>
+    <div class="referral-box" id="referralBox" onclick="copyReferralCode()" title="點擊複製推薦碼">
+      <div class="referral-box-label">推薦碼</div>
+      <div class="referral-box-code" id="referralCode">⋯</div>
     </div>
   </div>
 
@@ -436,6 +449,7 @@
       loadCardColors();
       document.getElementById('userName').textContent = p.displayName;
       document.getElementById('userSub').textContent  = '已連線';
+      loadReferralCode();
       if (p.pictureUrl)
         document.getElementById('userAvatar').innerHTML = `<img src="${p.pictureUrl}" alt="">`;
       loadGroups();
@@ -452,6 +466,29 @@
         { group_id: 'demo2', group_name: '星座研究社',   invite_code: 'XY9876' }
       ]);
     }
+  }
+
+  async function loadReferralCode() {
+    try {
+      const r = await fetch(`${API}/get-referral-code`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: uid })
+      });
+      const d = await r.json();
+      document.getElementById('referralCode').textContent = d.referral_code || '---';
+    } catch {
+      document.getElementById('referralCode').textContent = '---';
+    }
+  }
+
+  function copyReferralCode() {
+    const code = document.getElementById('referralCode').textContent;
+    if (code === '⋯' || code === '---') return;
+    navigator.clipboard.writeText(code).then(() => {
+      showToast('推薦碼已複製！');
+    }).catch(() => {
+      showToast('複製失敗，請手動複製', 'err');
+    });
   }
 
   async function loadGroups(retry = 0) {
