@@ -31,6 +31,7 @@
       color: var(--text);
       min-height: 100dvh;
       padding-bottom: 40px;
+      -webkit-tap-highlight-color: transparent;
     }
 
     /* ── HEADER ── */
@@ -124,16 +125,19 @@
       border-radius: 14px;
       padding: 10px 8px;
       display: flex; flex-direction: column; align-items: center; gap: 6px;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s, background-color 0.1s;
       cursor: pointer; touch-action: pan-x pan-y;
+      user-select: none; -webkit-user-select: none;
     }
-    .pet-card:active { opacity: 0.82; transition: opacity 0.08s; }
+    .pet-card:not(.unknown):active { background: #eef2f6; }
     .pet-card.unknown { cursor: default; }
+    .pet-card.unknown:active { background: var(--bg); }
     .pet-card.is-active {
       border-color: var(--primary);
       background: #f5f3ff;
       box-shadow: 0 2px 12px rgba(124,58,237,0.15);
     }
+    .pet-card.is-active:active { background: #e0d7ff; }
 
     .pet-img-wrap {
       position: relative;
@@ -197,11 +201,11 @@
       background: transparent; color: var(--primary);
       font-size: 11px; font-weight: 700; cursor: pointer;
       font-family: 'Noto Sans TC', sans-serif;
-      transition: background 0.12s;
+      transition: background 0.12s, transform 0.1s;
       touch-action: manipulation;
     }
-    .set-active-btn:active { background: var(--pri-bg); }
-    .set-active-btn:disabled { opacity: 0.4; cursor: default; }
+    .set-active-btn:active { background: var(--pri-bg); transform: scale(0.95); }
+    .set-active-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
 
     /* ── UNKNOWN CARD (未收集) ── */
     .pet-card.unknown {
@@ -216,13 +220,12 @@
     /* ── STAGE VIEW OVERLAY ── */
     .stage-overlay {
       position: fixed; inset: 0; z-index: 200;
-      background: rgba(0,0,0,0.55);
       display: flex; align-items: flex-end; justify-content: center;
       opacity: 0; pointer-events: none; visibility: hidden;
       transition: opacity 0.2s, visibility 0.2s;
     }
     .stage-overlay.open { opacity: 1; pointer-events: auto; visibility: visible; }
-    .stage-overlay-bg { position: absolute; inset: 0; cursor: pointer; }
+    .stage-overlay-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.55); cursor: pointer; }
     .stage-modal {
       position: relative; z-index: 1;
       width: 100%; max-width: 480px;
@@ -888,7 +891,7 @@
             const newBtn = document.createElement('button');
             newBtn.className = 'set-active-btn';
             newBtn.type = 'button';
-            newBtn.setAttribute('onclick', `setActive(${oldSlot})`);
+            newBtn.setAttribute('onclick', `setActive(${oldSlot});event.stopPropagation()`);
             newBtn.innerHTML = `<span class="pet-num-label">${oldSlot}</span> 設為主獸`;
             oldBadge.replaceWith(newBtn);
           }
