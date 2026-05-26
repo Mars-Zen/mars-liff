@@ -105,6 +105,7 @@
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-x: contain;
       scrollbar-width: none;
+      touch-action: pan-x pan-y;
     }
     .pet-scroll-row::-webkit-scrollbar { display: none; }
     .pet-scroll-page {
@@ -124,7 +125,10 @@
       padding: 10px 8px;
       display: flex; flex-direction: column; align-items: center; gap: 6px;
       transition: border-color 0.15s, box-shadow 0.15s;
+      cursor: pointer; touch-action: pan-x pan-y;
     }
+    .pet-card:active { opacity: 0.82; transition: opacity 0.08s; }
+    .pet-card.unknown { cursor: default; }
     .pet-card.is-active {
       border-color: var(--primary);
       background: #f5f3ff;
@@ -282,9 +286,6 @@
     .stage-item.stage-locked .stage-item-img {
       background: #f3f2f7; animation: none;
     }
-    .pet-img-wrap { cursor: pointer; touch-action: manipulation; }
-    .pet-img-wrap:active { opacity: 0.82; transition: opacity 0.08s; }
-
     /* ── STAGE FULLSCREEN ── */
     .stage-fullscreen {
       position: fixed; inset: 0; z-index: 300;
@@ -595,7 +596,7 @@
   function collectionFingerprint(d) {
     if (!d) return '';
     return (d.active_pet_slot || '') + '|' + (d.can_unlock_next ? 1 : 0) + '|' +
-      (d.pets || []).map(p => `${p.pet_slot}:${p.pet_stage}`).join(',');
+      (d.pets || []).slice().sort((a, b) => a.pet_slot - b.pet_slot).map(p => `${p.pet_slot}:${p.pet_stage}`).join(',');
   }
 
   // 只更新靈氣值數字，不重建任何 DOM 節點
@@ -795,13 +796,13 @@
                  onerror="this.parentElement.classList.remove('is-loading');this.parentElement.classList.add('loaded');this.outerHTML='<div class=\\'pet-img-placeholder\\'>${sp.emoji}</div>'">`
             : `<div class="pet-img-placeholder">${sp.emoji}</div>`;
           const numBadge = `<span class="pet-num-label">${pet.pet_slot}</span>`;
-          const imgWrap = `<div class="pet-img-wrap${imgUrl ? ' is-loading' : ''}" onclick="openStageView(${pet.pet_slot})">${imgTag}</div>`;
+          const imgWrap = `<div class="pet-img-wrap${imgUrl ? ' is-loading' : ''}">${imgTag}</div>`;
           const actionHTML = isActive
             ? `<div class="active-badge">${numBadge} ✦ 主獸</div>`
-            : `<button class="set-active-btn" onclick="setActive(${pet.pet_slot})">${numBadge} 設為主獸</button>`;
+            : `<button class="set-active-btn" onclick="setActive(${pet.pet_slot});event.stopPropagation()">${numBadge} 設為主獸</button>`;
 
           cardsArr.push(`
-            <div class="pet-card ${isActive ? 'is-active' : ''}" id="pc-${pet.pet_slot}">
+            <div class="pet-card ${isActive ? 'is-active' : ''}" id="pc-${pet.pet_slot}" onclick="openStageView(${pet.pet_slot})">
               ${imgWrap}
               <div class="pet-aura">
                 <span class="aura-stage-badge stage-${stage}">${STAGE_NAMES[stage] || '誕生'}</span>
@@ -999,8 +1000,6 @@
   }
 
   function stageBackdropTap() {
-    const ov = document.getElementById('stageOverlay');
-    if (Date.now() - (ov._openedAt || 0) < 200) return;
     closeStageView();
   }
 
