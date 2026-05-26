@@ -99,16 +99,19 @@
 
     /* ── SCROLL ROW (4+ pets) ── */
     .pet-scroll-row {
-      display: flex; gap: 10px;
+      display: flex;
       overflow-x: auto;
-      padding: 4px 16px 14px;
       scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
       scrollbar-width: none;
     }
     .pet-scroll-row::-webkit-scrollbar { display: none; }
-    .pet-scroll-row .pet-card {
-      flex: 0 0 calc((100% - 20px) / 3);
+    .pet-scroll-page {
+      flex: 0 0 100%;
+      display: grid; grid-template-columns: repeat(3, minmax(0, 116px));
+      gap: 10px; padding: 4px 16px 14px;
+      justify-content: center;
       scroll-snap-align: start;
     }
 
@@ -224,7 +227,7 @@
     }
     .stage-overlay.open .stage-modal { transform: translateY(0); }
     .stage-modal-header {
-      display: flex; align-items: center; justify-content: center;
+      display: flex; align-items: center; justify-content: flex-start;
       position: relative; margin-bottom: 18px;
     }
     .stage-modal-title {
@@ -258,7 +261,8 @@
     }
     .stage-item-q { font-size: 26px; color: #c4b5fd; }
     .stage-item.is-current .stage-item-img {
-      box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--primary), 0 0 10px rgba(124,58,237,0.3);
+      border: 2.5px solid var(--primary);
+      box-shadow: 0 0 10px rgba(124,58,237,0.3);
     }
     .stage-item.stage-locked .stage-item-img {
       background: #f3f2f7; animation: none;
@@ -301,10 +305,22 @@
       flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%;
       border: 1.5px solid rgba(255,255,255,0.35);
       background: rgba(255,255,255,0.08); color: #fff;
-      font-size: 26px; line-height: 1; cursor: pointer;
+      cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       padding: 0;
     }
+    .stageFS-download {
+      padding: 8px 28px;
+      border-radius: 10px;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer;
+      font-family: 'Noto Sans TC', sans-serif;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .stageFS-download:active { background: rgba(255,255,255,0.22); }
     .stageFS-nav[data-hidden] { visibility: hidden; pointer-events: none; }
     .stageFS-img-wrap {
       flex: 1; aspect-ratio: 1 / 1;
@@ -436,15 +452,22 @@
       <button class="stageFS-close" onclick="closeStageFullscreen()">✕</button>
     </div>
     <div class="stageFS-body">
-      <button class="stageFS-nav" id="stageFSPrev" onclick="navigateStageFS(-1)">&#8249;</button>
+      <button class="stageFS-nav" id="stageFSPrev" onclick="navigateStageFS(-1)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
       <div class="stageFS-img-wrap" id="stageFSImgWrap">
         <img id="stageFSImg" src="" decoding="async"
              onload="this.parentElement.classList.add('loaded')"
              onerror="this.parentElement.classList.add('loaded')">
       </div>
-      <button class="stageFS-nav" id="stageFSNext" onclick="navigateStageFS(1)">&#8250;</button>
+      <button class="stageFS-nav" id="stageFSNext" onclick="navigateStageFS(1)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </div>
-    <span class="aura-stage-badge" id="stageFSBadge" style="font-size:12px;padding:3px 10px"></span>
+    <button class="stageFS-download" onclick="downloadStageImage()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      下載
+    </button>
   </div>
 </div>
 
@@ -563,8 +586,9 @@
       document.getElementById('stageGrid').innerHTML = html;
     }
 
+    const spInfo = SPECIES_ORDER.find(s => s.key === pet.pet_species) || {};
     document.getElementById('stageModalTitle').innerHTML =
-      `<span class="pet-num-label">${slot}</span> — 進化歷程`;
+      `${spInfo.emoji ? `<span style="font-size:18px">${spInfo.emoji}</span>` : ''}${spInfo.label ? `<span style="font-weight:700">${spInfo.label}</span>` : ''}<span style="color:var(--muted);font-size:13px;font-weight:400;margin:0 2px"> / </span><span class="pet-num-label">${slot}</span><span style="color:var(--subtext);font-weight:400"> 進化歷程</span>`;
     document.getElementById('stageOverlay').classList.add('open');
   }
 
@@ -601,15 +625,11 @@
     const imgUrl = `${API}/get-signed-url?path=${encodeURIComponent(gcsPath + 'stage_' + stage + '.png')}&v=${Math.floor(Date.now() / 1800000)}`;
 
     document.getElementById('stageFSTitle').innerHTML =
-      `<span class="pet-num-label">${currentStageSlot}</span> — ${STAGE_NAMES[stage]}`;
+      `<span class="pet-num-label">${currentStageSlot}</span><span style="color:rgba(255,255,255,0.5);margin:0 6px">—</span><span class="aura-stage-badge stage-${stage}" style="font-size:12px;padding:3px 10px">${STAGE_NAMES[stage]}</span>`;
 
     const wrap = document.getElementById('stageFSImgWrap');
     wrap.classList.remove('loaded');
     document.getElementById('stageFSImg').src = imgUrl;
-
-    const badge = document.getElementById('stageFSBadge');
-    badge.className = `aura-stage-badge stage-${stage}`;
-    badge.textContent = STAGE_NAMES[stage];
 
     const prev = document.getElementById('stageFSPrev');
     const next = document.getElementById('stageFSNext');
@@ -638,6 +658,7 @@
           </div>`;
         rowHTML = `<div class="pet-row">${cardsHTML}</div>`;
       } else {
+        const cardsArr = [];
         for (const pet of spPets) {
           petMap[pet.pet_slot] = pet;
           const imgUrl  = petImageUrl(pet);
@@ -653,7 +674,7 @@
             ? `<div class="active-badge">${numBadge} ✦ 主獸</div>`
             : `<button class="set-active-btn" onclick="setActive(${pet.pet_slot})">${numBadge} 設為主獸</button>`;
 
-          cardsHTML += `
+          cardsArr.push(`
             <div class="pet-card ${isActive ? 'is-active' : ''}" id="pc-${pet.pet_slot}">
               <div class="pet-img-wrap${imgUrl ? ' is-loading' : ''}" onclick="openStageView(${pet.pet_slot})">
                 ${imgTag}
@@ -663,12 +684,18 @@
                 <strong>${Number(pet.aura_points).toLocaleString()}</strong>
               </div>
               ${actionHTML}
-            </div>`;
+            </div>`);
         }
 
-        rowHTML = spPets.length <= 3
-          ? `<div class="pet-row">${cardsHTML}</div>`
-          : `<div class="pet-scroll-row">${cardsHTML}</div>`;
+        if (cardsArr.length <= 3) {
+          rowHTML = `<div class="pet-row">${cardsArr.join('')}</div>`;
+        } else {
+          let pagesHTML = '';
+          for (let i = 0; i < cardsArr.length; i += 3) {
+            pagesHTML += `<div class="pet-scroll-page">${cardsArr.slice(i, i + 3).join('')}</div>`;
+          }
+          rowHTML = `<div class="pet-scroll-row">${pagesHTML}</div>`;
+        }
       }
 
       const countBadge = spPets.length > 0
@@ -710,7 +737,10 @@
   async function setActive(slot) {
     const card = document.getElementById(`pc-${slot}`);
     const btn  = card ? card.querySelector('.set-active-btn') : null;
-    if (btn) { btn.disabled = true; btn.textContent = '設定中...'; }
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span class="pet-num-label">${slot}</span> 設定中...`;
+    }
 
     try {
       const r = await fetch(`${API}/set-active-pet`, {
@@ -721,12 +751,43 @@
       const d = await r.json();
       if (!d.success) throw new Error(d.message);
 
+      // 舊主獸 → 設為主獸按鈕
+      const oldSlot = activeSlot;
+      if (oldSlot !== slot) {
+        const oldCard = document.getElementById(`pc-${oldSlot}`);
+        if (oldCard) {
+          oldCard.classList.remove('is-active');
+          const oldBadge = oldCard.querySelector('.active-badge');
+          if (oldBadge) {
+            const newBtn = document.createElement('button');
+            newBtn.className = 'set-active-btn';
+            newBtn.setAttribute('onclick', `setActive(${oldSlot})`);
+            newBtn.innerHTML = `<span class="pet-num-label">${oldSlot}</span> 設為主獸`;
+            oldBadge.replaceWith(newBtn);
+          }
+        }
+      }
+
+      // 新主獸 → 主獸徽章
       activeSlot = slot;
       collectionData.active_pet_slot = slot;
-      renderCollection();
+      if (card) {
+        card.classList.add('is-active');
+        const actionBtn = card.querySelector('.set-active-btn');
+        if (actionBtn) {
+          const newBadge = document.createElement('div');
+          newBadge.className = 'active-badge';
+          newBadge.innerHTML = `<span class="pet-num-label">${slot}</span> ✦ 主獸`;
+          actionBtn.replaceWith(newBadge);
+        }
+      }
+
       showToast('主獸已更新！', 'ok');
     } catch {
-      if (btn) { btn.disabled = false; btn.textContent = '設為主獸'; }
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<span class="pet-num-label">${slot}</span> 設為主獸`;
+      }
       showToast('設定失敗，請重試', 'err');
     }
   }
@@ -791,6 +852,25 @@
     t.textContent = msg;
     t.className = `toast ${type} show`;
     setTimeout(() => { t.className = 'toast'; }, 2500);
+  }
+
+  async function downloadStageImage() {
+    const imgSrc = document.getElementById('stageFSImg').src;
+    if (!imgSrc) return;
+    try {
+      const res = await fetch(imgSrc);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `星獸_${currentStageSlot}_${STAGE_NAMES[stageFSIndex + 1]}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch {
+      liff.openWindow({ url: imgSrc, external: true });
+    }
   }
 
   document.addEventListener('contextmenu', e => {
