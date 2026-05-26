@@ -97,24 +97,20 @@
       justify-content: center;
     }
 
-    /* ── CAROUSEL (4+ pets) ── */
-    .pet-carousel { position: relative; }
-    .pet-carousel .pet-row { padding: 4px 16px 14px; }
-    .carousel-arrow {
-      position: absolute; top: 50%; transform: translateY(-50%);
-      z-index: 10;
-      width: 26px; height: 26px;
-      border-radius: 50%; border: 1px solid var(--border);
-      background: #fff; color: var(--primary);
-      font-size: 20px; line-height: 1; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.14);
-      transition: background 0.12s; padding: 0;
+    /* ── SCROLL ROW (4+ pets) ── */
+    .pet-scroll-row {
+      display: flex; gap: 10px;
+      overflow-x: auto;
+      padding: 4px 16px 14px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
     }
-    .carousel-arrow.prev { left: 5px; }
-    .carousel-arrow.next { right: 5px; }
-    .carousel-arrow:disabled { opacity: 0.2; cursor: default; box-shadow: none; }
-    .carousel-arrow:not(:disabled):active { background: var(--pri-bg); }
+    .pet-scroll-row::-webkit-scrollbar { display: none; }
+    .pet-scroll-row .pet-card {
+      flex: 0 0 calc((100% - 20px) / 3);
+      scroll-snap-align: start;
+    }
 
     /* ── PET CARD ── */
     .pet-card {
@@ -138,8 +134,8 @@
       border-radius: 12px; overflow: hidden;
       background: #ece8f5;
       display: flex; align-items: center; justify-content: center;
-      animation: imgPulse 1.6s ease-in-out infinite;
     }
+    .pet-img-wrap.is-loading { animation: imgPulse 1.6s ease-in-out infinite; }
     .pet-img-wrap.loaded { animation: none; }
     @keyframes imgPulse {
       0%, 100% { background: #ece8f5; }
@@ -228,14 +224,19 @@
     }
     .stage-overlay.open .stage-modal { transform: translateY(0); }
     .stage-modal-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 18px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; margin-bottom: 18px;
     }
-    .stage-modal-title { font-size: 16px; font-weight: 700; }
-    .stage-modal-close {
+    .stage-modal-title {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 16px; font-weight: 700;
+    }
+    .stage-modal-expand {
+      position: absolute; right: 0;
       width: 30px; height: 30px; border-radius: 50%;
       border: none; background: var(--bg); cursor: pointer;
-      font-size: 14px; display: flex; align-items: center; justify-content: center;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary);
     }
     .stage-grid {
       display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
@@ -257,13 +258,65 @@
     }
     .stage-item-q { font-size: 26px; color: #c4b5fd; }
     .stage-item.is-current .stage-item-img {
-      border: 2.5px solid var(--primary);
-      box-shadow: 0 0 10px rgba(124,58,237,0.3);
+      box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--primary), 0 0 10px rgba(124,58,237,0.3);
     }
     .stage-item.stage-locked .stage-item-img {
       background: #f3f2f7; animation: none;
     }
     .pet-img-wrap { cursor: pointer; }
+
+    /* ── STAGE FULLSCREEN ── */
+    .stage-fullscreen {
+      position: fixed; inset: 0; z-index: 300;
+      background: rgba(10,8,24,0.92);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .stage-fullscreen.open { opacity: 1; pointer-events: auto; }
+    .stageFS-wrap {
+      width: 88%; max-width: 360px;
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+    }
+    .stageFS-header {
+      width: 100%; display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .stageFS-title {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 16px; font-weight: 700; color: #fff;
+    }
+    .stageFS-close {
+      position: absolute; right: 0;
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.1); color: #fff;
+      font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .stageFS-body {
+      width: 100%; display: flex; align-items: center; gap: 10px;
+    }
+    .stageFS-nav {
+      flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.08); color: #fff;
+      font-size: 26px; line-height: 1; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0;
+    }
+    .stageFS-nav[data-hidden] { visibility: hidden; pointer-events: none; }
+    .stageFS-img-wrap {
+      flex: 1; aspect-ratio: 1 / 1;
+      border-radius: 18px; overflow: hidden;
+      background: #1a1535;
+      animation: imgPulse 1.6s ease-in-out infinite;
+    }
+    .stageFS-img-wrap.loaded { animation: none; }
+    .stageFS-img-wrap img {
+      width: 100%; height: 100%; object-fit: cover;
+      pointer-events: none; user-select: none; -webkit-touch-callout: none;
+    }
 
     /* ── UNLOCK SECTION ── */
     .unlock-section { margin-top: 6px; }
@@ -364,10 +417,34 @@
 <div class="stage-overlay" id="stageOverlay" onclick="if(event.target===this)closeStageView()">
   <div class="stage-modal">
     <div class="stage-modal-header">
-      <div class="stage-modal-title" id="stageModalTitle">進化階段</div>
-      <button class="stage-modal-close" onclick="closeStageView()">✕</button>
+      <div class="stage-modal-title" id="stageModalTitle"></div>
+      <button class="stage-modal-expand" onclick="openStageFullscreen()" title="放大檢視">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <path d="M1 5V1h4M9 1h4v4M1 9v4h4M9 13h4V9"/>
+        </svg>
+      </button>
     </div>
     <div class="stage-grid" id="stageGrid"></div>
+  </div>
+</div>
+
+<!-- 進化階段全屏 -->
+<div class="stage-fullscreen" id="stageFullscreen">
+  <div class="stageFS-wrap">
+    <div class="stageFS-header">
+      <div class="stageFS-title" id="stageFSTitle"></div>
+      <button class="stageFS-close" onclick="closeStageFullscreen()">✕</button>
+    </div>
+    <div class="stageFS-body">
+      <button class="stageFS-nav" id="stageFSPrev" onclick="navigateStageFS(-1)">&#8249;</button>
+      <div class="stageFS-img-wrap" id="stageFSImgWrap">
+        <img id="stageFSImg" src="" decoding="async"
+             onload="this.parentElement.classList.add('loaded')"
+             onerror="this.parentElement.classList.add('loaded')">
+      </div>
+      <button class="stageFS-nav" id="stageFSNext" onclick="navigateStageFS(1)">&#8250;</button>
+    </div>
+    <span class="aura-stage-badge" id="stageFSBadge" style="font-size:12px;padding:3px 10px"></span>
   </div>
 </div>
 
@@ -405,13 +482,7 @@
 
   let uid = '', group_id = '', group_name = '';
   let summoningNewPet = false;
-  const speciesPages = {};
   let petMap = {};
-
-  function changePage(key, newPage) {
-    speciesPages[key] = newPage;
-    renderCollection();
-  }
   let collectionData = null;
   let activeSlot = 1;
 
@@ -455,40 +526,95 @@
     return `${API}/get-signed-url?path=${encodeURIComponent(raw + 'stage_' + pet.pet_stage + '.png')}&v=${Math.floor(Date.now() / 1800000)}`;
   }
 
+  let currentStageSlot = null;
+  let stageFSIndex = 0;
+
   function openStageView(slot) {
     const pet = petMap[slot];
     if (!pet) return;
-    const currentStage = pet.pet_stage || 1;
-    const gcsPath = (pet.pet_gcs_path || '').replace(/\/?$/, '/');
-    const sp = SPECIES_ORDER.find(s => s.key === pet.pet_species) || { label: '星獸', emoji: '✨' };
-    document.getElementById('stageModalTitle').textContent = `${sp.emoji} ${sp.label} 第${slot}隻 — 進化歷程`;
-    let html = '';
-    for (let s = 1; s <= 4; s++) {
-      const reached = s <= currentStage;
-      const isCurrent = s === currentStage;
-      if (reached && gcsPath && gcsPath !== '/') {
-        const imgUrl = `${API}/get-signed-url?path=${encodeURIComponent(gcsPath + 'stage_' + s + '.png')}&v=${Math.floor(Date.now() / 1800000)}`;
-        html += `<div class="stage-item ${isCurrent ? 'is-current' : ''}">
-          <div class="stage-item-img">
-            <img src="${imgUrl}" loading="lazy" decoding="async"
-              onload="this.parentElement.classList.add('loaded')"
-              onerror="this.parentElement.classList.add('loaded');this.outerHTML='<span class=stage-item-q>?</span>'">
-          </div>
-          <span class="aura-stage-badge stage-${s}">${STAGE_NAMES[s]}</span>
-        </div>`;
-      } else {
-        html += `<div class="stage-item stage-locked">
-          <div class="stage-item-img loaded"><span class="stage-item-q">?</span></div>
-          <span class="aura-stage-badge stage-${s}">${STAGE_NAMES[s]}</span>
-        </div>`;
+
+    // 只有切換不同隻時才重建 HTML（避免重複載入圖片）
+    if (currentStageSlot !== slot) {
+      currentStageSlot = slot;
+      const currentStage = pet.pet_stage || 1;
+      const gcsPath = (pet.pet_gcs_path || '').replace(/\/?$/, '/');
+      const v = Math.floor(Date.now() / 1800000);
+      let html = '';
+      for (let s = 1; s <= 4; s++) {
+        const reached = s <= currentStage;
+        const isCurrent = s === currentStage;
+        if (reached && gcsPath && gcsPath !== '/') {
+          const imgUrl = `${API}/get-signed-url?path=${encodeURIComponent(gcsPath + 'stage_' + s + '.png')}&v=${v}`;
+          html += `<div class="stage-item ${isCurrent ? 'is-current' : ''}">
+            <div class="stage-item-img">
+              <img src="${imgUrl}" loading="lazy" decoding="async"
+                onload="this.parentElement.classList.add('loaded')"
+                onerror="this.parentElement.classList.add('loaded');this.outerHTML='<span class=stage-item-q>?</span>'">
+            </div>
+            <span class="aura-stage-badge stage-${s}">${STAGE_NAMES[s]}</span>
+          </div>`;
+        } else {
+          html += `<div class="stage-item stage-locked">
+            <div class="stage-item-img loaded"><span class="stage-item-q">?</span></div>
+            <span class="aura-stage-badge stage-${s}">${STAGE_NAMES[s]}</span>
+          </div>`;
+        }
       }
+      document.getElementById('stageGrid').innerHTML = html;
     }
-    document.getElementById('stageGrid').innerHTML = html;
+
+    document.getElementById('stageModalTitle').innerHTML =
+      `<span class="pet-num-label">${slot}</span> — 進化歷程`;
     document.getElementById('stageOverlay').classList.add('open');
   }
 
   function closeStageView() {
     document.getElementById('stageOverlay').classList.remove('open');
+  }
+
+  function openStageFullscreen() {
+    const pet = petMap[currentStageSlot];
+    if (!pet) return;
+    stageFSIndex = (pet.pet_stage || 1) - 1; // 預設從當前階段開始
+    renderStageFullscreen();
+    document.getElementById('stageFullscreen').classList.add('open');
+  }
+
+  function closeStageFullscreen() {
+    document.getElementById('stageFullscreen').classList.remove('open');
+  }
+
+  function navigateStageFS(dir) {
+    const pet = petMap[currentStageSlot];
+    if (!pet) return;
+    const maxIndex = (pet.pet_stage || 1) - 1;
+    stageFSIndex = Math.max(0, Math.min(maxIndex, stageFSIndex + dir));
+    renderStageFullscreen();
+  }
+
+  function renderStageFullscreen() {
+    const pet = petMap[currentStageSlot];
+    if (!pet) return;
+    const stage = stageFSIndex + 1;
+    const maxStage = pet.pet_stage || 1;
+    const gcsPath = (pet.pet_gcs_path || '').replace(/\/?$/, '/');
+    const imgUrl = `${API}/get-signed-url?path=${encodeURIComponent(gcsPath + 'stage_' + stage + '.png')}&v=${Math.floor(Date.now() / 1800000)}`;
+
+    document.getElementById('stageFSTitle').innerHTML =
+      `<span class="pet-num-label">${currentStageSlot}</span> — ${STAGE_NAMES[stage]}`;
+
+    const wrap = document.getElementById('stageFSImgWrap');
+    wrap.classList.remove('loaded');
+    document.getElementById('stageFSImg').src = imgUrl;
+
+    const badge = document.getElementById('stageFSBadge');
+    badge.className = `aura-stage-badge stage-${stage}`;
+    badge.textContent = STAGE_NAMES[stage];
+
+    const prev = document.getElementById('stageFSPrev');
+    const next = document.getElementById('stageFSNext');
+    stageFSIndex > 0 ? prev.removeAttribute('data-hidden') : prev.setAttribute('data-hidden', '');
+    stageFSIndex < maxStage - 1 ? next.removeAttribute('data-hidden') : next.setAttribute('data-hidden', '');
   }
 
   function renderCollection() {
@@ -512,20 +638,15 @@
           </div>`;
         rowHTML = `<div class="pet-row">${cardsHTML}</div>`;
       } else {
-        const page       = speciesPages[sp.key] || 0;
-        const pageSize   = 3;
-        const totalPages = Math.ceil(spPets.length / pageSize);
-        const pagePets   = spPets.slice(page * pageSize, (page + 1) * pageSize);
-
-        for (const pet of pagePets) {
+        for (const pet of spPets) {
           petMap[pet.pet_slot] = pet;
           const imgUrl  = petImageUrl(pet);
           const isActive = pet.pet_slot === activeSlot;
           const stage   = pet.pet_stage || 1;
           const imgTag  = imgUrl
             ? `<img src="${imgUrl}" alt="${sp.label}" loading="lazy" decoding="async"
-                 onload="this.parentElement.classList.add('loaded')"
-                 onerror="this.parentElement.classList.add('loaded');this.outerHTML='<div class=\\'pet-img-placeholder\\'>${sp.emoji}</div>'">`
+                 onload="this.parentElement.classList.remove('is-loading');this.parentElement.classList.add('loaded')"
+                 onerror="this.parentElement.classList.remove('is-loading');this.parentElement.classList.add('loaded');this.outerHTML='<div class=\\'pet-img-placeholder\\'>${sp.emoji}</div>'">`
             : `<div class="pet-img-placeholder">${sp.emoji}</div>`;
           const numBadge = `<span class="pet-num-label">${pet.pet_slot}</span>`;
           const actionHTML = isActive
@@ -534,7 +655,7 @@
 
           cardsHTML += `
             <div class="pet-card ${isActive ? 'is-active' : ''}" id="pc-${pet.pet_slot}">
-              <div class="pet-img-wrap" onclick="openStageView(${pet.pet_slot})">
+              <div class="pet-img-wrap${imgUrl ? ' is-loading' : ''}" onclick="openStageView(${pet.pet_slot})">
                 ${imgTag}
               </div>
               <div class="pet-aura">
@@ -545,18 +666,9 @@
             </div>`;
         }
 
-        if (totalPages <= 1) {
-          rowHTML = `<div class="pet-row">${cardsHTML}</div>`;
-        } else {
-          const prevDisabled = page === 0 ? 'disabled' : '';
-          const nextDisabled = page >= totalPages - 1 ? 'disabled' : '';
-          rowHTML = `
-            <div class="pet-carousel">
-              <div class="pet-row">${cardsHTML}</div>
-              <button class="carousel-arrow prev" onclick="changePage('${sp.key}',${page - 1})" ${prevDisabled}>&#8249;</button>
-              <button class="carousel-arrow next" onclick="changePage('${sp.key}',${page + 1})" ${nextDisabled}>&#8250;</button>
-            </div>`;
-        }
+        rowHTML = spPets.length <= 3
+          ? `<div class="pet-row">${cardsHTML}</div>`
+          : `<div class="pet-scroll-row">${cardsHTML}</div>`;
       }
 
       const countBadge = spPets.length > 0
