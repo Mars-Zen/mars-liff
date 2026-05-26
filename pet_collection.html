@@ -908,6 +908,7 @@
         if (actionBtn) {
           const newBadge = document.createElement('div');
           newBadge.className = 'active-badge';
+          newBadge.setAttribute('onclick', 'event.stopPropagation()');
           newBadge.innerHTML = `<span class="pet-num-label">${slot}</span> ✦ 主獸`;
           actionBtn.replaceWith(newBadge);
         }
