@@ -227,8 +227,13 @@
     }
     .stage-overlay.open .stage-modal { transform: translateY(0); }
     .stage-modal-header {
-      display: flex; align-items: center; justify-content: flex-start;
+      display: flex; align-items: center; justify-content: center;
       position: relative; margin-bottom: 18px;
+    }
+    .stage-modal-species {
+      position: absolute; left: 0;
+      display: flex; align-items: center; gap: 4px;
+      font-size: 13px; font-weight: 600; color: var(--subtext);
     }
     .stage-modal-title {
       display: flex; align-items: center; gap: 8px;
@@ -505,6 +510,8 @@
 
   let uid = '', group_id = '', group_name = '';
   let summoningNewPet = false;
+  let pollTimer = null;
+  let summonExpectedSlot = null;
   let petMap = {};
   let collectionData = null;
   let activeSlot = 1;
@@ -525,6 +532,17 @@
     await loadCollection();
   }
 
+  function startSummonPoll() {
+    if (pollTimer) return;
+    pollTimer = setInterval(loadCollection, 20000);
+  }
+
+  function stopSummonPoll() {
+    clearInterval(pollTimer);
+    pollTimer = null;
+    summonExpectedSlot = null;
+  }
+
   async function loadCollection() {
     try {
       const r = await fetch(`${API}/pet-collection`, {
@@ -536,6 +554,15 @@
       if (!collectionData.success) throw new Error();
       activeSlot = collectionData.active_pet_slot || 1;
       renderCollection();
+
+      if (summonExpectedSlot) {
+        if (petMap[summonExpectedSlot]) {
+          stopSummonPoll();
+          showToast('✨ 新星獸已召喚完成！', 'ok');
+        } else if (!pollTimer) {
+          startSummonPoll();
+        }
+      }
     } catch {
       document.getElementById('collectionContent').innerHTML =
         '<div style="padding:48px;text-align:center;color:var(--muted);font-size:14px">載入失敗，請關閉後重試</div>';
@@ -550,16 +577,18 @@
   }
 
   let currentStageSlot = null;
+  let currentStageCount = null;
   let stageFSIndex = 0;
 
   function openStageView(slot) {
     const pet = petMap[slot];
     if (!pet) return;
 
-    // 只有切換不同隻時才重建 HTML（避免重複載入圖片）
-    if (currentStageSlot !== slot) {
+    const currentStage = pet.pet_stage || 1;
+    // 同一隻且階段未變 → 不重建（避免重複載入圖片）；階段有變則重建
+    if (currentStageSlot !== slot || currentStageCount !== currentStage) {
       currentStageSlot = slot;
-      const currentStage = pet.pet_stage || 1;
+      currentStageCount = currentStage;
       const gcsPath = (pet.pet_gcs_path || '').replace(/\/?$/, '/');
       const v = Math.floor(Date.now() / 1800000);
       let html = '';
@@ -588,7 +617,7 @@
 
     const spInfo = SPECIES_ORDER.find(s => s.key === pet.pet_species) || {};
     document.getElementById('stageModalTitle').innerHTML =
-      `${spInfo.emoji ? `<span style="font-size:18px">${spInfo.emoji}</span>` : ''}${spInfo.label ? `<span style="font-weight:700">${spInfo.label}</span>` : ''}<span style="color:var(--muted);font-size:13px;font-weight:400;margin:0 2px"> / </span><span class="pet-num-label">${slot}</span><span style="color:var(--subtext);font-weight:400"> 進化歷程</span>`;
+      `<div class="stage-modal-species"><span style="font-size:16px">${spInfo.emoji || ''}</span><span>${spInfo.label || ''}</span></div><span class="pet-num-label">${slot}</span><span style="margin:0 6px;color:var(--subtext);font-weight:400">—</span>進化歷程`;
     document.getElementById('stageOverlay').classList.add('open');
   }
 
@@ -819,6 +848,8 @@
       showToast('召喚已啟動！完成後將推播通知', 'ok');
 
       summoningNewPet = true;
+      summonExpectedSlot = collectionData.next_slot;
+      startSummonPoll();
 
       // 將解鎖按鈕改成「召喚中」狀態
       setTimeout(() => {
@@ -878,7 +909,10 @@
   });
 
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && summoningNewPet) {
+    if (document.hidden) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    } else {
       summoningNewPet = false;
       loadCollection();
     }
