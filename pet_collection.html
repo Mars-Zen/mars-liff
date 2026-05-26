@@ -137,6 +137,7 @@
       border-radius: 12px; overflow: hidden;
       background: #ece8f5;
       display: flex; align-items: center; justify-content: center;
+      touch-action: manipulation;
     }
     .pet-img-wrap.is-loading { animation: imgPulse 1.6s ease-in-out infinite; }
     .pet-img-wrap.loaded { animation: none; }
@@ -194,6 +195,7 @@
       font-size: 11px; font-weight: 700; cursor: pointer;
       font-family: 'Noto Sans TC', sans-serif;
       transition: background 0.12s;
+      touch-action: manipulation;
     }
     .set-active-btn:active { background: var(--pri-bg); }
     .set-active-btn:disabled { opacity: 0.4; cursor: default; }
@@ -244,7 +246,14 @@
       width: 30px; height: 30px; border-radius: 50%;
       border: none; background: var(--bg); cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      color: var(--primary);
+      color: var(--primary); touch-action: manipulation;
+    }
+    .stage-modal-close {
+      position: absolute; left: 0;
+      width: 30px; height: 30px; border-radius: 50%;
+      border: none; background: var(--bg); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--subtext); font-size: 14px; touch-action: manipulation;
     }
     .stage-grid {
       display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
@@ -302,6 +311,7 @@
       background: rgba(255,255,255,0.1); color: #fff;
       font-size: 14px; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
+      touch-action: manipulation;
     }
     .stageFS-body {
       width: 100%; display: flex; align-items: center; gap: 10px;
@@ -312,7 +322,7 @@
       background: rgba(255,255,255,0.08); color: #fff;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      padding: 0;
+      padding: 0; touch-action: manipulation;
     }
     .stageFS-nav[data-hidden] { visibility: hidden; pointer-events: none; }
     .stageFS-img-wrap {
@@ -337,6 +347,53 @@
       font-size: 13px; color: var(--text);
       display: flex; align-items: center; gap: 5px;
       box-shadow: var(--shadow-sm);
+      line-height: 1;
+    }
+    .banner-emoji {
+      font-size: 16px; line-height: 1;
+      display: inline-flex; align-items: center;
+    }
+
+    /* ── HELP BUTTON / OVERLAY ── */
+    .help-btn {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--bg); border: 1.5px solid var(--subtext);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--subtext);
+      cursor: pointer; transition: all 0.15s;
+      font-family: 'Noto Sans TC', sans-serif; flex-shrink: 0;
+      touch-action: manipulation;
+    }
+    .help-btn:active { border-color: var(--primary); color: var(--primary); }
+    .help-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 200; display: flex; align-items: flex-end;
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity 0.22s, visibility 0.22s;
+    }
+    .help-overlay.open { opacity: 1; visibility: visible; pointer-events: auto; }
+    .help-sheet {
+      background: var(--card);
+      border-radius: 20px 20px 0 0;
+      padding: 0 20px 44px;
+      width: 100%;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+    }
+    .help-overlay.open .help-sheet { transform: translateY(0); }
+    .help-handle {
+      width: 36px; height: 4px; background: var(--border);
+      border-radius: 2px; margin: 14px auto 20px;
+    }
+    .help-title { font-size: 16px; font-weight: 700; margin-bottom: 18px; }
+    .help-item { margin-bottom: 16px; }
+    .help-item-title {
+      font-size: 14px; font-weight: 700;
+      color: var(--primary); margin-bottom: 5px;
+    }
+    .help-item-desc {
+      font-size: 13px; color: var(--subtext); line-height: 1.7;
     }
 
     /* ── UNLOCK SECTION ── */
@@ -376,12 +433,12 @@
     .confirm-overlay {
       position: fixed; inset: 0;
       background: rgba(0,0,0,0.45);
-      z-index: 400;
+      z-index: 400; pointer-events: none;
       display: flex; align-items: center; justify-content: center;
       opacity: 0; visibility: hidden;
       transition: opacity 0.2s, visibility 0.2s;
     }
-    .confirm-overlay.open { opacity: 1; visibility: visible; }
+    .confirm-overlay.open { opacity: 1; visibility: visible; pointer-events: auto; }
     .confirm-box {
       background: var(--card); border-radius: 16px;
       padding: 24px 20px 20px; width: 88%; max-width: 320px;
@@ -435,9 +492,10 @@
 </main>
 
 <!-- 進化階段面板 -->
-<div class="stage-overlay" id="stageOverlay" onclick="if(event.target===this)closeStageView()">
+<div class="stage-overlay" id="stageOverlay" onclick="if(!event.target.closest('.stage-modal') && !this.dataset.opening)closeStageView()">
   <div class="stage-modal">
     <div class="stage-modal-header">
+      <button class="stage-modal-close" onclick="closeStageView()">✕</button>
       <div class="stage-modal-title" id="stageModalTitle"></div>
       <button class="stage-modal-expand" onclick="openStageFullscreen()" title="放大檢視">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
@@ -486,6 +544,17 @@
   </div>
 </div>
 
+<!-- 主獸說明 -->
+<div class="help-overlay" id="petHelpOverlay" onclick="closePetHelp()">
+  <div class="help-sheet" onclick="event.stopPropagation()">
+    <div class="help-handle"></div>
+    <div class="help-title">✦ 主獸說明</div>
+    <div class="help-item">
+      <div class="help-item-desc">主獸用於設定哪隻星獸將獲得靈氣加成，並在個人檔案中展示，在聊天室點擊圖文選單【召喚星獸】出來的也會是主獸。</div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -494,7 +563,7 @@
   const LIFF_ID = '2009047186-MXDITyXh';
 
   const SPECIES_ORDER = [
-    { key: 'Dragon',  label: '龍',    emoji: '🐉' },
+    { key: 'Dragon',  label: '龍',    emoji: '🐲' },
     { key: 'Phoenix', label: '鳳凰',  emoji: '🐦‍🔥' },
     { key: 'Fox',     label: '狐',    emoji: '🦊' },
     { key: 'Wolf',    label: '狼',    emoji: '🐺' },
@@ -510,6 +579,7 @@
   let summoningNewPet = false;
   let pollTimer = null;
   let summonExpectedSlot = null;
+  let loadingCollection = false;
   let petMap = {};
   let collectionData = null;
   let activeSlot = 1;
@@ -542,6 +612,8 @@
   }
 
   async function loadCollection() {
+    if (loadingCollection) return;
+    loadingCollection = true;
     try {
       const r = await fetch(`${API}/pet-collection`, {
         method: 'POST',
@@ -565,6 +637,8 @@
       document.getElementById('collectionContent').innerHTML =
         '<div style="padding:48px;text-align:center;color:var(--muted);font-size:14px">載入失敗，請關閉後重試</div>';
       document.getElementById('headerSub').textContent = '';
+    } finally {
+      loadingCollection = false;
     }
   }
 
@@ -616,7 +690,10 @@
     const spInfo = SPECIES_ORDER.find(s => s.key === pet.pet_species) || {};
     document.getElementById('stageModalTitle').innerHTML =
       `<div class="stage-modal-species"><span style="font-size:16px">${spInfo.emoji || ''}</span><span>${spInfo.label || ''}</span></div><span class="pet-num-label">${slot}</span><span style="margin:0 6px;color:var(--subtext);font-weight:400">—</span>進化歷程`;
-    document.getElementById('stageOverlay').classList.add('open');
+    const overlay = document.getElementById('stageOverlay');
+    overlay.dataset.opening = '1';
+    overlay.classList.add('open');
+    setTimeout(() => { delete overlay.dataset.opening; }, 280);
   }
 
   function closeStageView() {
@@ -678,7 +755,7 @@
 
     const activePet = petMap[activeSlot];
     const activeSpInfo = activePet ? (SPECIES_ORDER.find(s => s.key === activePet.pet_species) || {}) : {};
-    let html = `<div class="active-pet-banner" id="activePetBanner">目前主獸為第 <span class="pet-num-label">${activeSlot}</span> 隻，種類為 <span style="font-size:16px">${activeSpInfo.emoji || ''}</span></div>`;
+    let html = `<div class="active-pet-banner" id="activePetBanner"><span>目前主獸為第</span><span class="pet-num-label">${activeSlot}</span><span>隻，種類為</span><span class="banner-emoji">${activeSpInfo.emoji || ''}</span><button class="help-btn" onclick="openPetHelp()" style="margin-left:auto">？</button></div>`;
 
     for (const sp of SPECIES_ORDER) {
       const spPets = pets.filter(p => p.pet_species === sp.key);
@@ -772,11 +849,12 @@
   }
 
   async function setActive(slot) {
-    const card = document.getElementById(`pc-${slot}`);
-    const btn  = card ? card.querySelector('.set-active-btn') : null;
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = `<span class="pet-num-label">${slot}</span> 設定中...`;
+    // 先立即 disable 按鈕（API 回傳前的視覺回饋）
+    const initCard = document.getElementById(`pc-${slot}`);
+    const initBtn  = initCard ? initCard.querySelector('.set-active-btn') : null;
+    if (initBtn) {
+      initBtn.disabled = true;
+      initBtn.innerHTML = `<span class="pet-num-label">${slot}</span> 設定中...`;
     }
 
     try {
@@ -786,9 +864,9 @@
         body: JSON.stringify({ uid, pet_slot: slot })
       });
       const d = await r.json();
-      if (!d.success) throw new Error(d.message);
+      if (!d.success) throw new Error(d.message || '設定失敗');
 
-      // 舊主獸 → 設為主獸按鈕
+      // await 後重新查詢 DOM（polling 可能已重建畫面）
       const oldSlot = activeSlot;
       if (oldSlot !== slot) {
         const oldCard = document.getElementById(`pc-${oldSlot}`);
@@ -805,12 +883,13 @@
         }
       }
 
-      // 新主獸 → 主獸徽章
       activeSlot = slot;
       collectionData.active_pet_slot = slot;
-      if (card) {
-        card.classList.add('is-active');
-        const actionBtn = card.querySelector('.set-active-btn');
+
+      const newCard = document.getElementById(`pc-${slot}`); // 重新查詢
+      if (newCard) {
+        newCard.classList.add('is-active');
+        const actionBtn = newCard.querySelector('.set-active-btn');
         if (actionBtn) {
           const newBadge = document.createElement('div');
           newBadge.className = 'active-badge';
@@ -821,14 +900,21 @@
 
       updateActiveBanner(slot);
       showToast('主獸已更新！', 'ok');
-    } catch {
-      if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = `<span class="pet-num-label">${slot}</span> 設為主獸`;
+    } catch(e) {
+      // 重新查詢按鈕（DOM 可能已重建）
+      const curCard = document.getElementById(`pc-${slot}`);
+      const curBtn  = curCard ? curCard.querySelector('.set-active-btn') : null;
+      if (curBtn) {
+        curBtn.disabled = false;
+        curBtn.innerHTML = `<span class="pet-num-label">${slot}</span> 設為主獸`;
       }
+      showToast(e.message || '設定失敗，請重試', 'err');
       showToast('設定失敗，請重試', 'err');
     }
   }
+
+  function openPetHelp()  { document.getElementById('petHelpOverlay').classList.add('open'); }
+  function closePetHelp() { document.getElementById('petHelpOverlay').classList.remove('open'); }
 
   function openUnlock() {
     const btn = document.getElementById('summonBtn');
@@ -899,7 +985,7 @@
     if (!banner) return;
     const pet = petMap[slot];
     const spInfo = pet ? (SPECIES_ORDER.find(s => s.key === pet.pet_species) || {}) : {};
-    banner.innerHTML = `目前主獸為第 <span class="pet-num-label">${slot}</span> 隻，種類為 <span style="font-size:16px">${spInfo.emoji || ''}</span>`;
+    banner.innerHTML = `<span>目前主獸為第</span><span class="pet-num-label">${slot}</span><span>隻，種類為</span><span class="banner-emoji">${spInfo.emoji || ''}</span><button class="help-btn" onclick="openPetHelp()" style="margin-left:auto">？</button>`;
   }
 
   document.addEventListener('contextmenu', e => {
