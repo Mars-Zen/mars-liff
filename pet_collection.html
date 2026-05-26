@@ -217,9 +217,10 @@
       opacity: 0; pointer-events: none; visibility: hidden;
       transition: opacity 0.2s, visibility 0.2s;
     }
-    .stage-overlay.open { opacity: 1; pointer-events: auto; visibility: visible; cursor: pointer; }
-    .stage-overlay.open .stage-modal { cursor: default; }
+    .stage-overlay.open { opacity: 1; pointer-events: auto; visibility: visible; }
+    .stage-overlay-bg { position: absolute; inset: 0; cursor: pointer; }
     .stage-modal {
+      position: relative; z-index: 1;
       width: 100%; max-width: 480px;
       background: var(--card);
       border-radius: 20px 20px 0 0;
@@ -281,7 +282,8 @@
     .stage-item.stage-locked .stage-item-img {
       background: #f3f2f7; animation: none;
     }
-    .pet-img-wrap { cursor: pointer; }
+    .pet-img-wrap { cursor: pointer; touch-action: manipulation; }
+    .pet-img-wrap:active { opacity: 0.82; transition: opacity 0.08s; }
 
     /* ── STAGE FULLSCREEN ── */
     .stage-fullscreen {
@@ -291,9 +293,10 @@
       opacity: 0; pointer-events: none;
       transition: opacity 0.2s;
     }
-    .stage-fullscreen.open { opacity: 1; pointer-events: auto; cursor: pointer; }
-    .stage-fullscreen.open .stageFS-wrap { cursor: default; }
+    .stage-fullscreen.open { opacity: 1; pointer-events: auto; }
+    .stageFS-bg { position: absolute; inset: 0; cursor: pointer; }
     .stageFS-wrap {
+      position: relative; z-index: 1;
       width: 88%; max-width: 360px;
       display: flex; flex-direction: column; align-items: center; gap: 20px;
     }
@@ -410,7 +413,9 @@
       transition: opacity 0.2s, visibility 0.2s;
     }
     .confirm-overlay.open { opacity: 1; visibility: visible; pointer-events: auto; }
+    .confirm-bg { position: absolute; inset: 0; cursor: pointer; }
     .confirm-box {
+      position: relative; z-index: 1;
       background: var(--card); border-radius: 16px;
       padding: 24px 20px 20px; width: 88%; max-width: 320px;
       transform: scale(0.94);
@@ -446,7 +451,7 @@
     .toast.err  { background: var(--danger); }
   </style>
 </head>
-<body>
+<body ontouchstart="">
 
 <header>
   <button class="back-btn" onclick="goBack()">&#8592;</button>
@@ -463,7 +468,8 @@
 </main>
 
 <!-- 進化階段面板 -->
-<div class="stage-overlay" id="stageOverlay" onclick="stageOverlayTap(event)">
+<div class="stage-overlay" id="stageOverlay">
+  <div class="stage-overlay-bg" onclick="stageBackdropTap()"></div>
   <div class="stage-modal">
     <div class="stage-modal-header">
       <button class="stage-modal-close" onclick="closeStageView()">✕</button>
@@ -479,7 +485,8 @@
 </div>
 
 <!-- 進化階段全屏 -->
-<div class="stage-fullscreen" id="stageFullscreen" onclick="if(event.target===this)closeStageFullscreen()">
+<div class="stage-fullscreen" id="stageFullscreen">
+  <div class="stageFS-bg" onclick="closeStageFullscreen()"></div>
   <div class="stageFS-wrap">
     <div class="stageFS-header">
       <div class="stageFS-title" id="stageFSTitle"></div>
@@ -504,7 +511,8 @@
 </div>
 
 <!-- 解鎖確認 Dialog -->
-<div class="confirm-overlay" id="unlockOverlay" onclick="if(event.target===this)closeUnlock()">
+<div class="confirm-overlay" id="unlockOverlay">
+  <div class="confirm-bg" onclick="closeUnlock()"></div>
   <div class="confirm-box">
     <div class="confirm-title">✨ 召喚新星獸</div>
     <div class="confirm-desc">馬爾斯將為你召喚全新星獸，需要一點時間生成。確認後可回到聊天室，完成時會推播通知。</div>
@@ -555,8 +563,6 @@
   let petMap = {};
   let collectionData = null;
   let activeSlot = 1;
-  let isTouching = false;
-  let pendingRender = false;
 
   const _up = new URLSearchParams(location.search);
   group_id   = _up.get('group_id')   || '';
@@ -624,12 +630,7 @@
       for (const pet of (collectionData.pets || [])) petMap[pet.pet_slot] = pet;
 
       if (structureChanged) {
-        // 結構有變（新增星獸、進化、換主獸）→ 全量重建
-        if (isTouching) {
-          pendingRender = true;
-        } else {
-          renderCollection();
-        }
+        renderCollection();
       } else if (oldData) {
         // 只有靈氣值改變 → 局部更新數字，完全不破壞 DOM
         updateAuraOnly();
@@ -997,25 +998,11 @@
     banner.innerHTML = `<span>目前主獸為第</span><span class="pet-num-label">${slot}</span><span>隻，種類為</span><span class="banner-emoji">${spInfo.emoji || ''}</span><button class="help-btn" onclick="openPetHelp()" style="margin-left:auto">？</button>`;
   }
 
-  // Stage overlay: close on backdrop tap via onclick attribute (reliable on iOS Safari)
-  function stageOverlayTap(e) {
-    if (e.target.closest('.stage-modal')) return;
+  function stageBackdropTap() {
     const ov = document.getElementById('stageOverlay');
     if (Date.now() - (ov._openedAt || 0) < 200) return;
     closeStageView();
   }
-
-  document.addEventListener('touchstart', () => { isTouching = true; }, { passive: true });
-
-  document.addEventListener('touchend', () => {
-    isTouching = false;
-    if (pendingRender) { pendingRender = false; setTimeout(renderCollection, 0); }
-  }, { passive: true });
-
-  document.addEventListener('touchcancel', () => {
-    isTouching = false;
-    if (pendingRender) { pendingRender = false; setTimeout(renderCollection, 0); }
-  }, { passive: true });
 
   document.addEventListener('contextmenu', e => {
     if (e.target.tagName === 'IMG' && e.target.id !== 'stageFSImg') e.preventDefault();
