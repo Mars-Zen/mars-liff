@@ -69,6 +69,7 @@
 
     /* ── SPECIES SECTION ── */
     .species-section {
+      position: relative;
       margin-bottom: 14px;
       background: var(--card);
       border-radius: 16px;
@@ -97,22 +98,22 @@
     }
 
     /* ── CAROUSEL (4+ pets) ── */
-    .pet-carousel {
-      display: flex; align-items: center;
-      padding: 4px 8px 14px; gap: 4px;
-    }
-    .pet-carousel .pet-row {
-      flex: 1; padding: 0;
-    }
+    .pet-carousel { position: relative; }
+    .pet-carousel .pet-row { padding: 4px 16px 14px; }
     .carousel-arrow {
-      flex-shrink: 0; width: 28px; height: 28px;
-      border-radius: 50%; border: 1.5px solid var(--border);
-      background: var(--card); color: var(--primary);
+      position: absolute; top: 50%; transform: translateY(-50%);
+      z-index: 10;
+      width: 26px; height: 26px;
+      border-radius: 50%; border: 1px solid var(--border);
+      background: #fff; color: var(--primary);
       font-size: 20px; line-height: 1; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      transition: background 0.12s;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.14);
+      transition: background 0.12s; padding: 0;
     }
-    .carousel-arrow:disabled { opacity: 0.18; cursor: default; }
+    .carousel-arrow.prev { left: 5px; }
+    .carousel-arrow.next { right: 5px; }
+    .carousel-arrow:disabled { opacity: 0.2; cursor: default; box-shadow: none; }
     .carousel-arrow:not(:disabled):active { background: var(--pri-bg); }
 
     /* ── PET CARD ── */
@@ -137,9 +138,18 @@
       border-radius: 12px; overflow: hidden;
       background: #ece8f5;
       display: flex; align-items: center; justify-content: center;
+      animation: imgPulse 1.6s ease-in-out infinite;
+    }
+    .pet-img-wrap.loaded { animation: none; }
+    @keyframes imgPulse {
+      0%, 100% { background: #ece8f5; }
+      50%       { background: #d4c8f0; }
     }
     .pet-img-wrap img {
       width: 100%; height: 100%; object-fit: cover; display: block;
+      -webkit-touch-callout: none;
+      user-select: none;
+      pointer-events: none;
     }
     .pet-img-placeholder { font-size: 34px; }
 
@@ -198,6 +208,62 @@
       font-size: 36px; color: #c4b5fd; font-weight: 700; line-height: 80px;
     }
     .unknown-text { font-size: 11px; color: #c4b5fd; font-weight: 500; }
+
+    /* ── STAGE VIEW OVERLAY ── */
+    .stage-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.55);
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .stage-overlay.open { opacity: 1; pointer-events: auto; }
+    .stage-modal {
+      width: 100%; max-width: 480px;
+      background: var(--card);
+      border-radius: 20px 20px 0 0;
+      padding: 20px 16px 48px;
+      transform: translateY(20px);
+      transition: transform 0.2s;
+    }
+    .stage-overlay.open .stage-modal { transform: translateY(0); }
+    .stage-modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .stage-modal-title { font-size: 16px; font-weight: 700; }
+    .stage-modal-close {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: none; background: var(--bg); cursor: pointer;
+      font-size: 14px; display: flex; align-items: center; justify-content: center;
+    }
+    .stage-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    }
+    .stage-item {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .stage-item-img {
+      width: 68px; height: 68px;
+      border-radius: 10px; overflow: hidden;
+      background: #ece8f5;
+      display: flex; align-items: center; justify-content: center;
+      animation: imgPulse 1.6s ease-in-out infinite;
+    }
+    .stage-item-img.loaded { animation: none; }
+    .stage-item-img img {
+      width: 100%; height: 100%; object-fit: cover;
+      -webkit-touch-callout: none; user-select: none; pointer-events: none;
+    }
+    .stage-item-q { font-size: 26px; color: #c4b5fd; }
+    .stage-item.is-current .stage-item-img {
+      border: 2.5px solid var(--primary);
+      box-shadow: 0 0 10px rgba(124,58,237,0.3);
+    }
+    .stage-item.stage-locked .stage-item-img {
+      background: #f3f2f7; animation: none;
+    }
+    .pet-img-wrap { cursor: pointer; }
 
     /* ── UNLOCK SECTION ── */
     .unlock-section { margin-top: 6px; }
@@ -294,6 +360,17 @@
   </div>
 </main>
 
+<!-- 進化階段面板 -->
+<div class="stage-overlay" id="stageOverlay" onclick="if(event.target===this)closeStageView()">
+  <div class="stage-modal">
+    <div class="stage-modal-header">
+      <div class="stage-modal-title" id="stageModalTitle">進化階段</div>
+      <button class="stage-modal-close" onclick="closeStageView()">✕</button>
+    </div>
+    <div class="stage-grid" id="stageGrid"></div>
+  </div>
+</div>
+
 <!-- 解鎖確認 Dialog -->
 <div class="confirm-overlay" id="unlockOverlay" onclick="if(event.target===this)closeUnlock()">
   <div class="confirm-box">
@@ -329,6 +406,7 @@
   let uid = '', group_id = '', group_name = '';
   let summoningNewPet = false;
   const speciesPages = {};
+  let petMap = {};
 
   function changePage(key, newPage) {
     speciesPages[key] = newPage;
@@ -377,8 +455,45 @@
     return `${API}/get-signed-url?path=${encodeURIComponent(raw + 'stage_' + pet.pet_stage + '.png')}&v=${Math.floor(Date.now() / 1800000)}`;
   }
 
+  function openStageView(slot) {
+    const pet = petMap[slot];
+    if (!pet) return;
+    const currentStage = pet.pet_stage || 1;
+    const gcsPath = (pet.pet_gcs_path || '').replace(/\/?$/, '/');
+    const sp = SPECIES_ORDER.find(s => s.key === pet.pet_species) || { label: '星獸', emoji: '✨' };
+    document.getElementById('stageModalTitle').textContent = `${sp.emoji} ${sp.label} 第${slot}隻 — 進化歷程`;
+    let html = '';
+    for (let s = 1; s <= 4; s++) {
+      const reached = s <= currentStage;
+      const isCurrent = s === currentStage;
+      if (reached && gcsPath && gcsPath !== '/') {
+        const imgUrl = `${API}/get-signed-url?path=${encodeURIComponent(gcsPath + 'stage_' + s + '.png')}&v=${Math.floor(Date.now() / 1800000)}`;
+        html += `<div class="stage-item ${isCurrent ? 'is-current' : ''}">
+          <div class="stage-item-img">
+            <img src="${imgUrl}" loading="lazy" decoding="async"
+              onload="this.parentElement.classList.add('loaded')"
+              onerror="this.parentElement.classList.add('loaded');this.outerHTML='<span class=stage-item-q>?</span>'">
+          </div>
+          <span class="aura-stage-badge stage-${s}">${STAGE_NAMES[s]}</span>
+        </div>`;
+      } else {
+        html += `<div class="stage-item stage-locked">
+          <div class="stage-item-img loaded"><span class="stage-item-q">?</span></div>
+          <span class="aura-stage-badge stage-${s}">${STAGE_NAMES[s]}</span>
+        </div>`;
+      }
+    }
+    document.getElementById('stageGrid').innerHTML = html;
+    document.getElementById('stageOverlay').classList.add('open');
+  }
+
+  function closeStageView() {
+    document.getElementById('stageOverlay').classList.remove('open');
+  }
+
   function renderCollection() {
     const pets = collectionData.pets || [];
+    petMap = {};
     let html = '';
 
     for (const sp of SPECIES_ORDER) {
@@ -403,11 +518,14 @@
         const pagePets   = spPets.slice(page * pageSize, (page + 1) * pageSize);
 
         for (const pet of pagePets) {
+          petMap[pet.pet_slot] = pet;
           const imgUrl  = petImageUrl(pet);
           const isActive = pet.pet_slot === activeSlot;
           const stage   = pet.pet_stage || 1;
           const imgTag  = imgUrl
-            ? `<img src="${imgUrl}" alt="${sp.label}" onerror="this.outerHTML='<div class=\\'pet-img-placeholder\\'>${sp.emoji}</div>'">`
+            ? `<img src="${imgUrl}" alt="${sp.label}" loading="lazy" decoding="async"
+                 onload="this.parentElement.classList.add('loaded')"
+                 onerror="this.parentElement.classList.add('loaded');this.outerHTML='<div class=\\'pet-img-placeholder\\'>${sp.emoji}</div>'">`
             : `<div class="pet-img-placeholder">${sp.emoji}</div>`;
           const numBadge = `<span class="pet-num-label">${pet.pet_slot}</span>`;
           const actionHTML = isActive
@@ -416,7 +534,7 @@
 
           cardsHTML += `
             <div class="pet-card ${isActive ? 'is-active' : ''}" id="pc-${pet.pet_slot}">
-              <div class="pet-img-wrap">
+              <div class="pet-img-wrap" onclick="openStageView(${pet.pet_slot})">
                 ${imgTag}
               </div>
               <div class="pet-aura">
@@ -434,9 +552,9 @@
           const nextDisabled = page >= totalPages - 1 ? 'disabled' : '';
           rowHTML = `
             <div class="pet-carousel">
-              <button class="carousel-arrow" onclick="changePage('${sp.key}',${page - 1})" ${prevDisabled}>&#8249;</button>
               <div class="pet-row">${cardsHTML}</div>
-              <button class="carousel-arrow" onclick="changePage('${sp.key}',${page + 1})" ${nextDisabled}>&#8250;</button>
+              <button class="carousel-arrow prev" onclick="changePage('${sp.key}',${page - 1})" ${prevDisabled}>&#8249;</button>
+              <button class="carousel-arrow next" onclick="changePage('${sp.key}',${page + 1})" ${nextDisabled}>&#8250;</button>
             </div>`;
         }
       }
@@ -562,6 +680,10 @@
     t.className = `toast ${type} show`;
     setTimeout(() => { t.className = 'toast'; }, 2500);
   }
+
+  document.addEventListener('contextmenu', e => {
+    if (e.target.tagName === 'IMG') e.preventDefault();
+  });
 
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && summoningNewPet) {
