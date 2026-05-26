@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>我的星獸</title>
+  <title>星獸收集</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -314,18 +314,6 @@
       display: flex; align-items: center; justify-content: center;
       padding: 0;
     }
-    .stageFS-download {
-      padding: 8px 28px;
-      border-radius: 10px;
-      border: 1.5px solid rgba(255,255,255,0.4);
-      background: rgba(255,255,255,0.12);
-      color: #fff;
-      font-size: 14px; font-weight: 700;
-      cursor: pointer;
-      font-family: 'Noto Sans TC', sans-serif;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .stageFS-download:active { background: rgba(255,255,255,0.22); }
     .stageFS-nav[data-hidden] { visibility: hidden; pointer-events: none; }
     .stageFS-img-wrap {
       flex: 1; aspect-ratio: 1 / 1;
@@ -337,6 +325,18 @@
     .stageFS-img-wrap img {
       width: 100%; height: 100%; object-fit: cover;
       pointer-events: none; user-select: none; -webkit-touch-callout: none;
+    }
+
+    /* ── ACTIVE PET BANNER ── */
+    .active-pet-banner {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      font-size: 13px; color: var(--text);
+      display: flex; align-items: center; gap: 5px;
+      box-shadow: var(--shadow-sm);
     }
 
     /* ── UNLOCK SECTION ── */
@@ -463,16 +463,14 @@
       <div class="stageFS-img-wrap" id="stageFSImgWrap">
         <img id="stageFSImg" src="" decoding="async"
              onload="this.parentElement.classList.add('loaded')"
-             onerror="this.parentElement.classList.add('loaded')">
+             onerror="this.parentElement.classList.add('loaded')"
+             style="-webkit-touch-callout:default;pointer-events:auto">
       </div>
       <button class="stageFS-nav" id="stageFSNext" onclick="navigateStageFS(1)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </div>
-    <button class="stageFS-download" onclick="downloadStageImage()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      下載
-    </button>
+    <span class="aura-stage-badge" id="stageFSBadge" style="font-size:12px;padding:3px 10px"></span>
   </div>
 </div>
 
@@ -653,8 +651,13 @@
     const gcsPath = (pet.pet_gcs_path || '').replace(/\/?$/, '/');
     const imgUrl = `${API}/get-signed-url?path=${encodeURIComponent(gcsPath + 'stage_' + stage + '.png')}&v=${Math.floor(Date.now() / 1800000)}`;
 
+    const spInfo = SPECIES_ORDER.find(s => s.key === pet.pet_species) || {};
     document.getElementById('stageFSTitle').innerHTML =
-      `<span class="pet-num-label">${currentStageSlot}</span><span style="color:rgba(255,255,255,0.5);margin:0 6px">—</span><span class="aura-stage-badge stage-${stage}" style="font-size:12px;padding:3px 10px">${STAGE_NAMES[stage]}</span>`;
+      `<span class="pet-num-label">${currentStageSlot}</span><span style="color:#fff;font-weight:600;margin-left:6px">${spInfo.label || ''}(${spInfo.key || ''})</span>`;
+
+    const badge = document.getElementById('stageFSBadge');
+    badge.className = `aura-stage-badge stage-${stage}`;
+    badge.textContent = STAGE_NAMES[stage];
 
     const wrap = document.getElementById('stageFSImgWrap');
     wrap.classList.remove('loaded');
@@ -669,7 +672,13 @@
   function renderCollection() {
     const pets = collectionData.pets || [];
     petMap = {};
-    let html = '';
+
+    // 先建立 petMap 以便橫幅能查到物種
+    for (const pet of pets) petMap[pet.pet_slot] = pet;
+
+    const activePet = petMap[activeSlot];
+    const activeSpInfo = activePet ? (SPECIES_ORDER.find(s => s.key === activePet.pet_species) || {}) : {};
+    let html = `<div class="active-pet-banner" id="activePetBanner">目前主獸為第 <span class="pet-num-label">${activeSlot}</span> 隻，種類為 <span style="font-size:16px">${activeSpInfo.emoji || ''}</span></div>`;
 
     for (const sp of SPECIES_ORDER) {
       const spPets = pets.filter(p => p.pet_species === sp.key);
@@ -689,7 +698,6 @@
       } else {
         const cardsArr = [];
         for (const pet of spPets) {
-          petMap[pet.pet_slot] = pet;
           const imgUrl  = petImageUrl(pet);
           const isActive = pet.pet_slot === activeSlot;
           const stage   = pet.pet_stage || 1;
@@ -811,6 +819,7 @@
         }
       }
 
+      updateActiveBanner(slot);
       showToast('主獸已更新！', 'ok');
     } catch {
       if (btn) {
@@ -885,27 +894,16 @@
     setTimeout(() => { t.className = 'toast'; }, 2500);
   }
 
-  async function downloadStageImage() {
-    const imgSrc = document.getElementById('stageFSImg').src;
-    if (!imgSrc) return;
-    try {
-      const res = await fetch(imgSrc);
-      const blob = await res.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = `星獸_${currentStageSlot}_${STAGE_NAMES[stageFSIndex + 1]}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-    } catch {
-      liff.openWindow({ url: imgSrc, external: true });
-    }
+  function updateActiveBanner(slot) {
+    const banner = document.getElementById('activePetBanner');
+    if (!banner) return;
+    const pet = petMap[slot];
+    const spInfo = pet ? (SPECIES_ORDER.find(s => s.key === pet.pet_species) || {}) : {};
+    banner.innerHTML = `目前主獸為第 <span class="pet-num-label">${slot}</span> 隻，種類為 <span style="font-size:16px">${spInfo.emoji || ''}</span>`;
   }
 
   document.addEventListener('contextmenu', e => {
-    if (e.target.tagName === 'IMG') e.preventDefault();
+    if (e.target.tagName === 'IMG' && e.target.id !== 'stageFSImg') e.preventDefault();
   });
 
   document.addEventListener('visibilitychange', () => {
