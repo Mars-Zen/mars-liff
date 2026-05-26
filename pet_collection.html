@@ -137,7 +137,6 @@
       border-radius: 12px; overflow: hidden;
       background: #ece8f5;
       display: flex; align-items: center; justify-content: center;
-      touch-action: manipulation;
     }
     .pet-img-wrap.is-loading { animation: imgPulse 1.6s ease-in-out infinite; }
     .pet-img-wrap.loaded { animation: none; }
@@ -215,10 +214,10 @@
       position: fixed; inset: 0; z-index: 200;
       background: rgba(0,0,0,0.55);
       display: flex; align-items: flex-end; justify-content: center;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.2s;
+      opacity: 0; pointer-events: none; visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
     }
-    .stage-overlay.open { opacity: 1; pointer-events: auto; }
+    .stage-overlay.open { opacity: 1; pointer-events: auto; visibility: visible; }
     .stage-modal {
       width: 100%; max-width: 480px;
       background: var(--card);
@@ -365,36 +364,6 @@
       touch-action: manipulation;
     }
     .help-btn:active { border-color: var(--primary); color: var(--primary); }
-    .help-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.4);
-      z-index: 200; display: flex; align-items: flex-end;
-      opacity: 0; visibility: hidden; pointer-events: none;
-      transition: opacity 0.22s, visibility 0.22s;
-    }
-    .help-overlay.open { opacity: 1; visibility: visible; pointer-events: auto; }
-    .help-sheet {
-      background: var(--card);
-      border-radius: 20px 20px 0 0;
-      padding: 0 20px 44px;
-      width: 100%;
-      transform: translateY(100%);
-      transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
-    }
-    .help-overlay.open .help-sheet { transform: translateY(0); }
-    .help-handle {
-      width: 36px; height: 4px; background: var(--border);
-      border-radius: 2px; margin: 14px auto 20px;
-    }
-    .help-title { font-size: 16px; font-weight: 700; margin-bottom: 18px; }
-    .help-item { margin-bottom: 16px; }
-    .help-item-title {
-      font-size: 14px; font-weight: 700;
-      color: var(--primary); margin-bottom: 5px;
-    }
-    .help-item-desc {
-      font-size: 13px; color: var(--subtext); line-height: 1.7;
-    }
 
     /* ── UNLOCK SECTION ── */
     .unlock-section { margin-top: 6px; }
@@ -492,7 +461,7 @@
 </main>
 
 <!-- 進化階段面板 -->
-<div class="stage-overlay" id="stageOverlay" onclick="if(!event.target.closest('.stage-modal') && !this.dataset.opening)closeStageView()">
+<div class="stage-overlay" id="stageOverlay">
   <div class="stage-modal">
     <div class="stage-modal-header">
       <button class="stage-modal-close" onclick="closeStageView()">✕</button>
@@ -544,14 +513,15 @@
   </div>
 </div>
 
-<!-- 主獸說明 -->
-<div class="help-overlay" id="petHelpOverlay" onclick="closePetHelp()">
-  <div class="help-sheet" onclick="event.stopPropagation()">
-    <div class="help-handle"></div>
-    <div class="help-title">✦ 主獸說明</div>
-    <div class="help-item">
-      <div class="help-item-desc">主獸用於設定哪隻星獸將獲得靈氣加成，並在個人檔案中展示，在聊天室點擊圖文選單【召喚星獸】出來的也會是主獸。</div>
-    </div>
+<!-- 主獸說明 Dialog -->
+<div id="petHelpOverlay" onclick="closePetHelp()"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:400;align-items:center;justify-content:center;">
+  <div onclick="event.stopPropagation()"
+       style="background:#fff;border-radius:16px;padding:24px 20px;max-width:280px;width:90%;box-shadow:0 4px 24px rgba(0,0,0,0.18);">
+    <div style="font-size:16px;font-weight:700;color:var(--primary);margin-bottom:12px;">✦ 主獸說明</div>
+    <p style="font-size:14px;line-height:1.7;color:var(--text);margin-bottom:20px;text-align:justify;">主獸用於設定哪隻星獸將獲得靈氣加成，並在個人檔案中展示，在聊天室點擊圖文選單【召喚星獸】出來的也會是主獸。</p>
+    <button onclick="closePetHelp()"
+            style="background:var(--primary);color:#fff;border:none;border-radius:20px;padding:8px 28px;font-size:14px;font-weight:600;cursor:pointer;display:block;margin:0 auto;font-family:inherit;touch-action:manipulation;">確定</button>
   </div>
 </div>
 
@@ -583,6 +553,8 @@
   let petMap = {};
   let collectionData = null;
   let activeSlot = 1;
+  let isTouching = false;
+  let pendingRender = false;
 
   const _up = new URLSearchParams(location.search);
   group_id   = _up.get('group_id')   || '';
@@ -611,6 +583,12 @@
     summonExpectedSlot = null;
   }
 
+  function collectionFingerprint(d) {
+    if (!d) return '';
+    return (d.active_pet_slot || '') + '|' + (d.can_unlock_next ? 1 : 0) + '|' +
+      (d.pets || []).map(p => `${p.pet_slot}:${p.pet_stage}:${p.aura_points}`).join(',');
+  }
+
   async function loadCollection() {
     if (loadingCollection) return;
     loadingCollection = true;
@@ -620,10 +598,24 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid })
       });
-      collectionData = await r.json();
-      if (!collectionData.success) throw new Error();
+      const newData = await r.json();
+      if (!newData.success) throw new Error();
+
+      const changed = collectionFingerprint(newData) !== collectionFingerprint(collectionData);
+      collectionData = newData;
       activeSlot = collectionData.active_pet_slot || 1;
-      renderCollection();
+
+      if (changed) {
+        // Pre-build petMap so summon check below works even when render is deferred
+        petMap = {};
+        for (const pet of (collectionData.pets || [])) petMap[pet.pet_slot] = pet;
+
+        if (isTouching) {
+          pendingRender = true;   // defer DOM rebuild until finger lifts
+        } else {
+          renderCollection();
+        }
+      }
 
       if (summonExpectedSlot) {
         if (petMap[summonExpectedSlot]) {
@@ -691,9 +683,8 @@
     document.getElementById('stageModalTitle').innerHTML =
       `<div class="stage-modal-species"><span style="font-size:16px">${spInfo.emoji || ''}</span><span>${spInfo.label || ''}</span></div><span class="pet-num-label">${slot}</span><span style="margin:0 6px;color:var(--subtext);font-weight:400">—</span>進化歷程`;
     const overlay = document.getElementById('stageOverlay');
-    overlay.dataset.opening = '1';
+    overlay._openedAt = Date.now();
     overlay.classList.add('open');
-    setTimeout(() => { delete overlay.dataset.opening; }, 280);
   }
 
   function closeStageView() {
@@ -773,6 +764,7 @@
           </div>`;
         rowHTML = `<div class="pet-row">${cardsHTML}</div>`;
       } else {
+        const useScroll = spPets.length > 3;
         const cardsArr = [];
         for (const pet of spPets) {
           const imgUrl  = petImageUrl(pet);
@@ -784,15 +776,19 @@
                  onerror="this.parentElement.classList.remove('is-loading');this.parentElement.classList.add('loaded');this.outerHTML='<div class=\\'pet-img-placeholder\\'>${sp.emoji}</div>'">`
             : `<div class="pet-img-placeholder">${sp.emoji}</div>`;
           const numBadge = `<span class="pet-num-label">${pet.pet_slot}</span>`;
+          // scroll row: use data-slot for delegation; non-scroll: use onclick directly
+          const imgWrap = useScroll
+            ? `<div class="pet-img-wrap${imgUrl ? ' is-loading' : ''}" data-slot="${pet.pet_slot}">${imgTag}</div>`
+            : `<div class="pet-img-wrap${imgUrl ? ' is-loading' : ''}" onclick="openStageView(${pet.pet_slot})">${imgTag}</div>`;
           const actionHTML = isActive
             ? `<div class="active-badge">${numBadge} ✦ 主獸</div>`
-            : `<button class="set-active-btn" onclick="setActive(${pet.pet_slot})">${numBadge} 設為主獸</button>`;
+            : useScroll
+              ? `<button class="set-active-btn" data-slot="${pet.pet_slot}" type="button">${numBadge} 設為主獸</button>`
+              : `<button class="set-active-btn" onclick="setActive(${pet.pet_slot})">${numBadge} 設為主獸</button>`;
 
           cardsArr.push(`
             <div class="pet-card ${isActive ? 'is-active' : ''}" id="pc-${pet.pet_slot}">
-              <div class="pet-img-wrap${imgUrl ? ' is-loading' : ''}" onclick="openStageView(${pet.pet_slot})">
-                ${imgTag}
-              </div>
+              ${imgWrap}
               <div class="pet-aura">
                 <span class="aura-stage-badge stage-${stage}">${STAGE_NAMES[stage] || '誕生'}</span>
                 <strong>${Number(pet.aura_points).toLocaleString()}</strong>
@@ -801,14 +797,14 @@
             </div>`);
         }
 
-        if (cardsArr.length <= 3) {
+        if (!useScroll) {
           rowHTML = `<div class="pet-row">${cardsArr.join('')}</div>`;
         } else {
           let pagesHTML = '';
           for (let i = 0; i < cardsArr.length; i += 3) {
             pagesHTML += `<div class="pet-scroll-page">${cardsArr.slice(i, i + 3).join('')}</div>`;
           }
-          rowHTML = `<div class="pet-scroll-row">${pagesHTML}</div>`;
+          rowHTML = `<div class="pet-scroll-row" onclick="handleScrollRowClick(event)">${pagesHTML}</div>`;
         }
       }
 
@@ -876,7 +872,12 @@
           if (oldBadge) {
             const newBtn = document.createElement('button');
             newBtn.className = 'set-active-btn';
-            newBtn.setAttribute('onclick', `setActive(${oldSlot})`);
+            newBtn.type = 'button';
+            if (oldCard.closest('.pet-scroll-row')) {
+              newBtn.dataset.slot = oldSlot;
+            } else {
+              newBtn.setAttribute('onclick', `setActive(${oldSlot})`);
+            }
             newBtn.innerHTML = `<span class="pet-num-label">${oldSlot}</span> 設為主獸`;
             oldBadge.replaceWith(newBtn);
           }
@@ -909,12 +910,11 @@
         curBtn.innerHTML = `<span class="pet-num-label">${slot}</span> 設為主獸`;
       }
       showToast(e.message || '設定失敗，請重試', 'err');
-      showToast('設定失敗，請重試', 'err');
     }
   }
 
-  function openPetHelp()  { document.getElementById('petHelpOverlay').classList.add('open'); }
-  function closePetHelp() { document.getElementById('petHelpOverlay').classList.remove('open'); }
+  function openPetHelp()  { const el = document.getElementById('petHelpOverlay'); el.style.display = 'flex'; }
+  function closePetHelp() { document.getElementById('petHelpOverlay').style.display = 'none'; }
 
   function openUnlock() {
     const btn = document.getElementById('summonBtn');
@@ -986,6 +986,30 @@
     const pet = petMap[slot];
     const spInfo = pet ? (SPECIES_ORDER.find(s => s.key === pet.pet_species) || {}) : {};
     banner.innerHTML = `<span>目前主獸為第</span><span class="pet-num-label">${slot}</span><span>隻，種類為</span><span class="banner-emoji">${spInfo.emoji || ''}</span><button class="help-btn" onclick="openPetHelp()" style="margin-left:auto">？</button>`;
+  }
+
+  // Track touch state — used to defer DOM rebuild until finger lifts
+  document.addEventListener('touchstart', () => { isTouching = true; }, { passive: true });
+  function onTouchEnd() {
+    isTouching = false;
+    if (pendingRender) { pendingRender = false; renderCollection(); }
+  }
+  document.addEventListener('touchend',    onTouchEnd, { passive: true });
+  document.addEventListener('touchcancel', onTouchEnd, { passive: true });
+
+  // Stage overlay: close on backdrop tap, timestamp-based to avoid instant-close
+  document.getElementById('stageOverlay').addEventListener('click', function(e) {
+    if (e.target.closest('.stage-modal')) return;
+    if (Date.now() - (this._openedAt || 0) < 350) return;
+    closeStageView();
+  });
+
+  // Scroll row click delegation — browser only fires click when NO scroll occurred
+  function handleScrollRowClick(e) {
+    const imgWrap = e.target.closest('.pet-img-wrap[data-slot]');
+    if (imgWrap) { openStageView(+imgWrap.dataset.slot); return; }
+    const btn = e.target.closest('.set-active-btn[data-slot]');
+    if (btn && !btn.disabled) setActive(+btn.dataset.slot);
   }
 
   document.addEventListener('contextmenu', e => {
