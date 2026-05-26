@@ -217,7 +217,8 @@
       opacity: 0; pointer-events: none; visibility: hidden;
       transition: opacity 0.2s, visibility 0.2s;
     }
-    .stage-overlay.open { opacity: 1; pointer-events: auto; visibility: visible; }
+    .stage-overlay.open { opacity: 1; pointer-events: auto; visibility: visible; cursor: pointer; }
+    .stage-overlay.open .stage-modal { cursor: default; }
     .stage-modal {
       width: 100%; max-width: 480px;
       background: var(--card);
@@ -232,7 +233,7 @@
       position: relative; margin-bottom: 18px;
     }
     .stage-modal-species {
-      position: absolute; left: 0;
+      position: absolute; left: 36px;
       display: flex; align-items: center; gap: 4px;
       font-size: 13px; font-weight: 600; color: var(--subtext);
     }
@@ -290,7 +291,8 @@
       opacity: 0; pointer-events: none;
       transition: opacity 0.2s;
     }
-    .stage-fullscreen.open { opacity: 1; pointer-events: auto; }
+    .stage-fullscreen.open { opacity: 1; pointer-events: auto; cursor: pointer; }
+    .stage-fullscreen.open .stageFS-wrap { cursor: default; }
     .stageFS-wrap {
       width: 88%; max-width: 360px;
       display: flex; flex-direction: column; align-items: center; gap: 20px;
@@ -461,7 +463,7 @@
 </main>
 
 <!-- 進化階段面板 -->
-<div class="stage-overlay" id="stageOverlay">
+<div class="stage-overlay" id="stageOverlay" onclick="stageOverlayTap(event)">
   <div class="stage-modal">
     <div class="stage-modal-header">
       <button class="stage-modal-close" onclick="closeStageView()">✕</button>
@@ -477,7 +479,7 @@
 </div>
 
 <!-- 進化階段全屏 -->
-<div class="stage-fullscreen" id="stageFullscreen">
+<div class="stage-fullscreen" id="stageFullscreen" onclick="if(event.target===this)closeStageFullscreen()">
   <div class="stageFS-wrap">
     <div class="stageFS-header">
       <div class="stageFS-title" id="stageFSTitle"></div>
@@ -533,7 +535,7 @@
   const LIFF_ID = '2009047186-MXDITyXh';
 
   const SPECIES_ORDER = [
-    { key: 'Dragon',  label: '龍',    emoji: '🐲' },
+    { key: 'Dragon',  label: '龍',    emoji: '🐉' },
     { key: 'Phoenix', label: '鳳凰',  emoji: '🐦‍🔥' },
     { key: 'Fox',     label: '狐',    emoji: '🦊' },
     { key: 'Wolf',    label: '狼',    emoji: '🐺' },
@@ -555,6 +557,7 @@
   let activeSlot = 1;
   let isTouching = false;
   let pendingRender = false;
+  let tapStart = null;
 
   const _up = new URLSearchParams(location.search);
   group_id   = _up.get('group_id')   || '';
@@ -804,7 +807,7 @@
           for (let i = 0; i < cardsArr.length; i += 3) {
             pagesHTML += `<div class="pet-scroll-page">${cardsArr.slice(i, i + 3).join('')}</div>`;
           }
-          rowHTML = `<div class="pet-scroll-row" onclick="handleScrollRowClick(event)">${pagesHTML}</div>`;
+          rowHTML = `<div class="pet-scroll-row">${pagesHTML}</div>`;
         }
       }
 
@@ -988,29 +991,51 @@
     banner.innerHTML = `<span>目前主獸為第</span><span class="pet-num-label">${slot}</span><span>隻，種類為</span><span class="banner-emoji">${spInfo.emoji || ''}</span><button class="help-btn" onclick="openPetHelp()" style="margin-left:auto">？</button>`;
   }
 
-  // Track touch state — used to defer DOM rebuild until finger lifts
-  document.addEventListener('touchstart', () => { isTouching = true; }, { passive: true });
-  function onTouchEnd() {
+  // Stage overlay: close on backdrop tap via onclick attribute (reliable on iOS Safari)
+  function stageOverlayTap(e) {
+    if (e.target.closest('.stage-modal')) return;
+    const ov = document.getElementById('stageOverlay');
+    if (Date.now() - (ov._openedAt || 0) < 350) return;
+    closeStageView();
+  }
+
+  // Document-level touch tracking:
+  // 1) isTouching flag — defers DOM rebuild until finger lifts
+  // 2) tapStart — detects short taps in scroll rows (no onclick on scroll container needed)
+  document.addEventListener('touchstart', e => {
+    isTouching = true;
+    tapStart = { x: e.touches[0].clientX, y: e.touches[0].clientY,
+                 t: Date.now(), el: e.target };
+  }, { passive: true });
+
+  document.addEventListener('touchend', e => {
     isTouching = false;
     if (pendingRender) { pendingRender = false; renderCollection(); }
-  }
-  document.addEventListener('touchend',    onTouchEnd, { passive: true });
-  document.addEventListener('touchcancel', onTouchEnd, { passive: true });
+    if (tapStart && e.changedTouches.length) {
+      const dx = Math.abs(e.changedTouches[0].clientX - tapStart.x);
+      const dy = Math.abs(e.changedTouches[0].clientY - tapStart.y);
+      const dt = Date.now() - tapStart.t;
+      // Short tap (not long-press, not scroll drag) inside a scroll row
+      if (dx < 8 && dy < 8 && dt < 400 && tapStart.el) {
+        const row = tapStart.el.closest('.pet-scroll-row');
+        if (row) {
+          const imgWrap = tapStart.el.closest('.pet-img-wrap[data-slot]');
+          if (imgWrap) { openStageView(+imgWrap.dataset.slot); }
+          else {
+            const btn = tapStart.el.closest('.set-active-btn[data-slot]');
+            if (btn && !btn.disabled) setActive(+btn.dataset.slot);
+          }
+        }
+      }
+    }
+    tapStart = null;
+  }, { passive: true });
 
-  // Stage overlay: close on backdrop tap, timestamp-based to avoid instant-close
-  document.getElementById('stageOverlay').addEventListener('click', function(e) {
-    if (e.target.closest('.stage-modal')) return;
-    if (Date.now() - (this._openedAt || 0) < 350) return;
-    closeStageView();
-  });
-
-  // Scroll row click delegation — browser only fires click when NO scroll occurred
-  function handleScrollRowClick(e) {
-    const imgWrap = e.target.closest('.pet-img-wrap[data-slot]');
-    if (imgWrap) { openStageView(+imgWrap.dataset.slot); return; }
-    const btn = e.target.closest('.set-active-btn[data-slot]');
-    if (btn && !btn.disabled) setActive(+btn.dataset.slot);
-  }
+  document.addEventListener('touchcancel', () => {
+    isTouching = false;
+    tapStart = null;
+    if (pendingRender) { pendingRender = false; renderCollection(); }
+  }, { passive: true });
 
   document.addEventListener('contextmenu', e => {
     if (e.target.tagName === 'IMG' && e.target.id !== 'stageFSImg') e.preventDefault();
