@@ -557,7 +557,6 @@
   let activeSlot = 1;
   let isTouching = false;
   let pendingRender = false;
-  let tapStart = null;
 
   const _up = new URLSearchParams(location.search);
   group_id   = _up.get('group_id')   || '';
@@ -586,10 +585,23 @@
     summonExpectedSlot = null;
   }
 
+  // 結構指紋：不含 aura_points，只有結構變動才重建 DOM
   function collectionFingerprint(d) {
     if (!d) return '';
     return (d.active_pet_slot || '') + '|' + (d.can_unlock_next ? 1 : 0) + '|' +
-      (d.pets || []).map(p => `${p.pet_slot}:${p.pet_stage}:${p.aura_points}`).join(',');
+      (d.pets || []).map(p => `${p.pet_slot}:${p.pet_stage}`).join(',');
+  }
+
+  // 只更新靈氣值數字，不重建任何 DOM 節點
+  function updateAuraOnly() {
+    for (const pet of (collectionData.pets || [])) {
+      const card = document.getElementById(`pc-${pet.pet_slot}`);
+      if (!card) continue;
+      const auraDiv = card.querySelector('.pet-aura');
+      if (!auraDiv) continue;
+      const stage = pet.pet_stage || 1;
+      auraDiv.innerHTML = `<span class="aura-stage-badge stage-${stage}">${STAGE_NAMES[stage] || '誕生'}</span><strong>${Number(pet.aura_points).toLocaleString()}</strong>`;
+    }
   }
 
   async function loadCollection() {
@@ -604,20 +616,23 @@
       const newData = await r.json();
       if (!newData.success) throw new Error();
 
-      const changed = collectionFingerprint(newData) !== collectionFingerprint(collectionData);
+      const structureChanged = collectionFingerprint(newData) !== collectionFingerprint(collectionData);
+      const oldData = collectionData;
       collectionData = newData;
       activeSlot = collectionData.active_pet_slot || 1;
+      petMap = {};
+      for (const pet of (collectionData.pets || [])) petMap[pet.pet_slot] = pet;
 
-      if (changed) {
-        // Pre-build petMap so summon check below works even when render is deferred
-        petMap = {};
-        for (const pet of (collectionData.pets || [])) petMap[pet.pet_slot] = pet;
-
+      if (structureChanged) {
+        // 結構有變（新增星獸、進化、換主獸）→ 全量重建
         if (isTouching) {
-          pendingRender = true;   // defer DOM rebuild until finger lifts
+          pendingRender = true;
         } else {
           renderCollection();
         }
+      } else if (oldData) {
+        // 只有靈氣值改變 → 局部更新數字，完全不破壞 DOM
+        updateAuraOnly();
       }
 
       if (summonExpectedSlot) {
@@ -779,15 +794,10 @@
                  onerror="this.parentElement.classList.remove('is-loading');this.parentElement.classList.add('loaded');this.outerHTML='<div class=\\'pet-img-placeholder\\'>${sp.emoji}</div>'">`
             : `<div class="pet-img-placeholder">${sp.emoji}</div>`;
           const numBadge = `<span class="pet-num-label">${pet.pet_slot}</span>`;
-          // scroll row: use data-slot for delegation; non-scroll: use onclick directly
-          const imgWrap = useScroll
-            ? `<div class="pet-img-wrap${imgUrl ? ' is-loading' : ''}" data-slot="${pet.pet_slot}">${imgTag}</div>`
-            : `<div class="pet-img-wrap${imgUrl ? ' is-loading' : ''}" onclick="openStageView(${pet.pet_slot})">${imgTag}</div>`;
+          const imgWrap = `<div class="pet-img-wrap${imgUrl ? ' is-loading' : ''}" onclick="openStageView(${pet.pet_slot})">${imgTag}</div>`;
           const actionHTML = isActive
             ? `<div class="active-badge">${numBadge} ✦ 主獸</div>`
-            : useScroll
-              ? `<button class="set-active-btn" data-slot="${pet.pet_slot}" type="button">${numBadge} 設為主獸</button>`
-              : `<button class="set-active-btn" onclick="setActive(${pet.pet_slot})">${numBadge} 設為主獸</button>`;
+            : `<button class="set-active-btn" onclick="setActive(${pet.pet_slot})">${numBadge} 設為主獸</button>`;
 
           cardsArr.push(`
             <div class="pet-card ${isActive ? 'is-active' : ''}" id="pc-${pet.pet_slot}">
@@ -876,11 +886,7 @@
             const newBtn = document.createElement('button');
             newBtn.className = 'set-active-btn';
             newBtn.type = 'button';
-            if (oldCard.closest('.pet-scroll-row')) {
-              newBtn.dataset.slot = oldSlot;
-            } else {
-              newBtn.setAttribute('onclick', `setActive(${oldSlot})`);
-            }
+            newBtn.setAttribute('onclick', `setActive(${oldSlot})`);
             newBtn.innerHTML = `<span class="pet-num-label">${oldSlot}</span> 設為主獸`;
             oldBadge.replaceWith(newBtn);
           }
@@ -995,46 +1001,20 @@
   function stageOverlayTap(e) {
     if (e.target.closest('.stage-modal')) return;
     const ov = document.getElementById('stageOverlay');
-    if (Date.now() - (ov._openedAt || 0) < 350) return;
+    if (Date.now() - (ov._openedAt || 0) < 200) return;
     closeStageView();
   }
 
-  // Document-level touch tracking:
-  // 1) isTouching flag — defers DOM rebuild until finger lifts
-  // 2) tapStart — detects short taps in scroll rows (no onclick on scroll container needed)
-  document.addEventListener('touchstart', e => {
-    isTouching = true;
-    tapStart = { x: e.touches[0].clientX, y: e.touches[0].clientY,
-                 t: Date.now(), el: e.target };
-  }, { passive: true });
+  document.addEventListener('touchstart', () => { isTouching = true; }, { passive: true });
 
-  document.addEventListener('touchend', e => {
+  document.addEventListener('touchend', () => {
     isTouching = false;
-    if (pendingRender) { pendingRender = false; renderCollection(); }
-    if (tapStart && e.changedTouches.length) {
-      const dx = Math.abs(e.changedTouches[0].clientX - tapStart.x);
-      const dy = Math.abs(e.changedTouches[0].clientY - tapStart.y);
-      const dt = Date.now() - tapStart.t;
-      // Short tap (not long-press, not scroll drag) inside a scroll row
-      if (dx < 8 && dy < 8 && dt < 400 && tapStart.el) {
-        const row = tapStart.el.closest('.pet-scroll-row');
-        if (row) {
-          const imgWrap = tapStart.el.closest('.pet-img-wrap[data-slot]');
-          if (imgWrap) { openStageView(+imgWrap.dataset.slot); }
-          else {
-            const btn = tapStart.el.closest('.set-active-btn[data-slot]');
-            if (btn && !btn.disabled) setActive(+btn.dataset.slot);
-          }
-        }
-      }
-    }
-    tapStart = null;
+    if (pendingRender) { pendingRender = false; setTimeout(renderCollection, 0); }
   }, { passive: true });
 
   document.addEventListener('touchcancel', () => {
     isTouching = false;
-    tapStart = null;
-    if (pendingRender) { pendingRender = false; renderCollection(); }
+    if (pendingRender) { pendingRender = false; setTimeout(renderCollection, 0); }
   }, { passive: true });
 
   document.addEventListener('contextmenu', e => {
