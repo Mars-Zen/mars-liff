@@ -540,41 +540,29 @@
     .member-list-close:active { background: var(--border); }
 
     /* ── FRIEND MODE ── */
-    body.friend-mode { background: #000; }
-    body.friend-mode header {
-      background: #fce7f3;
-      border-bottom-color: #f9a8d4;
-    }
+    body.friend-mode { background: #fefce8; }
     body.friend-mode .back-btn {
-      background: #1c1a2e;
-      border-color: rgba(255,255,255,0.65);
-      color: #fff;
+      background: #fef9c3;
+      border-color: var(--border);
+      color: var(--text);
     }
-    body.friend-mode .back-btn:active { background: #374151; }
-    body.friend-mode .active-pet-banner {
-      background: #fce7f3;
-      border-color: #f9a8d4;
-    }
-    body.friend-mode .species-section {
-      background: #fce7f3;
-      border-color: #f9a8d4;
-    }
-    body.friend-mode .pet-card { background: #fff; }
-    body.friend-mode .pet-card:not(.unknown):active { background: #f5f5f5; }
+    body.friend-mode .back-btn:active { background: #fef08a; }
+    body.friend-mode .pet-card { background: #fefce8; }
+    body.friend-mode .pet-card:not(.unknown):active { background: #fef08a; }
     body.friend-mode .pet-card.is-active { background: #f5f3ff; }
     body.friend-mode .pet-card.is-active:active { background: #ede9fe; }
     body.friend-mode .pet-card.unknown {
-      background: #fefce8;
-      border-color: #fde68a;
+      background: #faf5ff;
+      border-color: #c4b5fd;
     }
-    body.friend-mode .pet-card.unknown:active { background: #fefce8; }
-    body.friend-mode .unknown-q { color: #f59e0b; }
-    body.friend-mode .unknown-text { color: #b45309; }
+    body.friend-mode .pet-card.unknown:active { background: #faf5ff; }
+    body.friend-mode .pet-card.unknown .pet-img-wrap { background: #fefce8; }
+    body.friend-mode .unknown-q { color: #c4b5fd; }
+    body.friend-mode .unknown-text { color: #c4b5fd; }
     body.friend-mode .set-active-btn {
       opacity: 0.35; cursor: default; pointer-events: none;
     }
     body.friend-mode .unlock-section { display: none; }
-    body.friend-mode #viewFriendsBtn { display: none !important; }
   </style>
 </head>
 <body ontouchstart="">
