@@ -50,6 +50,11 @@
       transition: background 0.15s; user-select: none;
     }
     .back-btn:active { background: var(--border); }
+    .header-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      object-fit: cover; flex-shrink: 0;
+      background: var(--border);
+    }
     .header-info { flex: 1; }
     .header-title { font-size: 17px; font-weight: 700; }
     .header-sub   { font-size: 12px; color: var(--subtext); margin-top: 1px; }
@@ -465,6 +470,7 @@
 
 <header>
   <button class="back-btn" onclick="goBack()">&#8592;</button>
+  <img class="header-avatar" id="headerAvatar" src="" alt="">
   <div class="header-info">
     <div class="header-title">我的星獸</div>
     <div class="header-sub" id="headerSub">載入中...</div>
@@ -538,7 +544,7 @@
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:400;align-items:center;justify-content:center;">
   <div onclick="event.stopPropagation()"
        style="background:#fff;border-radius:16px;padding:24px 20px;max-width:280px;width:90%;box-shadow:0 4px 24px rgba(0,0,0,0.18);">
-    <div style="font-size:16px;font-weight:700;color:var(--primary);margin-bottom:12px;">✦ 主獸說明</div>
+    <div style="font-size:16px;font-weight:700;color:var(--primary);margin-bottom:12px;">主獸說明</div>
     <p style="font-size:14px;line-height:1.7;color:var(--text);margin-bottom:20px;text-align:justify;">主獸用於設定哪隻星獸將獲得靈氣加成，並在個人檔案中展示，在聊天室點擊圖文選單【召喚星獸】出來的也會是主獸。</p>
     <button onclick="closePetHelp()"
             style="background:var(--primary);color:#fff;border:none;border-radius:20px;padding:8px 28px;font-size:14px;font-weight:600;cursor:pointer;display:block;margin:0 auto;font-family:inherit;touch-action:manipulation;">確定</button>
@@ -584,6 +590,7 @@
       if (!liff.isLoggedIn()) { liff.login(); return; }
       const p = await liff.getProfile();
       uid = p.userId;
+      if (p.pictureUrl) document.getElementById('headerAvatar').src = p.pictureUrl;
     } catch {
       uid = _up.get('uid') || 'demo_user';
     }
@@ -790,7 +797,7 @@
             <div class="pet-img-wrap">
               <span class="unknown-q">?</span>
             </div>
-            <div class="unknown-text">尚未收集</div>
+            <div class="unknown-text">尚未獲得</div>
           </div>`;
         rowHTML = `<div class="pet-row">${cardsHTML}</div>`;
       } else {
