@@ -355,9 +355,13 @@
       padding: 10px 14px;
       margin-bottom: 14px;
       font-size: 13px; color: var(--text);
-      display: flex; align-items: center; gap: 5px;
+      display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
       box-shadow: var(--shadow-sm);
       line-height: 1;
+    }
+    .banner-hints {
+      width: 100%; margin-top: 6px;
+      font-size: 11px; color: var(--subtext); line-height: 1.7;
     }
     .banner-emoji {
       font-size: 16px; line-height: 1;
@@ -772,7 +776,7 @@
 
     const activePet = petMap[activeSlot];
     const activeSpInfo = activePet ? (SPECIES_ORDER.find(s => s.key === activePet.pet_species) || {}) : {};
-    let html = `<div class="active-pet-banner" id="activePetBanner"><span>目前主獸為第</span><span class="pet-num-label">${activeSlot}</span><span>隻，種類為</span><span class="banner-emoji">${activeSpInfo.emoji || ''}</span><button class="help-btn" onclick="openPetHelp()" style="margin-left:auto">？</button></div>`;
+    let html = `<div class="active-pet-banner" id="activePetBanner"><span>目前主獸為第</span><span class="pet-num-label">${activeSlot}</span><span>隻，種類為</span><span class="banner-emoji">${activeSpInfo.emoji || ''}</span><button class="help-btn" onclick="openPetHelp()" style="margin-left:auto">？</button><div class="banner-hints"><div>點擊卡片可查看星獸的進化歷程，展開後長按可儲存圖片</div><div>同一物種超過3隻，滑動可換頁查看</div></div></div>`;
 
     for (const sp of SPECIES_ORDER) {
       const spPets = pets.filter(p => p.pet_species === sp.key);
@@ -1002,7 +1006,7 @@
     if (!banner) return;
     const pet = petMap[slot];
     const spInfo = pet ? (SPECIES_ORDER.find(s => s.key === pet.pet_species) || {}) : {};
-    banner.innerHTML = `<span>目前主獸為第</span><span class="pet-num-label">${slot}</span><span>隻，種類為</span><span class="banner-emoji">${spInfo.emoji || ''}</span><button class="help-btn" onclick="openPetHelp()" style="margin-left:auto">？</button>`;
+    banner.innerHTML = `<span>目前主獸為第</span><span class="pet-num-label">${slot}</span><span>隻，種類為</span><span class="banner-emoji">${spInfo.emoji || ''}</span><button class="help-btn" onclick="openPetHelp()" style="margin-left:auto">？</button><div class="banner-hints"><div>點擊卡片可查看星獸的進化歷程，展開後長按可儲存圖片</div><div>同一物種超過3隻，滑動可換頁查看</div></div>`;
   }
 
   function stageBackdropTap() {
