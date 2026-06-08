@@ -849,6 +849,10 @@
     .comp-dt-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
     .comp-dt-row .comp-field { margin-bottom: 0; }
 
+    /* Read-only date/time in 2-col row */
+    .comp-ro-dt-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 13px; }
+    .comp-ro-dt-row .comp-ro-field { margin-bottom: 0; }
+
     /* Date/time picker icon wrappers */
     .comp-date-wrap, .comp-time-wrap { position: relative; display: block; }
     .comp-date-wrap .comp-input, .comp-time-wrap .comp-input { padding-right: 46px; }
@@ -1401,15 +1405,17 @@
             <div class="comp-ro-label">暱稱</div>
             <div class="comp-input-ro" id="compMyNameDisp">—</div>
           </div>
-          <div class="comp-ro-field">
-            <div class="comp-ro-label">出生日期</div>
-            <div class="comp-input-ro" id="compMyDateDisp">—</div>
+          <div class="comp-ro-dt-row">
+            <div class="comp-ro-field">
+              <div class="comp-ro-label">出生日期</div>
+              <div class="comp-input-ro" id="compMyDateDisp">—</div>
+            </div>
+            <div class="comp-ro-field">
+              <div class="comp-ro-label">出生時間</div>
+              <div class="comp-input-ro" id="compMyTimeDisp">—</div>
+            </div>
           </div>
-          <div class="comp-ro-field">
-            <div class="comp-ro-label">出生時間</div>
-            <div class="comp-input-ro" id="compMyTimeDisp">—</div>
-          </div>
-          <div class="comp-field" style="margin-top:18px">
+          <div class="comp-field" style="margin-top:4px">
             <div class="comp-label">我的出生地</div>
             <div class="comp-loc-row">
               <select class="comp-select" id="compMyCounty" onchange="updateCompDistrict('my')">
@@ -1438,7 +1444,7 @@
           <div class="comp-name-row" id="compNameManualRow">
             <input class="comp-input" id="compPartnerName" type="text" placeholder="輸入對方稱呼" maxlength="20">
             <button class="comp-member-btn" id="compMemberBtn" onclick="toggleMemberDropdown(event)">
-              👥 成員
+              選取成員
             </button>
           </div>
           <!-- 成員列表（展開） -->
@@ -1452,13 +1458,15 @@
                 <button class="comp-clear-btn" onclick="_setPartnerManual()">× 重選</button>
               </div>
             </div>
-            <div class="comp-ro-field">
-              <div class="comp-ro-label">出生日期</div>
-              <div class="comp-input-ro" id="compPartnerDateDisp">—</div>
-            </div>
-            <div class="comp-ro-field" style="margin-bottom:0">
-              <div class="comp-ro-label">出生時間</div>
-              <div class="comp-input-ro" id="compPartnerTimeDisp">—</div>
+            <div class="comp-ro-dt-row">
+              <div class="comp-ro-field">
+                <div class="comp-ro-label">出生日期</div>
+                <div class="comp-input-ro" id="compPartnerDateDisp">—</div>
+              </div>
+              <div class="comp-ro-field">
+                <div class="comp-ro-label">出生時間</div>
+                <div class="comp-input-ro" id="compPartnerTimeDisp">—</div>
+              </div>
             </div>
           </div>
 
@@ -2869,7 +2877,8 @@
         body: JSON.stringify({ group_id })
       });
       const data = await r.json();
-      _compMembers = (data.members || []).filter(m => m.uid !== uid && m.subject_iso_datetime);
+      // 只排除自己，不篩 subject_iso_datetime（出生資料另行查詢）
+      _compMembers = (data.members || []).filter(m => m.uid !== uid);
     } catch { _compMembers = []; }
 
     const btn  = document.getElementById('compMemberBtn');
@@ -2877,12 +2886,11 @@
     if (btn) btn.style.display = 'flex';
 
     if (_compMembers.length === 0) {
-      list.innerHTML = '<div style="padding:18px 16px;color:#a78bfa;font-size:14px;text-align:center;letter-spacing:0.03em;">群組成員尚未設定出生資料</div>';
+      list.innerHTML = '<div style="padding:18px 16px;color:#a78bfa;font-size:14px;text-align:center;letter-spacing:0.03em;">目前沒有其他群組成員</div>';
       return;
     }
 
     list.innerHTML = _compMembers.map(m => {
-      const dp     = (m.subject_iso_datetime || '').split('T')[0] || '';
       const avHtml = m.line_avatar
         ? `<img src="${m.line_avatar}" alt="">`
         : x((m.nickname || '?')[0]);
@@ -2891,7 +2899,6 @@
         <div class="comp-member-item-av">${avHtml}</div>
         <div>
           <div class="comp-member-item-name">${x(m.nickname || '成員')}</div>
-          <div class="comp-member-item-date">${_fmtDateOnly(dp)}</div>
         </div>
       </div>`;
     }).join('');
@@ -2903,9 +2910,30 @@
     list.style.display = list.style.display === 'none' ? 'block' : 'none';
   }
 
-  function selectPartnerMember(muid) {
+  async function selectPartnerMember(muid) {
     const m = _compMembers.find(v => v.uid === muid);
-    if (m) _setPartnerMember(m);
+    if (!m) return;
+    document.getElementById('compMemberList').style.display = 'none';
+    try {
+      const r = await fetch(`${API}/composite-profile`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: muid })
+      });
+      const d = await r.json();
+      if (d.success && d.data && d.data.subject_iso_datetime) {
+        _setPartnerMember({
+          uid:                  muid,
+          nickname:             m.nickname || d.data.nickname || '成員',
+          subject_iso_datetime: d.data.subject_iso_datetime,
+          location_name:        d.data.location_name        || '',
+          latitude_longitude:   d.data.latitude_longitude   || ''
+        });
+      } else {
+        showToast('該成員尚未設定出生資料');
+      }
+    } catch {
+      showToast('載入成員資料失敗，請稍後再試');
+    }
   }
 
   function closeCompMemberDropdown(event) {
