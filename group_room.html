@@ -747,7 +747,7 @@
     .composite-overlay.open .composite-panel { transform: translateY(0); }
     .composite-hd {
       background: linear-gradient(150deg, #130726 0%, #3b0764 38%, #6b21a8 68%, #9d174d 100%);
-      padding: 0 20px 18px; flex-shrink: 0; position: relative; overflow: hidden;
+      padding: 0 20px 12px; flex-shrink: 0; position: relative; overflow: hidden;
     }
     .composite-hd::before {
       content: '';
@@ -758,7 +758,7 @@
     }
     .composite-handle {
       width: 36px; height: 4px; background: rgba(255,255,255,0.28);
-      border-radius: 2px; margin: 14px auto 18px; position: relative; z-index: 1;
+      border-radius: 2px; margin: 10px auto 12px; position: relative; z-index: 1;
     }
     .composite-hd-row { display: flex; align-items: center; position: relative; z-index: 1; margin-bottom: 5px; }
     .composite-hd-title {
@@ -866,6 +866,28 @@
     .comp-time-wrap::after {
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%237c3aed' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E");
     }
+
+    /* My section: nickname + gender same row */
+    .comp-ng-row { display: grid; grid-template-columns: 1fr 70px; gap: 8px; margin-bottom: 13px; }
+    .comp-ng-row .comp-ro-field { margin-bottom: 0; }
+    .comp-gender-ro { justify-content: center; font-size: 19px; letter-spacing: 0; }
+
+    /* Partner section: label row alignment */
+    .comp-partner-label-row { display: flex; gap: 8px; margin-bottom: 7px; }
+    .comp-partner-label-row .comp-label { margin-bottom: 0; }
+    .comp-label-name { flex: 1; }
+    .comp-label-gender { width: 70px; flex-shrink: 0; text-align: center; }
+
+    /* Gender select (narrow) */
+    .comp-gender-sel {
+      flex-shrink: 0; width: 70px;
+      padding-left: 8px; padding-right: 22px;
+      background-position: right 5px center;
+      text-align: center; text-align-last: center;
+    }
+
+    /* Gender symbol in locked partner name bar */
+    .comp-gender-badge { font-size: 18px; color: #7c3aed; font-weight: 700; flex-shrink: 0; }
 
     /* Partner name row + member trigger */
     .comp-name-row { display: flex; gap: 8px; margin-bottom: 14px; }
@@ -1402,9 +1424,15 @@
         <!-- 我的資料 -->
         <div class="comp-block">
           <div class="comp-block-title">我的資料</div>
-          <div class="comp-ro-field">
-            <div class="comp-ro-label">我的暱稱</div>
-            <div class="comp-input-ro" id="compMyNameDisp">—</div>
+          <div class="comp-ng-row">
+            <div class="comp-ro-field">
+              <div class="comp-ro-label">我的暱稱</div>
+              <div class="comp-input-ro" id="compMyNameDisp">—</div>
+            </div>
+            <div class="comp-ro-field">
+              <div class="comp-ro-label" style="text-align:center">性別</div>
+              <div class="comp-input-ro comp-gender-ro" id="compMyGenderDisp">?</div>
+            </div>
           </div>
           <div class="comp-ro-dt-row">
             <div class="comp-ro-field">
@@ -1436,21 +1464,28 @@
         <div class="comp-block">
           <div class="comp-block-title">對方資料</div>
 
-          <!-- 對方名字 + 成員選擇按鈕 -->
-          <div class="comp-label" id="compPartnerNameLabel">對方名字</div>
+          <!-- 對方名字 + 性別 標籤行 -->
+          <div class="comp-partner-label-row">
+            <div class="comp-label comp-label-name" id="compPartnerNameLabel">對方名字</div>
+            <div class="comp-label comp-label-gender">性別</div>
+          </div>
           <!-- 手動輸入模式 -->
           <div class="comp-name-row" id="compNameManualRow">
             <input class="comp-input" id="compPartnerName" type="text" placeholder="輸入對方稱呼" maxlength="20">
-            <button class="comp-member-btn" id="compMemberBtn" onclick="toggleMemberDropdown(event)">
-              選取成員
-            </button>
+            <select class="comp-select comp-gender-sel" id="compPartnerGender">
+              <option value="M">♂</option>
+              <option value="F">♀</option>
+              <option value="U">?</option>
+            </select>
+            <button class="comp-member-btn" id="compMemberBtn" onclick="toggleMemberDropdown(event)">選取</button>
           </div>
           <!-- 成員列表（展開） -->
           <div class="comp-member-list" id="compMemberList" style="display:none"></div>
-          <!-- 已選成員名稱顯示（標籤下方直接接 read-only 欄位，不另加 "暱稱" 子標籤） -->
+          <!-- 已選成員名稱顯示 -->
           <div class="comp-input-ro" id="compPartnerNameLocked"
                style="display:none;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;">
             <span id="compPartnerNameDisp" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;">—</span>
+            <span id="compPartnerGenderDisp" class="comp-gender-badge">?</span>
             <button class="comp-clear-btn" onclick="_setPartnerManual()">× 重選</button>
           </div>
           <!-- 已選成員：出生日期 & 時間（read-only，雙欄） -->
@@ -1555,6 +1590,7 @@
   let myAvatar       = '';
   let mySubjectIso   = '';
   let myLocationName = '';
+  let myGender       = '';
   let profileTargetUid      = null;
   let profileTargetNickname = '';
   let profileTargetAvatar   = '';
@@ -2867,15 +2903,17 @@
           if (d.data.nickname)             myNickname     = d.data.nickname;
           if (d.data.subject_iso_datetime) mySubjectIso   = d.data.subject_iso_datetime;
           if (d.data.location_name)        myLocationName = d.data.location_name;
+          if (d.data.gender)               myGender       = d.data.gender;
         }
       } catch { /* keep existing values */ }
     }
 
     // My section (read-only)
     const [myDate, myTime] = (mySubjectIso || '').split('T');
-    document.getElementById('compMyNameDisp').textContent = myNickname || '—';
-    document.getElementById('compMyDateDisp').textContent = _fmtDateOnly(myDate);
-    document.getElementById('compMyTimeDisp').textContent = myTime ? myTime.slice(0, 5) : '—';
+    document.getElementById('compMyNameDisp').textContent   = myNickname || '—';
+    document.getElementById('compMyGenderDisp').textContent = _genderSymbol(myGender);
+    document.getElementById('compMyDateDisp').textContent   = _fmtDateOnly(myDate);
+    document.getElementById('compMyTimeDisp').textContent   = myTime ? myTime.slice(0, 5) : '—';
 
     _populateCompCounty('my');
     _populateCompCounty('partner');
@@ -2901,6 +2939,12 @@
     _loadCompMembers();
   }
 
+  function _genderSymbol(g) {
+    if (g === 'M') return '♂';
+    if (g === 'F') return '♀';
+    return '?';
+  }
+
   function _setPartnerManual() {
     _compSelectedMember = null;
     document.getElementById('compPartnerNameLabel').style.color  = '';
@@ -2909,9 +2953,10 @@
     document.getElementById('compPartnerLocked').style.display   = 'none';
     document.getElementById('compMemberList').style.display      = 'none';
     document.getElementById('compManualDT').style.display        = 'grid';
-    document.getElementById('compPartnerName').value = '';
-    document.getElementById('compPartnerDate').value = '';
-    document.getElementById('compPartnerTime').value = '12:00';
+    document.getElementById('compPartnerName').value   = '';
+    document.getElementById('compPartnerGender').value = 'M';
+    document.getElementById('compPartnerDate').value   = '';
+    document.getElementById('compPartnerTime').value   = '12:00';
   }
 
   function _setPartnerMember(m) {
@@ -2922,7 +2967,8 @@
     document.getElementById('compPartnerLocked').style.display     = 'block';
     document.getElementById('compMemberList').style.display        = 'none';
     document.getElementById('compManualDT').style.display          = 'none';
-    document.getElementById('compPartnerNameDisp').textContent     = m.nickname || '—';
+    document.getElementById('compPartnerNameDisp').textContent   = m.nickname || '—';
+    document.getElementById('compPartnerGenderDisp').textContent = _genderSymbol(m.gender || '');
     const iso = m.subject_iso_datetime || '';
     const [dp, tp] = iso.split('T');
     document.getElementById('compPartnerDateDisp').textContent  = _fmtDateOnly(dp);
@@ -3023,7 +3069,8 @@
           nickname:             m.nickname || d.data.nickname || '成員',
           subject_iso_datetime: d.data.subject_iso_datetime,
           location_name:        d.data.location_name        || '',
-          latitude_longitude:   d.data.latitude_longitude   || ''
+          latitude_longitude:   d.data.latitude_longitude   || '',
+          gender:               d.data.gender               || ''
         });
       } else {
         showToast('該成員尚未設定出生資料');
@@ -3047,17 +3094,19 @@
     const pCounty  = document.getElementById('compPartnerCounty').value;
     const pDist    = document.getElementById('compPartnerDistrict').value;
 
-    let partnerName, partnerDate, partnerTime;
+    let partnerName, partnerDate, partnerTime, partnerGender;
     if (_compSelectedMember) {
-      partnerName = _compSelectedMember.nickname || '對方';
+      partnerName   = _compSelectedMember.nickname || '對方';
+      partnerGender = _compSelectedMember.gender   || 'U';
       const iso = _compSelectedMember.subject_iso_datetime || '';
       const [dp, tp] = iso.split('T');
       partnerDate = dp || '';
       partnerTime = tp ? tp.slice(0, 5) : '12:00';
     } else {
-      partnerName = document.getElementById('compPartnerName').value.trim();
-      partnerDate = document.getElementById('compPartnerDate').value;
-      partnerTime = document.getElementById('compPartnerTime').value || '12:00';
+      partnerName   = document.getElementById('compPartnerName').value.trim();
+      partnerGender = document.getElementById('compPartnerGender').value || 'U';
+      partnerDate   = document.getElementById('compPartnerDate').value;
+      partnerTime   = document.getElementById('compPartnerTime').value || '12:00';
     }
 
     if (!partnerName) { showToast('請填寫對方的名字'); return; }
@@ -3114,6 +3163,8 @@
       if (!calcData.success || !calcData.data) throw new Error('API 回傳格式錯誤');
 
       _compResult = calcData.data; _compSaved = false;
+      _compResult.my_gender      = myGender      || 'U';
+      _compResult.partner_gender = partnerGender || 'U';
       _showCompResult(_compResult, myNick, partnerName);
 
     } catch {
@@ -3189,6 +3240,8 @@
           cache_key:          _compResult.cache_key,
           compat_score:       _compResult.compat_score,
           relationship_type:  _compResult.relationship_type,
+          my_gender:          _compResult.my_gender      || 'U',
+          partner_gender:     _compResult.partner_gender || 'U',
           result_json:        JSON.stringify(_compResult)
         })
       });
