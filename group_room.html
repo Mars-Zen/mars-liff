@@ -872,14 +872,13 @@
     .comp-ng-row .comp-ro-field { margin-bottom: 0; }
     .comp-gender-ro { justify-content: flex-start; }
 
-    /* Partner name + gender row */
-    .comp-ng-partner-row { display: flex; gap: 8px; margin-bottom: 14px; align-items: flex-end; }
-    .comp-name-col { flex: 1; min-width: 0; }
-    .comp-gender-col { flex-shrink: 0; width: 62px; }
+    /* Partner name + gender row — same grid as my section */
+    .comp-ng-partner-row { display: grid; grid-template-columns: 1fr 62px; gap: 8px; margin-bottom: 14px; align-items: end; }
+    .comp-name-col { min-width: 0; }
 
     /* Name input wrap — holds input + inner select button */
     .comp-name-wrap { position: relative; }
-    .comp-name-wrap .comp-input { padding-right: 54px; }
+    .comp-name-wrap .comp-input { padding-right: 68px; }
     .comp-inner-select-btn {
       position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
       height: 28px; padding: 0 11px;
@@ -904,8 +903,14 @@
     /* Gender select (narrow) */
     .comp-gender-sel {
       flex-shrink: 0; width: 62px;
-      padding-left: 8px; padding-right: 22px;
-      background-position: right 4px center;
+      padding-left: 8px; padding-right: 26px;
+      background-position: right 10px center;
+    }
+
+    /* Partner block — blue theme for auto-filled read-only fields */
+    .comp-block-partner .comp-ro-label { color: #60a5fa; }
+    .comp-block-partner .comp-input-ro {
+      background: #eff8ff; border-color: #bfdbfe; color: #1e3a5f;
     }
 
     /* Date/time inputs left-align (partner manual entry) */
@@ -1463,7 +1468,7 @@
         </div>
 
         <!-- 對方資料 -->
-        <div class="comp-block">
+        <div class="comp-block comp-block-partner">
           <div class="comp-block-title">對方資料</div>
 
           <!-- 對方名字 + 性別 同行 -->
@@ -1473,7 +1478,7 @@
               <div class="comp-label" id="compPartnerNameLabel">對方名字</div>
               <div class="comp-name-wrap" id="compPartnerNameInputWrap">
                 <input class="comp-input" id="compPartnerName" type="text" placeholder="輸入對方稱呼" maxlength="20">
-                <button class="comp-inner-select-btn" id="compMemberBtn" onclick="toggleMemberDropdown(event)">選取</button>
+                <button class="comp-inner-select-btn" id="compMemberBtn" onclick="toggleMemberDropdown(event)">選取成員</button>
               </div>
               <div class="comp-input-ro" id="compPartnerNameLocked" style="display:none">
                 <span id="compPartnerNameDisp" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span>
@@ -2972,8 +2977,8 @@
 
   function _setPartnerMember(m) {
     _compSelectedMember = m;
-    // 標籤變紫色
-    document.getElementById('compPartnerNameLabel').style.color = '#a78bfa';
+    // 標籤變藍色（對方區塊藍色主題）
+    document.getElementById('compPartnerNameLabel').style.color = '#60a5fa';
     // 名字：隱藏輸入框，顯示 locked display
     document.getElementById('compPartnerNameInputWrap').style.display = 'none';
     document.getElementById('compPartnerNameLocked').style.display    = 'flex';
