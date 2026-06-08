@@ -727,149 +727,243 @@
     /* ── Composite Overlay ── */
     .composite-overlay {
       position: fixed; inset: 0;
-      background: rgba(28,26,46,0.55);
-      z-index: 350;
-      display: flex; align-items: flex-end;
+      background: rgba(12, 8, 32, 0.65);
+      backdrop-filter: blur(3px);
+      z-index: 350; display: flex; align-items: flex-end;
       opacity: 0; visibility: hidden;
-      transition: opacity 0.25s, visibility 0.25s;
+      transition: opacity 0.3s, visibility 0.3s;
     }
     .composite-overlay.open { opacity: 1; visibility: visible; }
     .composite-panel {
       width: 100%; height: 92vh;
-      background: #f5f3ff;
-      border-radius: 22px 22px 0 0;
+      background: #f4f2ff;
+      border-radius: 28px 28px 0 0;
       display: flex; flex-direction: column;
       transform: translateY(100%);
-      transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+      transition: transform 0.36s cubic-bezier(0.32,0.72,0,1);
       overflow: hidden;
+      box-shadow: 0 -10px 50px rgba(80,40,180,0.22);
     }
     .composite-overlay.open .composite-panel { transform: translateY(0); }
     .composite-hd {
-      background: linear-gradient(145deg, #1e1b4b 0%, #4c1d95 55%, #831843 100%);
-      padding: 0 20px 16px; flex-shrink: 0;
+      background: linear-gradient(150deg, #130726 0%, #3b0764 38%, #6b21a8 68%, #9d174d 100%);
+      padding: 0 20px 18px; flex-shrink: 0; position: relative; overflow: hidden;
+    }
+    .composite-hd::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 20% 70%, rgba(167,139,250,0.28) 0%, transparent 52%),
+                  radial-gradient(ellipse at 80% 15%, rgba(244,114,182,0.22) 0%, transparent 48%);
+      pointer-events: none;
     }
     .composite-handle {
       width: 36px; height: 4px; background: rgba(255,255,255,0.28);
-      border-radius: 2px; margin: 14px auto 16px;
+      border-radius: 2px; margin: 14px auto 18px; position: relative; z-index: 1;
     }
-    .composite-hd-row { display: flex; align-items: center; }
-    .composite-hd-title { font-size: 17px; font-weight: 700; color: #fff; flex: 1; }
+    .composite-hd-row { display: flex; align-items: center; position: relative; z-index: 1; margin-bottom: 5px; }
+    .composite-hd-title {
+      font-size: 19px; font-weight: 900; color: #fff; flex: 1;
+      letter-spacing: 0.03em; text-shadow: 0 2px 14px rgba(167,139,250,0.55);
+    }
+    .composite-hd-sub { font-size: 12px; color: rgba(255,255,255,0.5); position: relative; z-index: 1; letter-spacing: 0.05em; }
     .composite-close-btn {
-      width: 28px; height: 28px; border-radius: 50%;
-      border: none; background: rgba(255,255,255,0.15); color: #fff;
+      width: 30px; height: 30px; border-radius: 50%;
+      border: none; background: rgba(255,255,255,0.13); color: rgba(255,255,255,0.88);
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; flex-shrink: 0; transition: background 0.12s;
+      cursor: pointer; flex-shrink: 0; transition: background 0.15s, transform 0.12s;
     }
-    .composite-close-btn:active { background: rgba(255,255,255,0.3); }
+    .composite-close-btn:active { background: rgba(255,255,255,0.28); transform: scale(0.88); }
     .composite-body {
-      flex: 1; overflow-y: auto; padding: 20px 16px;
+      flex: 1; overflow-y: auto; padding: 20px 16px 28px;
       -webkit-overflow-scrolling: touch;
     }
-    .comp-section-title {
-      font-size: 11px; font-weight: 800; letter-spacing: 0.1em;
-      color: #6d28d9; text-transform: uppercase;
-      margin: 22px 0 10px;
-      display: flex; align-items: center; gap: 6px;
+
+    /* Section layout */
+    .comp-section { margin-bottom: 6px; }
+    .comp-section-label {
+      font-size: 10px; font-weight: 900; letter-spacing: 0.14em;
+      color: #7c3aed; text-transform: uppercase; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
     }
-    .comp-section-title:first-child { margin-top: 0; }
-    .comp-field { margin-bottom: 12px; }
-    .comp-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+    .comp-section-label::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(to right, rgba(124,58,237,0.35), transparent);
+    }
+
+    /* Profile card (my info / locked partner) */
+    .comp-profile-card {
+      background: linear-gradient(135deg, #ede8ff 0%, #fce7f9 100%);
+      border: 1px solid rgba(124,58,237,0.2);
+      border-radius: 18px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 13px; margin-bottom: 14px;
+    }
+    .comp-profile-avatar {
+      width: 48px; height: 48px; border-radius: 16px; flex-shrink: 0;
+      background: linear-gradient(135deg, #7c3aed, #db2777);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; overflow: hidden;
+      box-shadow: 0 4px 12px rgba(124,58,237,0.3);
+    }
+    .comp-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .comp-profile-info { flex: 1; min-width: 0; }
+    .comp-profile-name {
+      font-size: 16px; font-weight: 800; color: #2e1065;
+      margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .comp-profile-birth { font-size: 12px; color: #6d28d9; line-height: 1.6; }
+    .comp-partner-card { background: linear-gradient(135deg, #fdf2ff 0%, #fce7f3 100%); }
+    .comp-lock-badge {
+      font-size: 10px; font-weight: 800; color: #7c3aed; letter-spacing: 0.05em;
+      background: rgba(124,58,237,0.12); border-radius: 20px; padding: 3px 9px; flex-shrink: 0;
+    }
+
+    /* VS divider */
+    .comp-vs { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
+    .comp-vs-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, rgba(124,58,237,0.28), transparent); }
+    .comp-vs-badge {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #6d28d9, #db2777);
+      color: #fff; font-size: 11px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center; letter-spacing: 0.06em;
+      box-shadow: 0 4px 14px rgba(109,40,217,0.35);
+    }
+
+    /* Fields */
+    .comp-field { margin-bottom: 14px; }
+    .comp-label {
+      font-size: 11px; font-weight: 700; color: #9ca3af; margin-bottom: 6px;
+      letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;
+    }
+    .comp-label-note {
+      font-size: 9px; font-weight: 800; background: #f0fdf4; color: #166534;
+      border-radius: 8px; padding: 1px 7px; letter-spacing: 0.06em;
+    }
     .comp-input, .comp-select {
-      width: 100%; box-sizing: border-box;
-      border: 1.5px solid var(--border); border-radius: 10px;
-      padding: 10px 12px; font-size: 14px; color: var(--text);
+      width: 100%; box-sizing: border-box; min-height: 46px;
+      border: 1.5px solid #e5deff; border-radius: 13px;
+      padding: 11px 14px; font-size: 14px; color: #1e1b4b;
       background: #fff; font-family: inherit;
       outline: none; -webkit-appearance: none; appearance: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s; text-align: left;
     }
     .comp-input:focus, .comp-select:focus {
-      border-color: #7c3aed;
-      box-shadow: 0 0 0 2px rgba(124,58,237,0.12);
+      border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
     }
     .comp-select {
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237c3aed' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+      background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; cursor: pointer;
     }
     .comp-loc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .comp-divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, rgba(124,58,237,0.18), transparent);
-      margin: 22px 0;
-    }
+    .comp-dt-row { display: grid; grid-template-columns: 7fr 5fr; gap: 8px; margin-bottom: 14px; }
+    .comp-dt-row .comp-field { margin-bottom: 0; }
+
+    /* Member picker */
+    .comp-member-picker { margin-bottom: 16px; }
+    .comp-member-pick-hint { font-size: 11px; color: #a78bfa; margin-bottom: 6px; font-weight: 600; letter-spacing: 0.04em; }
+
+    /* Submit button */
     .comp-submit-btn {
-      width: 100%; padding: 14px;
-      background: linear-gradient(135deg, #4c1d95, #9d174d);
-      color: #fff; border: none; border-radius: 14px;
-      font-size: 15px; font-weight: 700; cursor: pointer;
-      font-family: inherit; margin-top: 10px; transition: opacity 0.15s;
+      width: 100%; padding: 15px;
+      background: linear-gradient(135deg, #5b21b6, #7c3aed 50%, #be185d);
+      color: #fff; border: none; border-radius: 16px;
+      font-size: 15px; font-weight: 900; cursor: pointer;
+      font-family: inherit; margin-top: 10px; letter-spacing: 0.04em;
+      box-shadow: 0 6px 22px rgba(109,40,217,0.38);
+      transition: opacity 0.15s, transform 0.12s;
     }
-    .comp-submit-btn:active { opacity: 0.82; }
+    .comp-submit-btn:active { opacity: 0.86; transform: scale(0.98); }
+
+    /* Loading */
     .comp-loading-wrap {
       display: flex; flex-direction: column; align-items: center;
-      justify-content: center; padding: 64px 20px; gap: 16px;
+      justify-content: center; padding: 64px 20px; gap: 22px;
     }
-    .comp-loading-title { font-size: 15px; font-weight: 700; color: var(--pri-text); }
-    .comp-loading-sub { font-size: 13px; color: var(--muted); text-align: center; line-height: 1.65; }
-    .comp-result-header { text-align: center; margin-bottom: 24px; }
-    .comp-result-names { font-size: 15px; font-weight: 700; color: var(--pri-text); margin-bottom: 16px; }
+    .comp-loading-orb {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #db2777);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; animation: comp-orb 2.2s ease-in-out infinite;
+    }
+    @keyframes comp-orb {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(124,58,237,0.3); }
+      50%       { transform: scale(1.08); box-shadow: 0 0 0 16px rgba(124,58,237,0); }
+    }
+    .comp-loading-title { font-size: 16px; font-weight: 800; color: #1e1b4b; }
+    .comp-loading-sub { font-size: 13px; color: #9ca3af; text-align: center; line-height: 1.75; }
+
+    /* Result */
+    .comp-result-header { text-align: center; padding: 20px 0 18px; }
+    .comp-result-names { font-size: 14px; font-weight: 800; color: #6d28d9; margin-bottom: 18px; letter-spacing: 0.05em; }
     .comp-score-ring {
-      width: 100px; height: 100px; margin: 0 auto 12px;
+      width: 116px; height: 116px; margin: 0 auto 14px;
       border-radius: 50%; position: relative;
       display: flex; align-items: center; justify-content: center;
     }
     .comp-score-ring-bg {
       position: absolute; inset: 0; border-radius: 50%;
-      background: conic-gradient(#7c3aed var(--fill-deg, 0deg), #ede9fe 0deg);
+      background: conic-gradient(#7c3aed var(--fill-deg, 0deg), #e9e3ff 0deg);
+      filter: drop-shadow(0 4px 10px rgba(124,58,237,0.3));
     }
     .comp-score-ring-inner {
-      position: absolute; inset: 12px; background: #f5f3ff; border-radius: 50%;
+      position: absolute; inset: 14px; background: #f4f2ff; border-radius: 50%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
     }
-    .comp-score-num { font-size: 22px; font-weight: 900; color: #7c3aed; position: relative; z-index: 1; }
-    .comp-rel-type { font-size: 13px; font-weight: 700; color: #6d28d9; margin-bottom: 2px; }
-    .comp-rel-label { font-size: 11px; color: var(--muted); }
+    .comp-score-num { font-size: 26px; font-weight: 900; color: #5b21b6; line-height: 1; }
+    .comp-score-unit { font-size: 10px; color: #a78bfa; letter-spacing: 0.06em; }
+    .comp-rel-type { font-size: 14px; font-weight: 900; color: #2e1065; margin-bottom: 3px; }
+    .comp-rel-sub { font-size: 11px; color: #a78bfa; letter-spacing: 0.07em; }
     .comp-dims {
-      background: rgba(255,255,255,0.85); border: 1px solid rgba(124,58,237,0.1);
-      border-radius: 16px; padding: 14px; margin-bottom: 14px;
+      background: #fff; border: 1px solid #ede8ff; border-radius: 20px;
+      padding: 16px 18px; margin-bottom: 12px;
+      box-shadow: 0 2px 10px rgba(124,58,237,0.07);
     }
-    .comp-dim-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+    .comp-dims-title {
+      font-size: 10px; font-weight: 900; letter-spacing: 0.14em;
+      color: #a78bfa; text-transform: uppercase; margin-bottom: 14px;
+    }
+    .comp-dim-row { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
     .comp-dim-row:last-child { margin-bottom: 0; }
-    .comp-dim-label { font-size: 11px; font-weight: 700; color: var(--muted); width: 32px; flex-shrink: 0; }
-    .comp-dim-bar-bg { flex: 1; height: 7px; background: #ede9fe; border-radius: 4px; overflow: hidden; }
+    .comp-dim-label { font-size: 12px; font-weight: 700; color: #7c6fa0; width: 32px; flex-shrink: 0; }
+    .comp-dim-bar-bg { flex: 1; height: 8px; background: #ede9fe; border-radius: 6px; overflow: hidden; }
     .comp-dim-bar-fill {
-      height: 100%; border-radius: 4px;
+      height: 100%; border-radius: 6px;
       background: linear-gradient(to right, #7c3aed, #db2777);
+      transition: width 0.7s cubic-bezier(0.34,1.1,0.64,1);
     }
-    .comp-dim-score { font-size: 11px; font-weight: 700; color: var(--pri-text); width: 26px; text-align: right; flex-shrink: 0; }
+    .comp-dim-score { font-size: 12px; font-weight: 800; color: #4c1d95; width: 28px; text-align: right; flex-shrink: 0; }
     .comp-desc-card {
-      background: linear-gradient(135deg, #f0eeff, #fef0ff);
-      border: 1px solid rgba(124,58,237,0.14); border-radius: 16px;
-      padding: 15px; margin-bottom: 10px;
-      font-size: 14px; line-height: 1.78; color: var(--text);
+      background: linear-gradient(140deg, #f0ecff, #fef0fc);
+      border: 1px solid rgba(124,58,237,0.13); border-radius: 18px;
+      padding: 16px 18px; margin-bottom: 10px;
+      font-size: 14px; line-height: 1.82; color: #1e1b4b;
     }
     .comp-sub-card {
-      border-radius: 13px; padding: 11px 13px;
-      margin-bottom: 8px; font-size: 13px; line-height: 1.65;
+      border-radius: 15px; padding: 13px 16px; margin-bottom: 8px;
+      font-size: 13px; line-height: 1.72; display: flex; flex-direction: column; gap: 6px;
     }
     .comp-sub-card.s { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
     .comp-sub-card.c { background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; }
     .comp-sub-label {
-      font-size: 10px; font-weight: 800; letter-spacing: 0.05em;
-      display: inline-block; border-radius: 20px; padding: 2px 8px; margin-bottom: 5px;
+      font-size: 10px; font-weight: 900; letter-spacing: 0.07em;
+      display: inline-block; border-radius: 20px; padding: 2px 9px; align-self: flex-start;
     }
     .comp-sub-label.s { background: #dcfce7; color: #166534; }
     .comp-sub-label.c { background: #ffe4e6; color: #9f1239; }
-    .comp-elem-row { font-size: 12px; color: var(--muted); padding: 4px 2px 12px; }
-    .comp-result-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; padding-bottom: 12px; }
+    .comp-elem-row { font-size: 12px; color: #a78bfa; padding: 6px 4px 14px; text-align: center; letter-spacing: 0.04em; }
+    .comp-result-btns { display: flex; flex-direction: column; gap: 10px; padding-bottom: 16px; }
     .comp-btn {
-      width: 100%; padding: 13px; border-radius: 12px; border: none;
-      font-size: 14px; font-weight: 700; cursor: pointer;
-      font-family: inherit; transition: opacity 0.15s;
+      width: 100%; padding: 14px; border-radius: 14px; border: none;
+      font-size: 14px; font-weight: 800; cursor: pointer;
+      font-family: inherit; transition: opacity 0.15s, transform 0.12s; letter-spacing: 0.03em;
     }
-    .comp-btn:active { opacity: 0.82; }
-    .comp-btn.save { background: linear-gradient(135deg, #4c1d95, #9d174d); color: #fff; }
-    .comp-btn.share { background: #00b900; color: #fff; }
-    .comp-btn.reset { background: #fff; border: 1.5px solid var(--border); color: var(--text); }
-    .comp-btn.saved { background: #f1f5f9; color: #94a3b8; cursor: default; pointer-events: none; }
+    .comp-btn:active { opacity: 0.84; transform: scale(0.98); }
+    .comp-btn.save {
+      background: linear-gradient(135deg, #5b21b6, #7c3aed 50%, #be185d);
+      color: #fff; box-shadow: 0 5px 18px rgba(109,40,217,0.32);
+    }
+    .comp-btn.share { background: #00b900; color: #fff; box-shadow: 0 4px 14px rgba(0,185,0,0.28); }
+    .comp-btn.reset { background: #fff; border: 1.5px solid #e5deff; color: #6d28d9; font-weight: 700; }
+    .comp-btn.saved { background: #f1f0f7; color: #b0a8cc; cursor: default; pointer-events: none; box-shadow: none; }
 
     /* ── Loading ── */
     .loading { display: flex; justify-content: center; padding: 52px; }
@@ -1223,58 +1317,95 @@
           </svg>
         </button>
       </div>
+      <div class="composite-hd-sub">Composite Chart · 中點法星盤</div>
     </div>
     <div class="composite-body" id="compositeBody">
 
       <!-- View A: Form -->
       <div id="cvForm">
-        <div class="comp-section-title">▸ 我的資料</div>
-        <div class="comp-field">
-          <div class="comp-label">我的暱稱</div>
-          <input class="comp-input" id="compMyNick" type="text" placeholder="你的名字" maxlength="20">
-        </div>
-        <div class="comp-field">
-          <div class="comp-label">我的出生地</div>
-          <div class="comp-loc-row">
-            <select class="comp-select" id="compMyCounty" onchange="updateCompDistrict('my')">
-              <option value="">縣市</option>
-            </select>
-            <select class="comp-select" id="compMyDistrict">
-              <option value="">鄉鎮區</option>
-            </select>
+
+        <!-- 我的資料 (read-only profile card) -->
+        <div class="comp-section">
+          <div class="comp-section-label">我的資料</div>
+          <div class="comp-profile-card" id="compMyCard">
+            <div class="comp-profile-avatar" id="compMyAvatar">✦</div>
+            <div class="comp-profile-info">
+              <div class="comp-profile-name" id="compMyNameDisp">—</div>
+              <div class="comp-profile-birth" id="compMyBirthDisp">—</div>
+            </div>
+          </div>
+          <!-- 我的出生地（可修改） -->
+          <div class="comp-field">
+            <div class="comp-label">出生地 <span class="comp-label-note">可修改</span></div>
+            <div class="comp-loc-row">
+              <select class="comp-select" id="compMyCounty" onchange="updateCompDistrict('my')">
+                <option value="">縣市</option>
+              </select>
+              <select class="comp-select" id="compMyDistrict">
+                <option value="">鄉鎮區</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        <div class="comp-divider"></div>
+        <!-- VS divider -->
+        <div class="comp-vs">
+          <div class="comp-vs-line"></div>
+          <div class="comp-vs-badge">VS</div>
+          <div class="comp-vs-line"></div>
+        </div>
 
-        <div class="comp-section-title">▸ 對方資料</div>
-        <div class="comp-field">
-          <div class="comp-label">從群組成員選擇（可選）</div>
-          <select class="comp-select" id="compMemberSelect" onchange="onCompMemberSelect()">
-            <option value="">── 手動輸入 ──</option>
-          </select>
-        </div>
-        <div class="comp-field">
-          <div class="comp-label">對方名字</div>
-          <input class="comp-input" id="compPartnerName" type="text" placeholder="對方的稱呼" maxlength="20">
-        </div>
-        <div class="comp-field">
-          <div class="comp-label">對方出生日期</div>
-          <input class="comp-input" id="compPartnerDate" type="date">
-        </div>
-        <div class="comp-field">
-          <div class="comp-label">對方出生時間（不確定可保留 12:00）</div>
-          <input class="comp-input" id="compPartnerTime" type="time" value="12:00">
-        </div>
-        <div class="comp-field">
-          <div class="comp-label">對方出生地</div>
-          <div class="comp-loc-row">
-            <select class="comp-select" id="compPartnerCounty" onchange="updateCompDistrict('partner')">
-              <option value="">縣市</option>
+        <!-- 對方資料 -->
+        <div class="comp-section">
+          <div class="comp-section-label">對方資料</div>
+
+          <!-- 成員選擇（有符合成員才顯示） -->
+          <div class="comp-member-picker" id="compMemberPickerWrap" style="display:none">
+            <div class="comp-member-pick-hint">從群組成員快速填入 →</div>
+            <select class="comp-select" id="compMemberSelect" onchange="onCompMemberSelect()">
+              <option value="">── 手動輸入 ──</option>
             </select>
-            <select class="comp-select" id="compPartnerDistrict">
-              <option value="">鄉鎮區</option>
-            </select>
+          </div>
+
+          <!-- 已選成員：鎖定卡片 -->
+          <div class="comp-profile-card comp-partner-card" id="compPartnerCard" style="display:none">
+            <div class="comp-profile-avatar" id="compPartnerAvatar">★</div>
+            <div class="comp-profile-info">
+              <div class="comp-profile-name" id="compPartnerNameDisp">—</div>
+              <div class="comp-profile-birth" id="compPartnerBirthDisp">—</div>
+            </div>
+            <div class="comp-lock-badge">已鎖定</div>
+          </div>
+
+          <!-- 手動輸入區（未選成員時顯示） -->
+          <div id="compManualFields">
+            <div class="comp-field">
+              <div class="comp-label">對方名字</div>
+              <input class="comp-input" id="compPartnerName" type="text" placeholder="對方的稱呼" maxlength="20">
+            </div>
+            <div class="comp-dt-row">
+              <div class="comp-field">
+                <div class="comp-label">出生日期</div>
+                <input class="comp-input" id="compPartnerDate" type="date">
+              </div>
+              <div class="comp-field">
+                <div class="comp-label">出生時間</div>
+                <input class="comp-input" id="compPartnerTime" type="time" value="12:00">
+              </div>
+            </div>
+          </div>
+
+          <!-- 出生地（永遠可修改） -->
+          <div class="comp-field">
+            <div class="comp-label">對方出生地 <span class="comp-label-note">可修改</span></div>
+            <div class="comp-loc-row">
+              <select class="comp-select" id="compPartnerCounty" onchange="updateCompDistrict('partner')">
+                <option value="">縣市</option>
+              </select>
+              <select class="comp-select" id="compPartnerDistrict">
+                <option value="">鄉鎮區</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -1284,9 +1415,9 @@
       <!-- View B: Loading -->
       <div id="cvLoading" style="display:none">
         <div class="comp-loading-wrap">
-          <div class="spinner" style="width:36px;height:36px;border-color:rgba(124,58,237,0.15);border-top-color:#7c3aed"></div>
-          <div class="comp-loading-title">正在計算雙人合盤…</div>
-          <div class="comp-loading-sub">星盤正在對齊，約需 10–20 秒<br>請稍候 ✦</div>
+          <div class="comp-loading-orb">✦</div>
+          <div class="comp-loading-title">星盤計算中…</div>
+          <div class="comp-loading-sub">正在對齊雙人星位<br>約需 10–20 秒，請稍候</div>
         </div>
       </div>
 
@@ -1336,8 +1467,10 @@
 <script>
   const API     = 'https://mars-magicapp.com/webhook';
   const LIFF_ID = '2009047186-MXDITyXh'; // Reuse home LIFF session; avoids LINE app-switch notification
-  let myNickname  = '';
-  let myAvatar    = '';
+  let myNickname     = '';
+  let myAvatar       = '';
+  let mySubjectIso   = '';
+  let myLocationName = '';
   let profileTargetUid      = null;
   let profileTargetNickname = '';
   let profileTargetAvatar   = '';
@@ -1522,8 +1655,10 @@
     const cardHtml = m => {
       const isSelf = m.uid === uid;
       if (isSelf) {
-        myNickname = m.nickname || '';
-        myAvatar   = m.line_avatar || '';
+        myNickname     = m.nickname             || '';
+        myAvatar       = m.line_avatar          || '';
+        mySubjectIso   = m.subject_iso_datetime || '';
+        myLocationName = m.location_name        || '';
         updateDrawerProfile();
       }
       const avatar = m.line_avatar
@@ -2487,9 +2622,32 @@
     }}
   };
 
-  let _compMembers = [];
-  let _compResult  = null;
-  let _compSaved   = false;
+  let _compMembers        = [];
+  let _compResult         = null;
+  let _compSaved          = false;
+  let _compSelectedMember = null;
+
+  function _fmtBirthDisplay(isoStr) {
+    if (!isoStr) return '—';
+    const [dp, tp] = isoStr.split('T');
+    if (!dp) return '—';
+    const [y, m, d] = dp.split('-').map(Number);
+    const time = tp ? tp.slice(0, 5) : '';
+    return `${y}年${m}月${d}日${time ? '　' + time : ''}`;
+  }
+
+  function _parseLocName(locName) {
+    if (!locName) return null;
+    for (const county of Object.keys(TW_LOCS)) {
+      if (locName.startsWith(county)) {
+        const rest = locName.slice(county.length).trim();
+        const districts = TW_LOCS[county].districts || {};
+        const district  = Object.keys(districts).find(d => rest.startsWith(d)) || '';
+        return { county, district };
+      }
+    }
+    return null;
+  }
 
   function openComposite() {
     if (!uid || uid === 'demo_user') { showToast('示範模式無法使用雙人合盤'); return; }
@@ -2505,23 +2663,74 @@
     document.getElementById('cvForm').style.display    = 'block';
     document.getElementById('cvLoading').style.display = 'none';
     document.getElementById('cvResult').style.display  = 'none';
-    _compResult = null; _compSaved = false;
+    _compResult = null; _compSaved = false; _compSelectedMember = null;
 
-    document.getElementById('compMyNick').value = myNickname || '';
+    // My profile card
+    const avatarEl = document.getElementById('compMyAvatar');
+    if (myAvatar) {
+      avatarEl.innerHTML = `<img src="${myAvatar}" alt="">`;
+    } else {
+      avatarEl.textContent = '✦';
+    }
+    document.getElementById('compMyNameDisp').textContent  = myNickname || '—';
+    document.getElementById('compMyBirthDisp').textContent = _fmtBirthDisplay(mySubjectIso);
 
     _populateCompCounty('my');
     _populateCompCounty('partner');
 
-    // Default my location: 台北市 信義區
-    document.getElementById('compMyCounty').value = '台北市';
-    updateCompDistrict('my');
-    setTimeout(() => { document.getElementById('compMyDistrict').value = '信義區'; }, 0);
+    // My default location from DB, fallback to 台北市 信義區
+    const myParsed = _parseLocName(myLocationName);
+    if (myParsed) {
+      document.getElementById('compMyCounty').value = myParsed.county;
+      updateCompDistrict('my');
+      setTimeout(() => { document.getElementById('compMyDistrict').value = myParsed.district; }, 0);
+    } else {
+      document.getElementById('compMyCounty').value = '台北市';
+      updateCompDistrict('my');
+      setTimeout(() => { document.getElementById('compMyDistrict').value = '信義區'; }, 0);
+    }
 
-    // Default partner location: 台北市
+    // Partner defaults
     document.getElementById('compPartnerCounty').value = '台北市';
     updateCompDistrict('partner');
 
+    _setPartnerManual();
     _loadCompMembers();
+  }
+
+  function _setPartnerManual() {
+    _compSelectedMember = null;
+    document.getElementById('compPartnerCard').style.display   = 'none';
+    document.getElementById('compManualFields').style.display  = 'block';
+    document.getElementById('compPartnerName').value = '';
+    document.getElementById('compPartnerDate').value = '';
+    document.getElementById('compPartnerTime').value = '12:00';
+  }
+
+  function _setPartnerMember(m) {
+    _compSelectedMember = m;
+    // Locked card
+    const avatarEl = document.getElementById('compPartnerAvatar');
+    if (m.line_avatar) {
+      avatarEl.innerHTML = `<img src="${m.line_avatar}" alt="">`;
+    } else {
+      avatarEl.textContent = '★';
+    }
+    document.getElementById('compPartnerNameDisp').textContent  = m.nickname || '—';
+    document.getElementById('compPartnerBirthDisp').textContent = _fmtBirthDisplay(m.subject_iso_datetime);
+    document.getElementById('compPartnerCard').style.display   = 'flex';
+    document.getElementById('compManualFields').style.display  = 'none';
+
+    // Pre-fill partner location from DB location_name (user can still edit)
+    const parsed = _parseLocName(m.location_name);
+    if (parsed) {
+      document.getElementById('compPartnerCounty').value = parsed.county;
+      updateCompDistrict('partner');
+      setTimeout(() => { document.getElementById('compPartnerDistrict').value = parsed.district; }, 0);
+    } else {
+      document.getElementById('compPartnerCounty').value = '台北市';
+      updateCompDistrict('partner');
+    }
   }
 
   function _populateCompCounty(who) {
@@ -2562,6 +2771,13 @@
       const data = await r.json();
       _compMembers = (data.members || []).filter(m => m.uid !== uid && m.subject_iso_datetime);
     } catch { _compMembers = []; }
+
+    const pickerWrap = document.getElementById('compMemberPickerWrap');
+    if (_compMembers.length === 0) {
+      pickerWrap.style.display = 'none';
+      return;
+    }
+    pickerWrap.style.display = 'block';
     const sel = document.getElementById('compMemberSelect');
     sel.innerHTML = '<option value="">── 手動輸入 ──</option>';
     for (const m of _compMembers) {
@@ -2574,44 +2790,42 @@
 
   function onCompMemberSelect() {
     const muid = document.getElementById('compMemberSelect').value;
-    if (!muid) return;
+    if (!muid) { _setPartnerManual(); return; }
     const m = _compMembers.find(v => v.uid === muid);
-    if (!m) return;
-    document.getElementById('compPartnerName').value = m.nickname || '';
-    if (m.subject_iso_datetime) {
-      const [dp, tp] = m.subject_iso_datetime.split('T');
-      document.getElementById('compPartnerDate').value = dp || '';
-      document.getElementById('compPartnerTime').value = tp ? tp.slice(0, 5) : '12:00';
-    }
+    if (m) _setPartnerMember(m);
   }
 
   async function submitCompositeForm() {
-    const myNick      = document.getElementById('compMyNick').value.trim();
-    const partnerName = document.getElementById('compPartnerName').value.trim();
-    const partnerDate = document.getElementById('compPartnerDate').value;
-    const partnerTime = document.getElementById('compPartnerTime').value || '12:00';
-    const myCounty    = document.getElementById('compMyCounty').value;
-    const myDist      = document.getElementById('compMyDistrict').value;
-    const pCounty     = document.getElementById('compPartnerCounty').value;
-    const pDist       = document.getElementById('compPartnerDistrict').value;
+    const myNick = myNickname || '你';
+    const myCounty = document.getElementById('compMyCounty').value;
+    const myDist   = document.getElementById('compMyDistrict').value;
+    const pCounty  = document.getElementById('compPartnerCounty').value;
+    const pDist    = document.getElementById('compPartnerDistrict').value;
 
-    if (!myNick)      { showToast('請填寫你的暱稱'); return; }
+    let partnerName, partnerDate, partnerTime;
+    if (_compSelectedMember) {
+      partnerName = _compSelectedMember.nickname || '對方';
+      const iso = _compSelectedMember.subject_iso_datetime || '';
+      const [dp, tp] = iso.split('T');
+      partnerDate = dp || '';
+      partnerTime = tp ? tp.slice(0, 5) : '12:00';
+    } else {
+      partnerName = document.getElementById('compPartnerName').value.trim();
+      partnerDate = document.getElementById('compPartnerDate').value;
+      partnerTime = document.getElementById('compPartnerTime').value || '12:00';
+    }
+
     if (!partnerName) { showToast('請填寫對方的名字'); return; }
     if (!partnerDate) { showToast('請選擇對方的出生日期'); return; }
-    if (!myCounty)    { showToast('請選擇你的出生地縣市'); return; }
-    if (!pCounty)     { showToast('請選擇對方的出生地縣市'); return; }
+    if (!mySubjectIso) { showToast('你的出生資料尚未設定，請先完成個人設定'); return; }
+    if (!myCounty)  { showToast('請選擇你的出生地縣市'); return; }
+    if (!pCounty)   { showToast('請選擇對方的出生地縣市'); return; }
 
     const myLoc = _getLatLon(myCounty, myDist);
-
-    // If a group member was selected, use their stored lat/lon
-    const selectedMuid = document.getElementById('compMemberSelect').value;
     let pLoc = _getLatLon(pCounty, pDist);
-    if (selectedMuid) {
-      const m = _compMembers.find(v => v.uid === selectedMuid);
-      if (m && m.latitude_longitude) {
-        const [la, lo] = m.latitude_longitude.split(',').map(parseFloat);
-        if (!isNaN(la) && !isNaN(lo)) pLoc = { lat: la, lon: lo };
-      }
+    if (_compSelectedMember && _compSelectedMember.latitude_longitude) {
+      const [la, lo] = _compSelectedMember.latitude_longitude.split(',').map(parseFloat);
+      if (!isNaN(la) && !isNaN(lo)) pLoc = { lat: la, lon: lo };
     }
 
     const [pYear, pMonth, pDay] = partnerDate.split('-').map(Number);
@@ -2622,8 +2836,7 @@
     document.getElementById('cvLoading').style.display = 'block';
 
     try {
-      // Check cache first
-      const histR  = await fetch(`${API}/composite-history`, {
+      const histR    = await fetch(`${API}/composite-history`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: uid })
       });
@@ -2634,14 +2847,12 @@
         let cachedRes;
         try { cachedRes = JSON.parse(cached.result_json); } catch { cachedRes = null; }
         if (cachedRes) {
-          _compResult = cachedRes;
-          _compSaved  = true;
+          _compResult = cachedRes; _compSaved = true;
           _showCompResult(_compResult, myNick, partnerName);
           return;
         }
       }
 
-      // Fresh calculation
       const calcR = await fetch(`${API}/composite-calc`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2657,14 +2868,13 @@
       const calcData = await calcR.json();
       if (!calcData.success || !calcData.data) throw new Error('API 回傳格式錯誤');
 
-      _compResult = calcData.data;
-      _compSaved  = false;
+      _compResult = calcData.data; _compSaved = false;
       _showCompResult(_compResult, myNick, partnerName);
 
     } catch {
       document.getElementById('cvLoading').style.display = 'none';
       document.getElementById('cvForm').style.display    = 'block';
-      showToast('計算失敗，請稍後再試 🌙');
+      showToast('計算失敗，請稍後再試');
     }
   }
 
@@ -2693,21 +2903,26 @@
         <div class="comp-result-names">${x(data.user_name || myNick)} × ${x(data.partner_name || partnerName)}</div>
         <div class="comp-score-ring">
           <div class="comp-score-ring-bg" style="--fill-deg:${fillDeg}deg"></div>
-          <div class="comp-score-ring-inner"></div>
-          <div class="comp-score-num">${data.compat_score}%</div>
+          <div class="comp-score-ring-inner">
+            <div class="comp-score-num">${data.compat_score}</div>
+            <div class="comp-score-unit">分</div>
+          </div>
         </div>
         <div class="comp-rel-type">${x(data.relationship_type)}</div>
-        <div class="comp-rel-label">星盤契合度</div>
+        <div class="comp-rel-sub">COMPOSITE CHART · 星盤契合度</div>
       </div>
-      <div class="comp-dims">${dims}</div>
+      <div class="comp-dims">
+        <div class="comp-dims-title">五維度分析</div>
+        ${dims}
+      </div>
       <div class="comp-desc-card">${x(data.description)}</div>
-      ${data.strength ? `<div class="comp-sub-card s"><div class="comp-sub-label s">✦ 天然優勢</div><br>${x(data.strength)}</div>` : ''}
-      ${data.challenge ? `<div class="comp-sub-card c"><div class="comp-sub-label c">△ 需要磨合</div><br>${x(data.challenge)}</div>` : ''}
-      ${elems ? `<div class="comp-elem-row">合盤元素：${elems}</div>` : ''}
+      ${data.strength ? `<div class="comp-sub-card s"><div class="comp-sub-label s">✦ 天然優勢</div>${x(data.strength)}</div>` : ''}
+      ${data.challenge ? `<div class="comp-sub-card c"><div class="comp-sub-label c">△ 需要磨合</div>${x(data.challenge)}</div>` : ''}
+      ${elems ? `<div class="comp-elem-row">合盤元素組成：${elems}</div>` : ''}
       <div class="comp-result-btns">
         <button class="${saveCls}" id="compSaveBtn" onclick="saveCompositeRecord()">${saveLabel}</button>
         <button class="comp-btn share" onclick="shareCompositeLine()">📤 分享到 LINE</button>
-        <button class="comp-btn reset" onclick="resetComposite()">重新設定</button>
+        <button class="comp-btn reset" onclick="resetComposite()">重新計算</button>
       </div>`;
 
     document.getElementById('cvResult').style.display = 'block';
@@ -2723,13 +2938,13 @@
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           uid,
-          nickname:          _compResult.user_name || myNickname,
-          partner_name:      _compResult.partner_name,
-          partner_birth_date:_compResult.partner_birth_date,
-          cache_key:         _compResult.cache_key,
-          compat_score:      _compResult.compat_score,
-          relationship_type: _compResult.relationship_type,
-          result_json:       JSON.stringify(_compResult)
+          nickname:           _compResult.user_name || myNickname,
+          partner_name:       _compResult.partner_name,
+          partner_birth_date: _compResult.partner_birth_date,
+          cache_key:          _compResult.cache_key,
+          compat_score:       _compResult.compat_score,
+          relationship_type:  _compResult.relationship_type,
+          result_json:        JSON.stringify(_compResult)
         })
       });
       _compSaved = true;
@@ -2744,13 +2959,14 @@
   function resetComposite() {
     document.getElementById('cvResult').style.display = 'none';
     document.getElementById('cvForm').style.display   = 'block';
+    _compSelectedMember = null;
     document.getElementById('compositeBody').scrollTop = 0;
   }
 
   async function shareCompositeLine() {
     if (!_compResult) return;
     const d = _compResult;
-    const msg = `✦ 雙人合盤\n${x(d.user_name)} × ${x(d.partner_name)}\n契合度：${d.compat_score}%\n${x(d.relationship_type)}\n\n${x(d.description)}`;
+    const msg = `✦ 雙人合盤\n${x(d.user_name)} × ${x(d.partner_name)}\n契合度：${d.compat_score} 分\n${x(d.relationship_type)}\n\n${x(d.description)}`;
     const ready = await ensureLiff();
     if (ready && liff.isInClient()) {
       try { await liff.shareTargetPicker([{ type: 'text', text: msg }]); }
