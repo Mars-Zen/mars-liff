@@ -724,6 +724,153 @@
     .journal-grp-name { font-size: 13px; font-weight: 700; color: var(--pri-text); }
 
 
+    /* ── Composite Overlay ── */
+    .composite-overlay {
+      position: fixed; inset: 0;
+      background: rgba(28,26,46,0.55);
+      z-index: 350;
+      display: flex; align-items: flex-end;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.25s, visibility 0.25s;
+    }
+    .composite-overlay.open { opacity: 1; visibility: visible; }
+    .composite-panel {
+      width: 100%; height: 92vh;
+      background: #f5f3ff;
+      border-radius: 22px 22px 0 0;
+      display: flex; flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+      overflow: hidden;
+    }
+    .composite-overlay.open .composite-panel { transform: translateY(0); }
+    .composite-hd {
+      background: linear-gradient(145deg, #1e1b4b 0%, #4c1d95 55%, #831843 100%);
+      padding: 0 20px 16px; flex-shrink: 0;
+    }
+    .composite-handle {
+      width: 36px; height: 4px; background: rgba(255,255,255,0.28);
+      border-radius: 2px; margin: 14px auto 16px;
+    }
+    .composite-hd-row { display: flex; align-items: center; }
+    .composite-hd-title { font-size: 17px; font-weight: 700; color: #fff; flex: 1; }
+    .composite-close-btn {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: none; background: rgba(255,255,255,0.15); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; transition: background 0.12s;
+    }
+    .composite-close-btn:active { background: rgba(255,255,255,0.3); }
+    .composite-body {
+      flex: 1; overflow-y: auto; padding: 20px 16px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .comp-section-title {
+      font-size: 11px; font-weight: 800; letter-spacing: 0.1em;
+      color: #6d28d9; text-transform: uppercase;
+      margin: 22px 0 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .comp-section-title:first-child { margin-top: 0; }
+    .comp-field { margin-bottom: 12px; }
+    .comp-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+    .comp-input, .comp-select {
+      width: 100%; box-sizing: border-box;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 10px 12px; font-size: 14px; color: var(--text);
+      background: #fff; font-family: inherit;
+      outline: none; -webkit-appearance: none; appearance: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .comp-input:focus, .comp-select:focus {
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 2px rgba(124,58,237,0.12);
+    }
+    .comp-select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237c3aed' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+    }
+    .comp-loc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .comp-divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(124,58,237,0.18), transparent);
+      margin: 22px 0;
+    }
+    .comp-submit-btn {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, #4c1d95, #9d174d);
+      color: #fff; border: none; border-radius: 14px;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      font-family: inherit; margin-top: 10px; transition: opacity 0.15s;
+    }
+    .comp-submit-btn:active { opacity: 0.82; }
+    .comp-loading-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 64px 20px; gap: 16px;
+    }
+    .comp-loading-title { font-size: 15px; font-weight: 700; color: var(--pri-text); }
+    .comp-loading-sub { font-size: 13px; color: var(--muted); text-align: center; line-height: 1.65; }
+    .comp-result-header { text-align: center; margin-bottom: 24px; }
+    .comp-result-names { font-size: 15px; font-weight: 700; color: var(--pri-text); margin-bottom: 16px; }
+    .comp-score-ring {
+      width: 100px; height: 100px; margin: 0 auto 12px;
+      border-radius: 50%; position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .comp-score-ring-bg {
+      position: absolute; inset: 0; border-radius: 50%;
+      background: conic-gradient(#7c3aed var(--fill-deg, 0deg), #ede9fe 0deg);
+    }
+    .comp-score-ring-inner {
+      position: absolute; inset: 12px; background: #f5f3ff; border-radius: 50%;
+    }
+    .comp-score-num { font-size: 22px; font-weight: 900; color: #7c3aed; position: relative; z-index: 1; }
+    .comp-rel-type { font-size: 13px; font-weight: 700; color: #6d28d9; margin-bottom: 2px; }
+    .comp-rel-label { font-size: 11px; color: var(--muted); }
+    .comp-dims {
+      background: rgba(255,255,255,0.85); border: 1px solid rgba(124,58,237,0.1);
+      border-radius: 16px; padding: 14px; margin-bottom: 14px;
+    }
+    .comp-dim-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+    .comp-dim-row:last-child { margin-bottom: 0; }
+    .comp-dim-label { font-size: 11px; font-weight: 700; color: var(--muted); width: 32px; flex-shrink: 0; }
+    .comp-dim-bar-bg { flex: 1; height: 7px; background: #ede9fe; border-radius: 4px; overflow: hidden; }
+    .comp-dim-bar-fill {
+      height: 100%; border-radius: 4px;
+      background: linear-gradient(to right, #7c3aed, #db2777);
+    }
+    .comp-dim-score { font-size: 11px; font-weight: 700; color: var(--pri-text); width: 26px; text-align: right; flex-shrink: 0; }
+    .comp-desc-card {
+      background: linear-gradient(135deg, #f0eeff, #fef0ff);
+      border: 1px solid rgba(124,58,237,0.14); border-radius: 16px;
+      padding: 15px; margin-bottom: 10px;
+      font-size: 14px; line-height: 1.78; color: var(--text);
+    }
+    .comp-sub-card {
+      border-radius: 13px; padding: 11px 13px;
+      margin-bottom: 8px; font-size: 13px; line-height: 1.65;
+    }
+    .comp-sub-card.s { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
+    .comp-sub-card.c { background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; }
+    .comp-sub-label {
+      font-size: 10px; font-weight: 800; letter-spacing: 0.05em;
+      display: inline-block; border-radius: 20px; padding: 2px 8px; margin-bottom: 5px;
+    }
+    .comp-sub-label.s { background: #dcfce7; color: #166534; }
+    .comp-sub-label.c { background: #ffe4e6; color: #9f1239; }
+    .comp-elem-row { font-size: 12px; color: var(--muted); padding: 4px 2px 12px; }
+    .comp-result-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; padding-bottom: 12px; }
+    .comp-btn {
+      width: 100%; padding: 13px; border-radius: 12px; border: none;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: opacity 0.15s;
+    }
+    .comp-btn:active { opacity: 0.82; }
+    .comp-btn.save { background: linear-gradient(135deg, #4c1d95, #9d174d); color: #fff; }
+    .comp-btn.share { background: #00b900; color: #fff; }
+    .comp-btn.reset { background: #fff; border: 1.5px solid var(--border); color: var(--text); }
+    .comp-btn.saved { background: #f1f5f9; color: #94a3b8; cursor: default; pointer-events: none; }
+
     /* ── Loading ── */
     .loading { display: flex; justify-content: center; padding: 52px; }
     .spinner {
@@ -940,6 +1087,7 @@
     <div class="drawer-item" onclick="closeMenu(); goToPetCollection()">星獸收集</div>
     <div class="drawer-item" onclick="closeMenu(); goToBattleLobby()">測驗對戰</div>
     <div class="drawer-item"             onclick="closeMenu(); openJournal()">心情札記</div>
+    <div class="drawer-item"             onclick="closeMenu(); openComposite()">雙人合盤</div>
     <div class="drawer-item sep"         onclick="closeMenu(); window.open('https://youtu.be/DX0Z5u-tDys','_blank')">前導故事</div>
     <div class="drawer-item blue sep"    onclick="closeMenu(); openInvite()">邀請好友</div>
     <div class="drawer-item green sep"   onclick="closeMenu(); openSwitchGroup()">切換群組</div>
@@ -1058,6 +1206,93 @@
     </div>
     <div class="journal-body" id="journalBody">
       <div class="loading"><div class="spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Composite Overlay -->
+<div class="composite-overlay" id="compositeOverlay" onclick="if(event.target===this)closeComposite()">
+  <div class="composite-panel">
+    <div class="composite-hd">
+      <div class="composite-handle"></div>
+      <div class="composite-hd-row">
+        <div class="composite-hd-title">✦ 雙人合盤</div>
+        <button class="composite-close-btn" onclick="closeComposite()">
+          <svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="composite-body" id="compositeBody">
+
+      <!-- View A: Form -->
+      <div id="cvForm">
+        <div class="comp-section-title">▸ 我的資料</div>
+        <div class="comp-field">
+          <div class="comp-label">我的暱稱</div>
+          <input class="comp-input" id="compMyNick" type="text" placeholder="你的名字" maxlength="20">
+        </div>
+        <div class="comp-field">
+          <div class="comp-label">我的出生地</div>
+          <div class="comp-loc-row">
+            <select class="comp-select" id="compMyCounty" onchange="updateCompDistrict('my')">
+              <option value="">縣市</option>
+            </select>
+            <select class="comp-select" id="compMyDistrict">
+              <option value="">鄉鎮區</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="comp-divider"></div>
+
+        <div class="comp-section-title">▸ 對方資料</div>
+        <div class="comp-field">
+          <div class="comp-label">從群組成員選擇（可選）</div>
+          <select class="comp-select" id="compMemberSelect" onchange="onCompMemberSelect()">
+            <option value="">── 手動輸入 ──</option>
+          </select>
+        </div>
+        <div class="comp-field">
+          <div class="comp-label">對方名字</div>
+          <input class="comp-input" id="compPartnerName" type="text" placeholder="對方的稱呼" maxlength="20">
+        </div>
+        <div class="comp-field">
+          <div class="comp-label">對方出生日期</div>
+          <input class="comp-input" id="compPartnerDate" type="date">
+        </div>
+        <div class="comp-field">
+          <div class="comp-label">對方出生時間（不確定可保留 12:00）</div>
+          <input class="comp-input" id="compPartnerTime" type="time" value="12:00">
+        </div>
+        <div class="comp-field">
+          <div class="comp-label">對方出生地</div>
+          <div class="comp-loc-row">
+            <select class="comp-select" id="compPartnerCounty" onchange="updateCompDistrict('partner')">
+              <option value="">縣市</option>
+            </select>
+            <select class="comp-select" id="compPartnerDistrict">
+              <option value="">鄉鎮區</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="comp-submit-btn" onclick="submitCompositeForm()">✦ 開始計算合盤</button>
+      </div>
+
+      <!-- View B: Loading -->
+      <div id="cvLoading" style="display:none">
+        <div class="comp-loading-wrap">
+          <div class="spinner" style="width:36px;height:36px;border-color:rgba(124,58,237,0.15);border-top-color:#7c3aed"></div>
+          <div class="comp-loading-title">正在計算雙人合盤…</div>
+          <div class="comp-loading-sub">星盤正在對齊，約需 10–20 秒<br>請稍候 ✦</div>
+        </div>
+      </div>
+
+      <!-- View C: Result -->
+      <div id="cvResult" style="display:none"></div>
+
     </div>
   </div>
 </div>
@@ -2112,6 +2347,417 @@
         </div>
       </div>` : `<div style="text-align:center;padding:20px 16px;color:#a8a29e;font-size:14px;">✨ 尚未召喚星獸</div>`}
     `;
+  }
+
+  /* ── Composite ──────────────────────────────────────────────── */
+  const TW_LOCS = {
+    '台北市':{ lat:25.033, lon:121.5654, districts:{
+      '信義區':{lat:25.033,lon:121.5654},'大安區':{lat:25.0267,lon:121.543},'中正區':{lat:25.0428,lon:121.5149},
+      '中山區':{lat:25.063,lon:121.5329},'松山區':{lat:25.0578,lon:121.5773},'內湖區':{lat:25.083,lon:121.5872},
+      '南港區':{lat:25.0551,lon:121.6077},'文山區':{lat:24.9987,lon:121.5695},'萬華區':{lat:25.0324,lon:121.4994},
+      '大同區':{lat:25.0631,lon:121.5083},'士林區':{lat:25.0933,lon:121.5246},'北投區':{lat:25.1327,lon:121.4983}
+    }},
+    '新北市':{ lat:25.0118, lon:121.4655, districts:{
+      '板橋區':{lat:25.0135,lon:121.4631},'三重區':{lat:25.064,lon:121.4974},'中和區':{lat:24.9943,lon:121.4973},
+      '永和區':{lat:25.0141,lon:121.5165},'新莊區':{lat:25.0438,lon:121.4441},'新店區':{lat:24.9686,lon:121.5402},
+      '樹林區':{lat:24.9914,lon:121.4195},'淡水區':{lat:25.171,lon:121.4413},'汐止區':{lat:25.0685,lon:121.6628},
+      '土城區':{lat:24.9721,lon:121.4479},'蘆洲區':{lat:25.0854,lon:121.4679},'林口區':{lat:25.0846,lon:121.3868},
+      '三峽區':{lat:24.9338,lon:121.3624},'鶯歌區':{lat:24.9522,lon:121.3426},'五股區':{lat:25.0787,lon:121.4335},
+      '瑞芳區':{lat:25.1082,lon:121.8021},'金山區':{lat:25.223,lon:121.6424},'萬里區':{lat:25.1792,lon:121.694},
+      '深坑區':{lat:24.9997,lon:121.613},'石碇區':{lat:24.9867,lon:121.6646},'平溪區':{lat:25.0248,lon:121.739},
+      '雙溪區':{lat:25.0343,lon:121.8706},'貢寮區':{lat:25.0256,lon:121.912},'三芝區':{lat:25.2547,lon:121.5049},
+      '石門區':{lat:25.2847,lon:121.5631},'八里區':{lat:25.1556,lon:121.4031},'烏來區':{lat:24.8668,lon:121.5434}
+    }},
+    '基隆市':{ lat:25.1276, lon:121.7392, districts:{
+      '仁愛區':{lat:25.1289,lon:121.7419},'信義區':{lat:25.1306,lon:121.7586},'中正區':{lat:25.1172,lon:121.7467},
+      '中山區':{lat:25.128,lon:121.7186},'安樂區':{lat:25.1456,lon:121.7253},'暖暖區':{lat:25.1073,lon:121.7654},
+      '七堵區':{lat:25.0939,lon:121.7274}
+    }},
+    '桃園市':{ lat:24.9936, lon:121.301, districts:{
+      '桃園區':{lat:24.9936,lon:121.301},'中壢區':{lat:24.9534,lon:121.226},'八德區':{lat:24.9511,lon:121.2916},
+      '龜山區':{lat:24.998,lon:121.3534},'蘆竹區':{lat:25.053,lon:121.2653},'大園區':{lat:25.0693,lon:121.2157},
+      '楊梅區':{lat:24.9119,lon:121.1403},'龍潭區':{lat:24.8631,lon:121.2169},'平鎮區':{lat:24.9396,lon:121.2218},
+      '大溪區':{lat:24.8836,lon:121.2916},'新屋區':{lat:24.9711,lon:121.0839},'觀音區':{lat:24.9939,lon:121.0932},
+      '復興區':{lat:24.7954,lon:121.3744}
+    }},
+    '新竹市':{ lat:24.8066, lon:120.9686, districts:{
+      '東區':{lat:24.8066,lon:120.9686},'北區':{lat:24.8414,lon:120.951},'香山區':{lat:24.7735,lon:120.9298}
+    }},
+    '新竹縣':{ lat:24.8387, lon:121.0177, districts:{
+      '竹北市':{lat:24.8387,lon:121.0177},'竹東鎮':{lat:24.7301,lon:121.0846},'新埔鎮':{lat:24.8442,lon:121.0712},
+      '關西鎮':{lat:24.791,lon:121.1759},'湖口鄉':{lat:24.9034,lon:121.0475},'新豐鄉':{lat:24.9246,lon:121.0209},
+      '芎林鄉':{lat:24.7873,lon:121.0715},'橫山鄉':{lat:24.7238,lon:121.1378},'北埔鄉':{lat:24.6965,lon:121.0569},
+      '寶山鄉':{lat:24.7537,lon:121.0183},'峨眉鄉':{lat:24.6741,lon:121.0244},'尖石鄉':{lat:24.6455,lon:121.3163},
+      '五峰鄉':{lat:24.6345,lon:121.1782}
+    }},
+    '苗栗縣':{ lat:24.5602, lon:120.8214, districts:{
+      '苗栗市':{lat:24.5602,lon:120.8214},'頭份市':{lat:24.685,lon:120.8898},'竹南鎮':{lat:24.6871,lon:120.8716},
+      '通霄鎮':{lat:24.4631,lon:120.6847},'苑裡鎮':{lat:24.4399,lon:120.6432},'大湖鄉':{lat:24.4107,lon:120.8655},
+      '公館鄉':{lat:24.5115,lon:120.8385},'銅鑼鄉':{lat:24.4893,lon:120.7876},'南庄鄉':{lat:24.6183,lon:120.9631},
+      '三義鄉':{lat:24.3916,lon:120.7538},'卓蘭鎮':{lat:24.3499,lon:120.8099},'泰安鄉':{lat:24.4188,lon:120.961}
+    }},
+    '台中市':{ lat:24.1477, lon:120.6736, districts:{
+      '中區':{lat:24.1477,lon:120.6736},'東區':{lat:24.1436,lon:120.6907},'西區':{lat:24.1519,lon:120.6597},
+      '南區':{lat:24.1225,lon:120.6802},'北區':{lat:24.1692,lon:120.6813},'西屯區':{lat:24.17,lon:120.6303},
+      '南屯區':{lat:24.1316,lon:120.6481},'北屯區':{lat:24.1914,lon:120.7077},'豐原區':{lat:24.2519,lon:120.7199},
+      '大里區':{lat:24.0954,lon:120.6825},'太平區':{lat:24.1289,lon:120.7273},'清水區':{lat:24.268,lon:120.56},
+      '沙鹿區':{lat:24.2358,lon:120.5856},'梧棲區':{lat:24.2986,lon:120.5249},'烏日區':{lat:24.082,lon:120.6413},
+      '大甲區':{lat:24.3478,lon:120.6222},'潭子區':{lat:24.2156,lon:120.7074},'霧峰區':{lat:24.0534,lon:120.7218},
+      '東勢區':{lat:24.2584,lon:120.8252},'和平區':{lat:24.3729,lon:121.1762},'后里區':{lat:24.3085,lon:120.7022}
+    }},
+    '彰化縣':{ lat:24.0517, lon:120.5161, districts:{
+      '彰化市':{lat:24.0517,lon:120.5161},'員林市':{lat:23.9578,lon:120.5749},'和美鎮':{lat:24.1109,lon:120.5139},
+      '鹿港鎮':{lat:24.0534,lon:120.433},'溪湖鎮':{lat:23.9726,lon:120.4681},'二林鎮':{lat:23.9202,lon:120.3933},
+      '北斗鎮':{lat:23.8747,lon:120.5291},'田中鎮':{lat:23.8641,lon:120.5712},'溪州鄉':{lat:23.847,lon:120.4821},
+      '芳苑鄉':{lat:23.9577,lon:120.3622},'大城鄉':{lat:23.8768,lon:120.3818}
+    }},
+    '南投縣':{ lat:23.9609, lon:120.9718, districts:{
+      '南投市':{lat:23.9609,lon:120.9718},'草屯鎮':{lat:23.9855,lon:120.8648},'竹山鎮':{lat:23.7576,lon:120.7159},
+      '埔里鎮':{lat:23.9604,lon:120.9754},'集集鎮':{lat:23.833,lon:120.7767},'名間鄉':{lat:23.884,lon:120.7991},
+      '水里鄉':{lat:23.8172,lon:120.8543},'魚池鄉':{lat:23.896,lon:120.9391},'國姓鄉':{lat:24.045,lon:120.8672},
+      '信義鄉':{lat:23.6803,lon:120.8679},'仁愛鄉':{lat:24.082,lon:121.0965}
+    }},
+    '雲林縣':{ lat:23.7092, lon:120.4313, districts:{
+      '斗六市':{lat:23.7092,lon:120.5432},'斗南鎮':{lat:23.6766,lon:120.4777},'虎尾鎮':{lat:23.7075,lon:120.4313},
+      '西螺鎮':{lat:23.7985,lon:120.4666},'北港鎮':{lat:23.5722,lon:120.3002},'土庫鎮':{lat:23.6661,lon:120.3974},
+      '麥寮鄉':{lat:23.7564,lon:120.265},'元長鄉':{lat:23.6388,lon:120.3195},'口湖鄉':{lat:23.5833,lon:120.1804}
+    }},
+    '嘉義市':{ lat:23.48, lon:120.4491, districts:{
+      '東區':{lat:23.48,lon:120.4631},'西區':{lat:23.4752,lon:120.4412}
+    }},
+    '嘉義縣':{ lat:24.4518, lon:120.2554, districts:{
+      '太保市':{lat:23.4518,lon:120.3329},'朴子市':{lat:23.4664,lon:120.2459},'布袋鎮':{lat:23.377,lon:120.1721},
+      '大林鎮':{lat:23.5938,lon:120.4724},'民雄鄉':{lat:23.5519,lon:120.4282},'新港鄉':{lat:23.5529,lon:120.3414},
+      '水上鄉':{lat:23.4253,lon:120.3816},'中埔鄉':{lat:23.4144,lon:120.473},'竹崎鄉':{lat:23.5219,lon:120.5411},
+      '梅山鄉':{lat:23.5775,lon:120.5688},'阿里山鄉':{lat:23.5154,lon:120.653}
+    }},
+    '台南市':{ lat:22.9998, lon:120.227, districts:{
+      '中西區':{lat:22.9998,lon:120.202},'東區':{lat:22.9896,lon:120.2281},'南區':{lat:22.9673,lon:120.2073},
+      '北區':{lat:23.0212,lon:120.2058},'安平區':{lat:23.0041,lon:120.1669},'安南區':{lat:23.0622,lon:120.1755},
+      '永康區':{lat:23.0325,lon:120.2622},'歸仁區':{lat:22.9649,lon:120.3009},'新化區':{lat:23.0391,lon:120.3138},
+      '仁德區':{lat:22.9531,lon:120.242},'關廟區':{lat:22.9384,lon:120.3225},'麻豆區':{lat:23.1777,lon:120.2523},
+      '佳里區':{lat:23.164,lon:120.1729},'新營區':{lat:23.3108,lon:120.3128},'善化區':{lat:23.1452,lon:120.3002},
+      '白河區':{lat:23.3574,lon:120.5125},'玉井區':{lat:23.1217,lon:120.4612}
+    }},
+    '高雄市':{ lat:22.6273, lon:120.3014, districts:{
+      '楠梓區':{lat:22.7351,lon:120.3141},'左營區':{lat:22.6924,lon:120.2957},'鼓山區':{lat:22.6621,lon:120.2785},
+      '三民區':{lat:22.6638,lon:120.3085},'新興區':{lat:22.6307,lon:120.3076},'苓雅區':{lat:22.6205,lon:120.3209},
+      '前鎮區':{lat:22.5979,lon:120.3272},'小港區':{lat:22.5615,lon:120.3555},'鳳山區':{lat:22.6271,lon:120.358},
+      '林園區':{lat:22.4993,lon:120.3803},'大寮區':{lat:22.599,lon:120.4042},'仁武區':{lat:22.7017,lon:120.355},
+      '岡山區':{lat:22.7963,lon:120.2991},'橋頭區':{lat:22.7499,lon:120.3056},'路竹區':{lat:22.8589,lon:120.2621},
+      '旗山區':{lat:22.8897,lon:120.4808},'美濃區':{lat:22.8944,lon:120.5391},'大樹區':{lat:22.6743,lon:120.4453},
+      '六龜區':{lat:23.0082,lon:120.6462},'那瑪夏區':{lat:23.2326,lon:120.6846}
+    }},
+    '屏東縣':{ lat:22.6724, lon:120.4875, districts:{
+      '屏東市':{lat:22.6724,lon:120.4875},'潮州鎮':{lat:22.5465,lon:120.539},'東港鎮':{lat:22.465,lon:120.4493},
+      '恆春鎮':{lat:22.0025,lon:120.7469},'內埔鄉':{lat:22.6207,lon:120.5566},'萬丹鄉':{lat:22.5868,lon:120.4861},
+      '長治鄉':{lat:22.6803,lon:120.538},'里港鄉':{lat:22.7628,lon:120.4874},'高樹鄉':{lat:22.7773,lon:120.5971},
+      '萬巒鄉':{lat:22.5993,lon:120.5534},'枋寮鄉':{lat:22.3693,lon:120.5967},'佳冬鄉':{lat:22.4131,lon:120.5671},
+      '車城鄉':{lat:22.0661,lon:120.7119},'滿州鄉':{lat:21.9924,lon:120.8365},'琉球鄉':{lat:22.3419,lon:120.3787}
+    }},
+    '台東縣':{ lat:22.7583, lon:121.1444, districts:{
+      '台東市':{lat:22.7583,lon:121.1444},'成功鎮':{lat:23.0988,lon:121.3715},'關山鎮':{lat:23.0492,lon:121.165},
+      '卑南鄉':{lat:22.7128,lon:121.0816},'鹿野鄉':{lat:22.9197,lon:121.1584},'池上鄉':{lat:23.1143,lon:121.2221},
+      '長濱鄉':{lat:23.3299,lon:121.463},'太麻里鄉':{lat:22.6142,lon:121.014},'綠島鄉':{lat:22.6555,lon:121.4874},
+      '蘭嶼鄉':{lat:22.0468,lon:121.55}
+    }},
+    '花蓮縣':{ lat:23.9871, lon:121.6016, districts:{
+      '花蓮市':{lat:23.9871,lon:121.6016},'鳳林鎮':{lat:23.7438,lon:121.4706},'玉里鎮':{lat:23.6326,lon:121.3105},
+      '新城鄉':{lat:24.1316,lon:121.6594},'吉安鄉':{lat:23.9708,lon:121.5728},'壽豐鄉':{lat:23.8714,lon:121.5184},
+      '光復鄉':{lat:23.6957,lon:121.4295},'瑞穗鄉':{lat:23.4965,lon:121.3633},'富里鄉':{lat:23.3839,lon:121.27},
+      '秀林鄉':{lat:24.1561,lon:121.6067},'萬榮鄉':{lat:23.7278,lon:121.3944},'卓溪鄉':{lat:23.4965,lon:121.2148}
+    }},
+    '宜蘭縣':{ lat:24.7021, lon:121.7378, districts:{
+      '宜蘭市':{lat:24.7021,lon:121.7378},'羅東鎮':{lat:24.6814,lon:121.7676},'蘇澳鎮':{lat:24.5972,lon:121.8562},
+      '頭城鎮':{lat:24.8618,lon:121.825},'礁溪鄉':{lat:24.8209,lon:121.7771},'壯圍鄉':{lat:24.7307,lon:121.8142},
+      '員山鄉':{lat:24.7337,lon:121.6832},'三星鄉':{lat:24.6652,lon:121.6579},'冬山鄉':{lat:24.6449,lon:121.7826},
+      '五結鄉':{lat:24.6557,lon:121.7992},'南澳鄉':{lat:24.5048,lon:121.7968}
+    }},
+    '澎湖縣':{ lat:23.5711, lon:119.5793, districts:{
+      '馬公市':{lat:23.5711,lon:119.5793},'西嶼鄉':{lat:23.6079,lon:119.5046},'望安鄉':{lat:23.36,lon:119.5019},
+      '七美鄉':{lat:23.2108,lon:119.4263},'白沙鄉':{lat:23.6727,lon:119.609},'湖西鄉':{lat:23.5866,lon:119.6598}
+    }},
+    '金門縣':{ lat:24.4492, lon:118.3767, districts:{
+      '金城鎮':{lat:24.4331,lon:118.3171},'金湖鎮':{lat:24.445,lon:118.4199},'金沙鎮':{lat:24.49,lon:118.4161},
+      '金寧鄉':{lat:24.4614,lon:118.3358},'烈嶼鄉':{lat:24.4358,lon:118.2354},'烏坵鄉':{lat:25.0061,lon:119.4508}
+    }},
+    '連江縣':{ lat:26.1586, lon:119.953, districts:{
+      '南竿鄉':{lat:26.1586,lon:119.953},'北竿鄉':{lat:26.2259,lon:120.0023},
+      '莒光鄉':{lat:25.9671,lon:119.9977},'東引鄉':{lat:26.366,lon:120.4832}
+    }}
+  };
+
+  let _compMembers = [];
+  let _compResult  = null;
+  let _compSaved   = false;
+
+  function openComposite() {
+    if (!uid || uid === 'demo_user') { showToast('示範模式無法使用雙人合盤'); return; }
+    document.getElementById('compositeOverlay').classList.add('open');
+    _initCompositeForm();
+  }
+
+  function closeComposite() {
+    document.getElementById('compositeOverlay').classList.remove('open');
+  }
+
+  function _initCompositeForm() {
+    document.getElementById('cvForm').style.display    = 'block';
+    document.getElementById('cvLoading').style.display = 'none';
+    document.getElementById('cvResult').style.display  = 'none';
+    _compResult = null; _compSaved = false;
+
+    document.getElementById('compMyNick').value = myNickname || '';
+
+    _populateCompCounty('my');
+    _populateCompCounty('partner');
+
+    // Default my location: 台北市 信義區
+    document.getElementById('compMyCounty').value = '台北市';
+    updateCompDistrict('my');
+    setTimeout(() => { document.getElementById('compMyDistrict').value = '信義區'; }, 0);
+
+    // Default partner location: 台北市
+    document.getElementById('compPartnerCounty').value = '台北市';
+    updateCompDistrict('partner');
+
+    _loadCompMembers();
+  }
+
+  function _populateCompCounty(who) {
+    const sel = document.getElementById(who === 'my' ? 'compMyCounty' : 'compPartnerCounty');
+    sel.innerHTML = '<option value="">縣市</option>';
+    for (const c of Object.keys(TW_LOCS)) {
+      const o = document.createElement('option');
+      o.value = o.textContent = c;
+      sel.appendChild(o);
+    }
+  }
+
+  function updateCompDistrict(who) {
+    const county = document.getElementById(who === 'my' ? 'compMyCounty' : 'compPartnerCounty').value;
+    const sel    = document.getElementById(who === 'my' ? 'compMyDistrict' : 'compPartnerDistrict');
+    sel.innerHTML = '<option value="">鄉鎮區</option>';
+    if (!county || !TW_LOCS[county]) return;
+    for (const d of Object.keys(TW_LOCS[county].districts)) {
+      const o = document.createElement('option');
+      o.value = o.textContent = d;
+      sel.appendChild(o);
+    }
+  }
+
+  function _getLatLon(county, district) {
+    const loc = TW_LOCS[county];
+    if (!loc) return { lat: 25.033, lon: 121.5654 };
+    if (district && loc.districts[district]) return loc.districts[district];
+    return { lat: loc.lat, lon: loc.lon };
+  }
+
+  async function _loadCompMembers() {
+    try {
+      const r = await fetch(`${API}/group-members`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ group_id })
+      });
+      const data = await r.json();
+      _compMembers = (data.members || []).filter(m => m.uid !== uid && m.subject_iso_datetime);
+    } catch { _compMembers = []; }
+    const sel = document.getElementById('compMemberSelect');
+    sel.innerHTML = '<option value="">── 手動輸入 ──</option>';
+    for (const m of _compMembers) {
+      const o = document.createElement('option');
+      o.value = m.uid;
+      o.textContent = m.nickname || '成員';
+      sel.appendChild(o);
+    }
+  }
+
+  function onCompMemberSelect() {
+    const muid = document.getElementById('compMemberSelect').value;
+    if (!muid) return;
+    const m = _compMembers.find(v => v.uid === muid);
+    if (!m) return;
+    document.getElementById('compPartnerName').value = m.nickname || '';
+    if (m.subject_iso_datetime) {
+      const [dp, tp] = m.subject_iso_datetime.split('T');
+      document.getElementById('compPartnerDate').value = dp || '';
+      document.getElementById('compPartnerTime').value = tp ? tp.slice(0, 5) : '12:00';
+    }
+  }
+
+  async function submitCompositeForm() {
+    const myNick      = document.getElementById('compMyNick').value.trim();
+    const partnerName = document.getElementById('compPartnerName').value.trim();
+    const partnerDate = document.getElementById('compPartnerDate').value;
+    const partnerTime = document.getElementById('compPartnerTime').value || '12:00';
+    const myCounty    = document.getElementById('compMyCounty').value;
+    const myDist      = document.getElementById('compMyDistrict').value;
+    const pCounty     = document.getElementById('compPartnerCounty').value;
+    const pDist       = document.getElementById('compPartnerDistrict').value;
+
+    if (!myNick)      { showToast('請填寫你的暱稱'); return; }
+    if (!partnerName) { showToast('請填寫對方的名字'); return; }
+    if (!partnerDate) { showToast('請選擇對方的出生日期'); return; }
+    if (!myCounty)    { showToast('請選擇你的出生地縣市'); return; }
+    if (!pCounty)     { showToast('請選擇對方的出生地縣市'); return; }
+
+    const myLoc = _getLatLon(myCounty, myDist);
+
+    // If a group member was selected, use their stored lat/lon
+    const selectedMuid = document.getElementById('compMemberSelect').value;
+    let pLoc = _getLatLon(pCounty, pDist);
+    if (selectedMuid) {
+      const m = _compMembers.find(v => v.uid === selectedMuid);
+      if (m && m.latitude_longitude) {
+        const [la, lo] = m.latitude_longitude.split(',').map(parseFloat);
+        if (!isNaN(la) && !isNaN(lo)) pLoc = { lat: la, lon: lo };
+      }
+    }
+
+    const [pYear, pMonth, pDay] = partnerDate.split('-').map(Number);
+    const [pHour, pMinute]      = partnerTime.split(':').map(Number);
+    const cacheKey = `${uid}|${partnerName}|${partnerDate}`;
+
+    document.getElementById('cvForm').style.display    = 'none';
+    document.getElementById('cvLoading').style.display = 'block';
+
+    try {
+      // Check cache first
+      const histR  = await fetch(`${API}/composite-history`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: uid })
+      });
+      const histData = await histR.json();
+      const cached   = (histData.records || []).find(r => r.cache_key === cacheKey);
+
+      if (cached) {
+        let cachedRes;
+        try { cachedRes = JSON.parse(cached.result_json); } catch { cachedRes = null; }
+        if (cachedRes) {
+          _compResult = cachedRes;
+          _compSaved  = true;
+          _showCompResult(_compResult, myNick, partnerName);
+          return;
+        }
+      }
+
+      // Fresh calculation
+      const calcR = await fetch(`${API}/composite-calc`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: uid,
+          user_location: `${myLoc.lat},${myLoc.lon}`,
+          nickname: myNick,
+          partner_name: partnerName,
+          partner_year: pYear, partner_month: pMonth, partner_day: pDay,
+          partner_hour: pHour, partner_minute: pMinute,
+          partner_lat: pLoc.lat, partner_lon: pLoc.lon
+        })
+      });
+      const calcData = await calcR.json();
+      if (!calcData.success || !calcData.data) throw new Error('API 回傳格式錯誤');
+
+      _compResult = calcData.data;
+      _compSaved  = false;
+      _showCompResult(_compResult, myNick, partnerName);
+
+    } catch {
+      document.getElementById('cvLoading').style.display = 'none';
+      document.getElementById('cvForm').style.display    = 'block';
+      showToast('計算失敗，請稍後再試 🌙');
+    }
+  }
+
+  function _showCompResult(data, myNick, partnerName) {
+    document.getElementById('cvLoading').style.display = 'none';
+    const fillDeg = Math.round((data.compat_score / 100) * 360);
+    const DIM_LABELS = { passion:'激情', stability:'穩定', communication:'溝通', trust:'信任', growth:'成長' };
+    const ELEM_ZH    = { Fire:'🔥火', Earth:'⛰️土', Air:'💨風', Water:'💧水' };
+
+    const dims = Object.entries(data.scores || {}).map(([k, v]) => `
+      <div class="comp-dim-row">
+        <div class="comp-dim-label">${DIM_LABELS[k] || k}</div>
+        <div class="comp-dim-bar-bg"><div class="comp-dim-bar-fill" style="width:${v}%"></div></div>
+        <div class="comp-dim-score">${v}</div>
+      </div>`).join('');
+
+    const elems = Object.entries(data.elem_pct || {})
+      .filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1])
+      .map(([k,v]) => `${ELEM_ZH[k]||k} ${v}%`).join('　');
+
+    const saveLabel = _compSaved ? '✓ 已儲存' : '儲存紀錄';
+    const saveCls   = _compSaved ? 'comp-btn saved' : 'comp-btn save';
+
+    document.getElementById('cvResult').innerHTML = `
+      <div class="comp-result-header">
+        <div class="comp-result-names">${x(data.user_name || myNick)} × ${x(data.partner_name || partnerName)}</div>
+        <div class="comp-score-ring">
+          <div class="comp-score-ring-bg" style="--fill-deg:${fillDeg}deg"></div>
+          <div class="comp-score-ring-inner"></div>
+          <div class="comp-score-num">${data.compat_score}%</div>
+        </div>
+        <div class="comp-rel-type">${x(data.relationship_type)}</div>
+        <div class="comp-rel-label">星盤契合度</div>
+      </div>
+      <div class="comp-dims">${dims}</div>
+      <div class="comp-desc-card">${x(data.description)}</div>
+      ${data.strength ? `<div class="comp-sub-card s"><div class="comp-sub-label s">✦ 天然優勢</div><br>${x(data.strength)}</div>` : ''}
+      ${data.challenge ? `<div class="comp-sub-card c"><div class="comp-sub-label c">△ 需要磨合</div><br>${x(data.challenge)}</div>` : ''}
+      ${elems ? `<div class="comp-elem-row">合盤元素：${elems}</div>` : ''}
+      <div class="comp-result-btns">
+        <button class="${saveCls}" id="compSaveBtn" onclick="saveCompositeRecord()">${saveLabel}</button>
+        <button class="comp-btn share" onclick="shareCompositeLine()">📤 分享到 LINE</button>
+        <button class="comp-btn reset" onclick="resetComposite()">重新設定</button>
+      </div>`;
+
+    document.getElementById('cvResult').style.display = 'block';
+    document.getElementById('compositeBody').scrollTop = 0;
+  }
+
+  async function saveCompositeRecord() {
+    if (_compSaved || !_compResult) return;
+    const btn = document.getElementById('compSaveBtn');
+    if (btn) btn.textContent = '儲存中…';
+    try {
+      await fetch(`${API}/composite-save`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uid,
+          nickname:          _compResult.user_name || myNickname,
+          partner_name:      _compResult.partner_name,
+          partner_birth_date:_compResult.partner_birth_date,
+          cache_key:         _compResult.cache_key,
+          compat_score:      _compResult.compat_score,
+          relationship_type: _compResult.relationship_type,
+          result_json:       JSON.stringify(_compResult)
+        })
+      });
+      _compSaved = true;
+      if (btn) { btn.textContent = '✓ 已儲存'; btn.className = 'comp-btn saved'; }
+      showToast('合盤紀錄已儲存 ✦');
+    } catch {
+      if (btn) btn.textContent = '儲存紀錄';
+      showToast('儲存失敗，請再試一次');
+    }
+  }
+
+  function resetComposite() {
+    document.getElementById('cvResult').style.display = 'none';
+    document.getElementById('cvForm').style.display   = 'block';
+    document.getElementById('compositeBody').scrollTop = 0;
+  }
+
+  async function shareCompositeLine() {
+    if (!_compResult) return;
+    const d = _compResult;
+    const msg = `✦ 雙人合盤\n${x(d.user_name)} × ${x(d.partner_name)}\n契合度：${d.compat_score}%\n${x(d.relationship_type)}\n\n${x(d.description)}`;
+    const ready = await ensureLiff();
+    if (ready && liff.isInClient()) {
+      try { await liff.shareTargetPicker([{ type: 'text', text: msg }]); }
+      catch { showToast('分享已取消'); }
+    } else {
+      showToast('請在 LINE 內使用分享功能');
+    }
   }
 
   /* ── Pet Collection ─────────────────────────────────────────── */
