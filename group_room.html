@@ -907,10 +907,19 @@
       background-position: right 10px center;
     }
 
-    /* Partner block — blue theme for auto-filled read-only fields */
+    /* Partner block — blue theme */
     .comp-block-partner .comp-ro-label { color: #60a5fa; }
     .comp-block-partner .comp-input-ro {
       background: #eff8ff; border-color: #bfdbfe; color: #1e3a5f;
+    }
+    .comp-block-partner .comp-input,
+    .comp-block-partner .comp-select { border-color: #bfdbfe; }
+    .comp-block-partner .comp-select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2360a5fa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    }
+    .comp-block-partner .comp-input:focus,
+    .comp-block-partner .comp-select:focus {
+      border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
     }
 
     /* Date/time inputs left-align (partner manual entry) */
@@ -1430,7 +1439,6 @@
 
         <!-- 我的資料 -->
         <div class="comp-block">
-          <div class="comp-block-title">我的資料</div>
           <div class="comp-ng-row">
             <div class="comp-ro-field">
               <div class="comp-ro-label">我的暱稱</div>
@@ -1469,8 +1477,6 @@
 
         <!-- 對方資料 -->
         <div class="comp-block comp-block-partner">
-          <div class="comp-block-title">對方資料</div>
-
           <!-- 對方名字 + 性別 同行 -->
           <div class="comp-ng-partner-row">
             <!-- 名字欄 -->
@@ -1487,7 +1493,7 @@
             </div>
             <!-- 性別欄 -->
             <div class="comp-gender-col">
-              <div class="comp-label">性別</div>
+              <div class="comp-label" id="compPartnerGenderLabel">性別</div>
               <select class="comp-select comp-gender-sel" id="compPartnerGender">
                 <option value="F">女</option>
                 <option value="M">男</option>
@@ -2957,7 +2963,8 @@
   function _setPartnerManual() {
     _compSelectedMember = null;
     // 標籤顏色重置
-    document.getElementById('compPartnerNameLabel').style.color = '';
+    document.getElementById('compPartnerNameLabel').style.color   = '';
+    document.getElementById('compPartnerGenderLabel').style.color = '';
     // 名字：顯示輸入框，隱藏 locked display
     document.getElementById('compPartnerNameInputWrap').style.display = '';
     document.getElementById('compPartnerNameLocked').style.display    = 'none';
@@ -2978,7 +2985,8 @@
   function _setPartnerMember(m) {
     _compSelectedMember = m;
     // 標籤變藍色（對方區塊藍色主題）
-    document.getElementById('compPartnerNameLabel').style.color = '#60a5fa';
+    document.getElementById('compPartnerNameLabel').style.color   = '#60a5fa';
+    document.getElementById('compPartnerGenderLabel').style.color = '#60a5fa';
     // 名字：隱藏輸入框，顯示 locked display
     document.getElementById('compPartnerNameInputWrap').style.display = 'none';
     document.getElementById('compPartnerNameLocked').style.display    = 'flex';
