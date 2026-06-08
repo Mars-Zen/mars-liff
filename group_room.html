@@ -805,7 +805,7 @@
       letter-spacing: 0.05em; margin-bottom: 5px;
     }
     .comp-input-ro {
-      width: 100%; box-sizing: border-box; min-height: 48px;
+      width: 100%; box-sizing: border-box; min-height: 50px;
       border: 1.5px solid #ede8ff; border-radius: 13px;
       padding: 12px 15px; font-size: 15px; color: #2e1065;
       background: #faf8ff; font-family: inherit; font-weight: 600;
@@ -834,7 +834,7 @@
       width: 100%; box-sizing: border-box; min-height: 50px;
       border: 1.5px solid #e5deff; border-radius: 13px;
       padding: 12px 15px; font-size: 15px; color: #1e1b4b;
-      background: #fff; font-family: inherit;
+      background: #fff; font-family: inherit; text-align: left;
       outline: none; -webkit-appearance: none; appearance: none;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
@@ -846,11 +846,11 @@
       background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; cursor: pointer;
     }
     .comp-loc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .comp-dt-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .comp-dt-row { display: grid; grid-template-columns: 3fr 2fr; gap: 10px; margin-bottom: 14px; }
     .comp-dt-row .comp-field { margin-bottom: 0; }
 
     /* Read-only date/time in 2-col row */
-    .comp-ro-dt-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 13px; }
+    .comp-ro-dt-row { display: grid; grid-template-columns: 3fr 2fr; gap: 10px; margin-bottom: 13px; }
     .comp-ro-dt-row .comp-ro-field { margin-bottom: 0; }
 
     /* Date/time picker icon wrappers */
@@ -919,7 +919,8 @@
     .comp-clear-btn {
       flex-shrink: 0; font-size: 12px; color: #7c3aed; font-weight: 800;
       background: rgba(124,58,237,0.1); border: none; border-radius: 20px;
-      padding: 5px 13px; cursor: pointer; font-family: inherit; transition: background 0.12s;
+      padding: 5px 13px; cursor: pointer; font-family: inherit;
+      line-height: 1; transition: background 0.12s;
     }
     .comp-clear-btn:active { background: rgba(124,58,237,0.22); }
 
@@ -1418,12 +1419,8 @@
           <div class="comp-field" style="margin-top:4px">
             <div class="comp-label">我的出生地</div>
             <div class="comp-loc-row">
-              <select class="comp-select" id="compMyCounty" onchange="updateCompDistrict('my')">
-                <option value="">縣市</option>
-              </select>
-              <select class="comp-select" id="compMyDistrict">
-                <option value="">鄉鎮區</option>
-              </select>
+              <select class="comp-select" id="compMyCounty" onchange="updateCompDistrict('my')"></select>
+              <select class="comp-select" id="compMyDistrict"></select>
             </div>
           </div>
         </div>
@@ -1490,12 +1487,8 @@
           <div class="comp-field">
             <div class="comp-label">對方出生地</div>
             <div class="comp-loc-row">
-              <select class="comp-select" id="compPartnerCounty" onchange="updateCompDistrict('partner')">
-                <option value="">縣市</option>
-              </select>
-              <select class="comp-select" id="compPartnerDistrict">
-                <option value="">鄉鎮區</option>
-              </select>
+              <select class="comp-select" id="compPartnerCounty" onchange="updateCompDistrict('partner')"></select>
+              <select class="comp-select" id="compPartnerDistrict"></select>
             </div>
           </div>
         </div>
@@ -2947,7 +2940,7 @@
 
   function _populateCompCounty(who) {
     const sel = document.getElementById(who === 'my' ? 'compMyCounty' : 'compPartnerCounty');
-    sel.innerHTML = '<option value="">縣市</option>';
+    sel.innerHTML = '';
     for (const c of Object.keys(TW_LOCS)) {
       const o = document.createElement('option');
       o.value = o.textContent = c;
@@ -2958,7 +2951,7 @@
   function updateCompDistrict(who) {
     const county = document.getElementById(who === 'my' ? 'compMyCounty' : 'compPartnerCounty').value;
     const sel    = document.getElementById(who === 'my' ? 'compMyDistrict' : 'compPartnerDistrict');
-    sel.innerHTML = '<option value="">鄉鎮區</option>';
+    sel.innerHTML = '';
     if (!county || !TW_LOCS[county]) return;
     for (const d of Object.keys(TW_LOCS[county].districts)) {
       const o = document.createElement('option');
