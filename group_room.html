@@ -801,7 +801,7 @@
     /* Read-only fields */
     .comp-ro-field { margin-bottom: 13px; }
     .comp-ro-label {
-      font-size: 11px; font-weight: 700; color: #a78bfa;
+      font-size: 12px; font-weight: 700; color: #a78bfa;
       letter-spacing: 0.05em; margin-bottom: 5px;
     }
     .comp-input-ro {
@@ -868,25 +868,26 @@
     }
 
     /* My section: nickname + gender same row */
-    .comp-ng-row { display: grid; grid-template-columns: 1fr 80px; gap: 8px; margin-bottom: 13px; }
+    .comp-ng-row { display: grid; grid-template-columns: 1fr 62px; gap: 8px; margin-bottom: 13px; }
     .comp-ng-row .comp-ro-field { margin-bottom: 0; }
-    .comp-gender-ro { justify-content: center; }
+    .comp-gender-ro { justify-content: flex-start; }
 
     /* Partner name + gender row */
     .comp-ng-partner-row { display: flex; gap: 8px; margin-bottom: 14px; align-items: flex-end; }
     .comp-name-col { flex: 1; min-width: 0; }
-    .comp-gender-col { flex-shrink: 0; width: 80px; }
+    .comp-gender-col { flex-shrink: 0; width: 62px; }
 
     /* Name input wrap — holds input + inner select button */
     .comp-name-wrap { position: relative; }
     .comp-name-wrap .comp-input { padding-right: 54px; }
     .comp-inner-select-btn {
       position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-      height: 34px; padding: 0 10px;
+      height: 28px; padding: 0 11px;
       background: linear-gradient(135deg, #ede9fe, #fce7f3);
-      border: 1.5px solid #c4b5fd; border-radius: 8px;
+      border: 1.5px solid #c4b5fd; border-radius: 20px;
       color: #5b21b6; font-size: 11px; font-weight: 800;
-      cursor: pointer; font-family: inherit; white-space: nowrap; line-height: 1;
+      cursor: pointer; font-family: inherit; white-space: nowrap;
+      display: flex; align-items: center; justify-content: center;
     }
     .comp-inner-select-btn:active { background: #ddd6fe; }
 
@@ -902,9 +903,9 @@
 
     /* Gender select (narrow) */
     .comp-gender-sel {
-      flex-shrink: 0; width: 80px;
-      padding-left: 10px; padding-right: 26px;
-      background-position: right 6px center;
+      flex-shrink: 0; width: 62px;
+      padding-left: 8px; padding-right: 22px;
+      background-position: right 4px center;
     }
 
     /* Date/time inputs left-align (partner manual entry) */
