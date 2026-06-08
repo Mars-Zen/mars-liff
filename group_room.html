@@ -849,6 +849,20 @@
     .comp-dt-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
     .comp-dt-row .comp-field { margin-bottom: 0; }
 
+    /* Date/time picker icon wrappers */
+    .comp-date-wrap, .comp-time-wrap { position: relative; display: block; }
+    .comp-date-wrap .comp-input, .comp-time-wrap .comp-input { padding-right: 46px; }
+    .comp-date-wrap::after, .comp-time-wrap::after {
+      content: ''; position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      width: 20px; height: 20px; pointer-events: none; background: no-repeat center / contain;
+    }
+    .comp-date-wrap::after {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%237c3aed' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+    }
+    .comp-time-wrap::after {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%237c3aed' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E");
+    }
+
     /* Partner name row + member trigger */
     .comp-name-row { display: flex; gap: 8px; margin-bottom: 14px; }
     .comp-name-row .comp-input { flex: 1; min-width: 0; }
@@ -1429,33 +1443,38 @@
           </div>
           <!-- 成員列表（展開） -->
           <div class="comp-member-list" id="compMemberList" style="display:none"></div>
-          <!-- 已選成員顯示列 -->
-          <div class="comp-selected-bar" id="compSelectedBar" style="display:none">
-            <span class="comp-selected-name" id="compPartnerNameDisp">—</span>
-            <button class="comp-clear-btn" onclick="_setPartnerManual()">× 重選</button>
+          <!-- 已選成員：鎖定顯示 (name + date + time，與我的資料同樣排版) -->
+          <div id="compPartnerLocked" style="display:none">
+            <div class="comp-ro-field">
+              <div class="comp-ro-label">暱稱</div>
+              <div class="comp-input-ro" style="display:flex;align-items:center;gap:10px;">
+                <span id="compPartnerNameDisp" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;">—</span>
+                <button class="comp-clear-btn" onclick="_setPartnerManual()">× 重選</button>
+              </div>
+            </div>
+            <div class="comp-ro-field">
+              <div class="comp-ro-label">出生日期</div>
+              <div class="comp-input-ro" id="compPartnerDateDisp">—</div>
+            </div>
+            <div class="comp-ro-field" style="margin-bottom:0">
+              <div class="comp-ro-label">出生時間</div>
+              <div class="comp-input-ro" id="compPartnerTimeDisp">—</div>
+            </div>
           </div>
 
           <!-- 手動輸入：出生日期 & 時間 -->
           <div id="compManualDT" class="comp-dt-row">
             <div class="comp-field">
-              <div class="comp-label">📅 出生日期</div>
-              <input class="comp-input" id="compPartnerDate" type="date">
+              <div class="comp-label">出生日期</div>
+              <div class="comp-date-wrap">
+                <input class="comp-input" id="compPartnerDate" type="date">
+              </div>
             </div>
             <div class="comp-field">
-              <div class="comp-label">🕐 出生時間</div>
-              <input class="comp-input" id="compPartnerTime" type="time" value="12:00">
-            </div>
-          </div>
-
-          <!-- 鎖定顯示：成員已選時的出生日期 & 時間 -->
-          <div class="comp-locked-dt" id="compLockedDT" style="display:none">
-            <div class="comp-locked-row">
-              <div class="comp-locked-label">出生日期</div>
-              <div class="comp-locked-value" id="compPartnerDateDisp">—</div>
-            </div>
-            <div class="comp-locked-row">
-              <div class="comp-locked-label">出生時間</div>
-              <div class="comp-locked-value" id="compPartnerTimeDisp">—</div>
+              <div class="comp-label">出生時間</div>
+              <div class="comp-time-wrap">
+                <input class="comp-input" id="compPartnerTime" type="time" value="12:00">
+              </div>
             </div>
           </div>
 
@@ -2730,11 +2749,27 @@
     document.getElementById('compositeOverlay').classList.remove('open');
   }
 
-  function _initCompositeForm() {
+  async function _initCompositeForm() {
     document.getElementById('cvForm').style.display    = 'block';
     document.getElementById('cvLoading').style.display = 'none';
     document.getElementById('cvResult').style.display  = 'none';
     _compResult = null; _compSaved = false; _compSelectedMember = null;
+
+    // Fetch birth profile from DB if not yet available
+    if (!mySubjectIso && uid && uid !== 'demo_user') {
+      try {
+        const r = await fetch(`${API}/composite-profile`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: uid })
+        });
+        const d = await r.json();
+        if (d.success && d.data) {
+          if (d.data.nickname)             myNickname     = d.data.nickname;
+          if (d.data.subject_iso_datetime) mySubjectIso   = d.data.subject_iso_datetime;
+          if (d.data.location_name)        myLocationName = d.data.location_name;
+        }
+      } catch { /* keep existing values */ }
+    }
 
     // My section (read-only)
     const [myDate, myTime] = (mySubjectIso || '').split('T');
@@ -2767,11 +2802,10 @@
 
   function _setPartnerManual() {
     _compSelectedMember = null;
-    document.getElementById('compNameManualRow').style.display = 'flex';
-    document.getElementById('compSelectedBar').style.display   = 'none';
-    document.getElementById('compMemberList').style.display    = 'none';
-    document.getElementById('compManualDT').style.display      = 'grid';
-    document.getElementById('compLockedDT').style.display      = 'none';
+    document.getElementById('compNameManualRow').style.display  = 'flex';
+    document.getElementById('compPartnerLocked').style.display  = 'none';
+    document.getElementById('compMemberList').style.display     = 'none';
+    document.getElementById('compManualDT').style.display       = 'grid';
     document.getElementById('compPartnerName').value = '';
     document.getElementById('compPartnerDate').value = '';
     document.getElementById('compPartnerTime').value = '12:00';
@@ -2779,16 +2813,15 @@
 
   function _setPartnerMember(m) {
     _compSelectedMember = m;
-    document.getElementById('compPartnerNameDisp').textContent = m.nickname || '—';
-    document.getElementById('compNameManualRow').style.display = 'none';
-    document.getElementById('compSelectedBar').style.display   = 'flex';
-    document.getElementById('compMemberList').style.display    = 'none';
+    document.getElementById('compNameManualRow').style.display  = 'none';
+    document.getElementById('compPartnerLocked').style.display  = 'block';
+    document.getElementById('compMemberList').style.display     = 'none';
+    document.getElementById('compManualDT').style.display       = 'none';
+    document.getElementById('compPartnerNameDisp').textContent  = m.nickname || '—';
     const iso = m.subject_iso_datetime || '';
     const [dp, tp] = iso.split('T');
-    document.getElementById('compPartnerDateDisp').textContent = _fmtDateOnly(dp);
-    document.getElementById('compPartnerTimeDisp').textContent = tp ? tp.slice(0, 5) : '—';
-    document.getElementById('compManualDT').style.display  = 'none';
-    document.getElementById('compLockedDT').style.display  = 'block';
+    document.getElementById('compPartnerDateDisp').textContent  = _fmtDateOnly(dp);
+    document.getElementById('compPartnerTimeDisp').textContent  = tp ? tp.slice(0, 5) : '—';
     const parsed = _parseLocName(m.location_name);
     if (parsed) {
       document.getElementById('compPartnerCounty').value = parsed.county;
@@ -2839,14 +2872,15 @@
       _compMembers = (data.members || []).filter(m => m.uid !== uid && m.subject_iso_datetime);
     } catch { _compMembers = []; }
 
-    const btn = document.getElementById('compMemberBtn');
-    if (_compMembers.length === 0) {
-      if (btn) btn.style.display = 'none';
-      return;
-    }
+    const btn  = document.getElementById('compMemberBtn');
+    const list = document.getElementById('compMemberList');
     if (btn) btn.style.display = 'flex';
 
-    const list = document.getElementById('compMemberList');
+    if (_compMembers.length === 0) {
+      list.innerHTML = '<div style="padding:18px 16px;color:#a78bfa;font-size:14px;text-align:center;letter-spacing:0.03em;">群組成員尚未設定出生資料</div>';
+      return;
+    }
+
     list.innerHTML = _compMembers.map(m => {
       const dp     = (m.subject_iso_datetime || '').split('T')[0] || '';
       const avHtml = m.line_avatar
