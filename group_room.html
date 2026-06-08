@@ -870,13 +870,35 @@
     /* My section: nickname + gender same row */
     .comp-ng-row { display: grid; grid-template-columns: 1fr 80px; gap: 8px; margin-bottom: 13px; }
     .comp-ng-row .comp-ro-field { margin-bottom: 0; }
-    .comp-gender-ro { justify-content: center; font-size: 19px; letter-spacing: 0; padding-left: 6px; padding-right: 6px; }
+    .comp-gender-ro { justify-content: center; }
 
-    /* Partner name + 選取 + gender row */
+    /* Partner name + gender row */
     .comp-ng-partner-row { display: flex; gap: 8px; margin-bottom: 14px; align-items: flex-end; }
     .comp-name-col { flex: 1; min-width: 0; }
-    .comp-action-col { flex-shrink: 0; display: flex; align-items: flex-end; }
     .comp-gender-col { flex-shrink: 0; width: 80px; }
+
+    /* Name input wrap — holds input + inner select button */
+    .comp-name-wrap { position: relative; }
+    .comp-name-wrap .comp-input { padding-right: 54px; }
+    .comp-inner-select-btn {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      height: 34px; padding: 0 10px;
+      background: linear-gradient(135deg, #ede9fe, #fce7f3);
+      border: 1.5px solid #c4b5fd; border-radius: 8px;
+      color: #5b21b6; font-size: 11px; font-weight: 800;
+      cursor: pointer; font-family: inherit; white-space: nowrap; line-height: 1;
+    }
+    .comp-inner-select-btn:active { background: #ddd6fe; }
+
+    /* Locked name display — holds name span + inner clear button */
+    .comp-inner-clear-btn {
+      flex-shrink: 0; font-size: 11px; font-weight: 800;
+      color: #7c3aed; background: rgba(124,58,237,0.1);
+      border: none; border-radius: 8px;
+      padding: 5px 10px; cursor: pointer;
+      font-family: inherit; line-height: 1; white-space: nowrap;
+    }
+    .comp-inner-clear-btn:active { background: #ddd6fe; }
 
     /* Gender select (narrow) */
     .comp-gender-sel {
@@ -885,17 +907,9 @@
       background-position: right 6px center;
     }
 
-    /* Partner name row + member trigger */
-    .comp-member-btn {
-      flex-shrink: 0; min-height: 50px; padding: 0 14px;
-      background: linear-gradient(135deg, #ede9fe, #fce7f3);
-      border: 1.5px solid #c4b5fd; border-radius: 13px;
-      color: #5b21b6; font-size: 12px; font-weight: 800;
-      cursor: pointer; white-space: nowrap;
-      display: flex; align-items: center; gap: 5px;
-      font-family: inherit; transition: background 0.15s, transform 0.12s;
-    }
-    .comp-member-btn:active { background: #ddd6fe; transform: scale(0.96); }
+    /* Date/time inputs left-align (partner manual entry) */
+    .comp-date-wrap .comp-input,
+    .comp-time-wrap .comp-input { text-align: left; text-align-last: left; }
 
     /* Member dropdown list */
     .comp-member-list {
@@ -932,17 +946,8 @@
       flex: 1; min-width: 0; font-size: 16px; font-weight: 700; color: #2e1065;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .comp-clear-btn {
-      flex-shrink: 0; font-size: 12px; color: #7c3aed; font-weight: 800;
-      background: rgba(124,58,237,0.1); border: 1.5px solid #c4b5fd; border-radius: 13px;
-      padding: 0 14px; min-height: 50px; cursor: pointer; font-family: inherit;
-      line-height: 1; white-space: nowrap;
-      display: flex; align-items: center;
-      transition: background 0.12s, transform 0.12s;
-    }
-    .comp-clear-btn:active { background: #ddd6fe; transform: scale(0.96); }
 
-    /* Locked birth info (partner, member selected) */
+/* Locked birth info (partner, member selected) */
     .comp-locked-dt {
       background: #faf8ff; border: 1.5px solid #ede8ff;
       border-radius: 13px; padding: 4px 15px; margin-bottom: 14px;
@@ -1426,7 +1431,7 @@
               <div class="comp-input-ro" id="compMyNameDisp">—</div>
             </div>
             <div class="comp-ro-field">
-              <div class="comp-ro-label" style="text-align:center">性別</div>
+              <div class="comp-ro-label">性別</div>
               <div class="comp-input-ro comp-gender-ro" id="compMyGenderDisp">?</div>
             </div>
           </div>
@@ -1460,29 +1465,28 @@
         <div class="comp-block">
           <div class="comp-block-title">對方資料</div>
 
-          <!-- 對方名字 + 選取 + 性別 同行 -->
+          <!-- 對方名字 + 性別 同行 -->
           <div class="comp-ng-partner-row">
             <!-- 名字欄 -->
             <div class="comp-name-col">
               <div class="comp-label" id="compPartnerNameLabel">對方名字</div>
-              <input class="comp-input" id="compPartnerName" type="text" placeholder="輸入對方稱呼" maxlength="20">
+              <div class="comp-name-wrap" id="compPartnerNameInputWrap">
+                <input class="comp-input" id="compPartnerName" type="text" placeholder="輸入對方稱呼" maxlength="20">
+                <button class="comp-inner-select-btn" id="compMemberBtn" onclick="toggleMemberDropdown(event)">選取</button>
+              </div>
               <div class="comp-input-ro" id="compPartnerNameLocked" style="display:none">
                 <span id="compPartnerNameDisp" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span>
+                <button class="comp-inner-clear-btn" id="compClearBtn" onclick="_setPartnerManual()">× 重選</button>
               </div>
-            </div>
-            <!-- 中間按鈕 -->
-            <div class="comp-action-col">
-              <button class="comp-member-btn" id="compMemberBtn" onclick="toggleMemberDropdown(event)">選取</button>
-              <button class="comp-clear-btn" id="compClearBtn" onclick="_setPartnerManual()" style="display:none">× 重選</button>
             </div>
             <!-- 性別欄 -->
             <div class="comp-gender-col">
               <div class="comp-label">性別</div>
               <select class="comp-select comp-gender-sel" id="compPartnerGender">
-                <option value="F">♀ 女</option>
-                <option value="M">♂ 男</option>
+                <option value="F">女</option>
+                <option value="M">男</option>
               </select>
-              <div class="comp-input-ro comp-gender-ro" id="compPartnerGenderDisp" style="display:none">♀</div>
+              <div class="comp-input-ro comp-gender-ro" id="compPartnerGenderDisp" style="display:none">女</div>
             </div>
           </div>
           <!-- 成員列表（展開） -->
@@ -2939,9 +2943,9 @@
   }
 
   function _genderSymbol(g) {
-    if (g === 'M') return '♂';
-    if (g === 'F') return '♀';
-    return '?';  // unknown / not set
+    if (g === 'M') return '男';
+    if (g === 'F') return '女';
+    return '?';
   }
 
   function _setPartnerManual() {
@@ -2949,11 +2953,8 @@
     // 標籤顏色重置
     document.getElementById('compPartnerNameLabel').style.color = '';
     // 名字：顯示輸入框，隱藏 locked display
-    document.getElementById('compPartnerName').style.display         = '';
-    document.getElementById('compPartnerNameLocked').style.display   = 'none';
-    // 按鈕：顯示選取，隱藏重選
-    document.getElementById('compMemberBtn').style.display  = 'flex';
-    document.getElementById('compClearBtn').style.display   = 'none';
+    document.getElementById('compPartnerNameInputWrap').style.display = '';
+    document.getElementById('compPartnerNameLocked').style.display    = 'none';
     // 性別：顯示 select，隱藏 locked display
     document.getElementById('compPartnerGender').style.display    = '';
     document.getElementById('compPartnerGenderDisp').style.display = 'none';
@@ -2973,22 +2974,19 @@
     // 標籤變紫色
     document.getElementById('compPartnerNameLabel').style.color = '#a78bfa';
     // 名字：隱藏輸入框，顯示 locked display
-    document.getElementById('compPartnerName').style.display        = 'none';
-    document.getElementById('compPartnerNameLocked').style.display  = 'flex';
-    document.getElementById('compPartnerNameDisp').textContent      = m.nickname || '—';
-    // 按鈕：隱藏選取，顯示重選
-    document.getElementById('compMemberBtn').style.display = 'none';
-    document.getElementById('compClearBtn').style.display  = 'flex';
+    document.getElementById('compPartnerNameInputWrap').style.display = 'none';
+    document.getElementById('compPartnerNameLocked').style.display    = 'flex';
+    document.getElementById('compPartnerNameDisp').textContent        = m.nickname || '—';
     // 性別：已知性別(M/F)→鎖定顯示；未知(U/空)→讓使用者選，預設F
     const knownGender = m.gender === 'M' || m.gender === 'F';
     if (knownGender) {
-      document.getElementById('compPartnerGender').style.display    = 'none';
+      document.getElementById('compPartnerGender').style.display     = 'none';
       document.getElementById('compPartnerGenderDisp').style.display = 'flex';
-      document.getElementById('compPartnerGenderDisp').textContent  = _genderSymbol(m.gender);
+      document.getElementById('compPartnerGenderDisp').textContent   = _genderSymbol(m.gender);
     } else {
-      document.getElementById('compPartnerGender').style.display    = '';
+      document.getElementById('compPartnerGender').style.display     = '';
       document.getElementById('compPartnerGenderDisp').style.display = 'none';
-      document.getElementById('compPartnerGender').value            = 'F';
+      document.getElementById('compPartnerGender').value             = 'F';
     }
     // 出生日期/時間/地點
     document.getElementById('compPartnerLocked').style.display = 'block';
