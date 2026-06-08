@@ -735,7 +735,7 @@
     }
     .composite-overlay.open { opacity: 1; visibility: visible; }
     .composite-panel {
-      width: 100%; height: 92vh;
+      width: 100%; height: 100vh;
       background: #f4f2ff;
       border-radius: 28px 28px 0 0;
       display: flex; flex-direction: column;
@@ -778,96 +778,153 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    /* Section layout */
-    .comp-section { margin-bottom: 6px; }
-    .comp-section-label {
-      font-size: 10px; font-weight: 900; letter-spacing: 0.14em;
-      color: #7c3aed; text-transform: uppercase; margin-bottom: 10px;
+    /* Section blocks */
+    .comp-block {
+      background: #fff; border-radius: 22px;
+      padding: 20px 18px 18px; margin-bottom: 12px;
+      box-shadow: 0 3px 18px rgba(109,40,217,0.08);
+      border: 1px solid #ede8ff;
+    }
+    .comp-block-title {
+      font-size: 10px; font-weight: 900; letter-spacing: 0.16em;
+      color: #7c3aed; text-transform: uppercase;
+      margin-bottom: 18px; padding-bottom: 12px;
+      border-bottom: 1.5px solid #f0ebff;
       display: flex; align-items: center; gap: 8px;
     }
-    .comp-section-label::after {
-      content: ''; flex: 1; height: 1px;
-      background: linear-gradient(to right, rgba(124,58,237,0.35), transparent);
+    .comp-block-title::before {
+      content: ''; width: 4px; height: 14px;
+      background: linear-gradient(to bottom, #7c3aed, #db2777);
+      border-radius: 2px; flex-shrink: 0;
     }
 
-    /* Profile card (my info / locked partner) */
-    .comp-profile-card {
-      background: linear-gradient(135deg, #ede8ff 0%, #fce7f9 100%);
-      border: 1px solid rgba(124,58,237,0.2);
-      border-radius: 18px; padding: 14px 16px;
-      display: flex; align-items: center; gap: 13px; margin-bottom: 14px;
+    /* Read-only fields */
+    .comp-ro-field { margin-bottom: 13px; }
+    .comp-ro-label {
+      font-size: 11px; font-weight: 700; color: #a78bfa;
+      letter-spacing: 0.05em; margin-bottom: 5px;
     }
-    .comp-profile-avatar {
-      width: 48px; height: 48px; border-radius: 16px; flex-shrink: 0;
-      background: linear-gradient(135deg, #7c3aed, #db2777);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; overflow: hidden;
-      box-shadow: 0 4px 12px rgba(124,58,237,0.3);
-    }
-    .comp-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .comp-profile-info { flex: 1; min-width: 0; }
-    .comp-profile-name {
-      font-size: 16px; font-weight: 800; color: #2e1065;
-      margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .comp-profile-birth { font-size: 12px; color: #6d28d9; line-height: 1.6; }
-    .comp-partner-card { background: linear-gradient(135deg, #fdf2ff 0%, #fce7f3 100%); }
-    .comp-lock-badge {
-      font-size: 10px; font-weight: 800; color: #7c3aed; letter-spacing: 0.05em;
-      background: rgba(124,58,237,0.12); border-radius: 20px; padding: 3px 9px; flex-shrink: 0;
+    .comp-input-ro {
+      width: 100%; box-sizing: border-box; min-height: 48px;
+      border: 1.5px solid #ede8ff; border-radius: 13px;
+      padding: 12px 15px; font-size: 15px; color: #2e1065;
+      background: #faf8ff; font-family: inherit; font-weight: 600;
+      display: flex; align-items: center;
     }
 
     /* VS divider */
-    .comp-vs { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
-    .comp-vs-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, rgba(124,58,237,0.28), transparent); }
+    .comp-vs { display: flex; align-items: center; gap: 12px; margin: 14px 0; }
+    .comp-vs-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, rgba(124,58,237,0.3), transparent); }
     .comp-vs-badge {
-      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
       background: linear-gradient(135deg, #6d28d9, #db2777);
       color: #fff; font-size: 11px; font-weight: 900;
       display: flex; align-items: center; justify-content: center; letter-spacing: 0.06em;
       box-shadow: 0 4px 14px rgba(109,40,217,0.35);
     }
 
-    /* Fields */
+    /* Editable fields */
     .comp-field { margin-bottom: 14px; }
+    .comp-field:last-child { margin-bottom: 0; }
     .comp-label {
-      font-size: 11px; font-weight: 700; color: #9ca3af; margin-bottom: 6px;
-      letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;
-    }
-    .comp-label-note {
-      font-size: 9px; font-weight: 800; background: #f0fdf4; color: #166534;
-      border-radius: 8px; padding: 1px 7px; letter-spacing: 0.06em;
+      font-size: 12px; font-weight: 700; color: #9ca3af;
+      margin-bottom: 7px; letter-spacing: 0.04em;
     }
     .comp-input, .comp-select {
-      width: 100%; box-sizing: border-box; min-height: 46px;
+      width: 100%; box-sizing: border-box; min-height: 50px;
       border: 1.5px solid #e5deff; border-radius: 13px;
-      padding: 11px 14px; font-size: 14px; color: #1e1b4b;
+      padding: 12px 15px; font-size: 15px; color: #1e1b4b;
       background: #fff; font-family: inherit;
       outline: none; -webkit-appearance: none; appearance: none;
-      transition: border-color 0.15s, box-shadow 0.15s; text-align: left;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
     .comp-input:focus, .comp-select:focus {
       border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
     }
     .comp-select {
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237c3aed' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; cursor: pointer;
+      background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; cursor: pointer;
     }
     .comp-loc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .comp-dt-row { display: grid; grid-template-columns: 7fr 5fr; gap: 8px; margin-bottom: 14px; }
+    .comp-dt-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
     .comp-dt-row .comp-field { margin-bottom: 0; }
 
-    /* Member picker */
-    .comp-member-picker { margin-bottom: 16px; }
-    .comp-member-pick-hint { font-size: 11px; color: #a78bfa; margin-bottom: 6px; font-weight: 600; letter-spacing: 0.04em; }
+    /* Partner name row + member trigger */
+    .comp-name-row { display: flex; gap: 8px; margin-bottom: 14px; }
+    .comp-name-row .comp-input { flex: 1; min-width: 0; }
+    .comp-member-btn {
+      flex-shrink: 0; min-height: 50px; padding: 0 14px;
+      background: linear-gradient(135deg, #ede9fe, #fce7f3);
+      border: 1.5px solid #c4b5fd; border-radius: 13px;
+      color: #5b21b6; font-size: 12px; font-weight: 800;
+      cursor: pointer; white-space: nowrap;
+      display: flex; align-items: center; gap: 5px;
+      font-family: inherit; transition: background 0.15s, transform 0.12s;
+    }
+    .comp-member-btn:active { background: #ddd6fe; transform: scale(0.96); }
+
+    /* Member dropdown list */
+    .comp-member-list {
+      margin-bottom: 14px;
+      background: #fff; border: 1.5px solid #e5deff;
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 8px 28px rgba(109,40,217,0.14);
+    }
+    .comp-member-item {
+      display: flex; align-items: center; gap: 13px;
+      padding: 13px 16px; cursor: pointer;
+      border-bottom: 1px solid #f5f3ff; transition: background 0.1s;
+    }
+    .comp-member-item:last-child { border-bottom: none; }
+    .comp-member-item:active { background: #faf8ff; }
+    .comp-member-item-av {
+      width: 40px; height: 40px; border-radius: 13px; flex-shrink: 0;
+      background: linear-gradient(135deg, #7c3aed, #db2777);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 17px; font-weight: 700; overflow: hidden;
+    }
+    .comp-member-item-av img { width: 100%; height: 100%; object-fit: cover; }
+    .comp-member-item-name { font-size: 15px; font-weight: 700; color: #1e1b4b; }
+    .comp-member-item-date { font-size: 12px; color: #a78bfa; margin-top: 3px; }
+
+    /* Selected partner bar */
+    .comp-selected-bar {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+      background: linear-gradient(135deg, #ede9fe, #fce7f3);
+      border: 1.5px solid #c4b5fd; border-radius: 13px;
+      padding: 13px 15px; min-height: 50px;
+    }
+    .comp-selected-name {
+      flex: 1; min-width: 0; font-size: 16px; font-weight: 700; color: #2e1065;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .comp-clear-btn {
+      flex-shrink: 0; font-size: 12px; color: #7c3aed; font-weight: 800;
+      background: rgba(124,58,237,0.1); border: none; border-radius: 20px;
+      padding: 5px 13px; cursor: pointer; font-family: inherit; transition: background 0.12s;
+    }
+    .comp-clear-btn:active { background: rgba(124,58,237,0.22); }
+
+    /* Locked birth info (partner, member selected) */
+    .comp-locked-dt {
+      background: #faf8ff; border: 1.5px solid #ede8ff;
+      border-radius: 13px; padding: 4px 15px; margin-bottom: 14px;
+    }
+    .comp-locked-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 0; border-bottom: 1px solid #f0ebff;
+    }
+    .comp-locked-row:last-child { border-bottom: none; }
+    .comp-locked-label { font-size: 12px; color: #a78bfa; font-weight: 600; }
+    .comp-locked-value { font-size: 15px; font-weight: 700; color: #2e1065; }
 
     /* Submit button */
     .comp-submit-btn {
-      width: 100%; padding: 15px;
+      width: 100%; padding: 17px;
       background: linear-gradient(135deg, #5b21b6, #7c3aed 50%, #be185d);
       color: #fff; border: none; border-radius: 16px;
-      font-size: 15px; font-weight: 900; cursor: pointer;
-      font-family: inherit; margin-top: 10px; letter-spacing: 0.04em;
+      font-size: 16px; font-weight: 900; cursor: pointer;
+      font-family: inherit; margin-top: 8px; letter-spacing: 0.04em;
       box-shadow: 0 6px 22px rgba(109,40,217,0.38);
       transition: opacity 0.15s, transform 0.12s;
     }
@@ -879,23 +936,23 @@
       justify-content: center; padding: 64px 20px; gap: 22px;
     }
     .comp-loading-orb {
-      width: 64px; height: 64px; border-radius: 50%;
+      width: 68px; height: 68px; border-radius: 50%;
       background: linear-gradient(135deg, #7c3aed, #db2777);
       display: flex; align-items: center; justify-content: center;
-      font-size: 28px; animation: comp-orb 2.2s ease-in-out infinite;
+      font-size: 30px; animation: comp-orb 2.2s ease-in-out infinite;
     }
     @keyframes comp-orb {
       0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(124,58,237,0.3); }
-      50%       { transform: scale(1.08); box-shadow: 0 0 0 16px rgba(124,58,237,0); }
+      50%       { transform: scale(1.08); box-shadow: 0 0 0 18px rgba(124,58,237,0); }
     }
-    .comp-loading-title { font-size: 16px; font-weight: 800; color: #1e1b4b; }
-    .comp-loading-sub { font-size: 13px; color: #9ca3af; text-align: center; line-height: 1.75; }
+    .comp-loading-title { font-size: 17px; font-weight: 800; color: #1e1b4b; }
+    .comp-loading-sub { font-size: 14px; color: #9ca3af; text-align: center; line-height: 1.75; }
 
     /* Result */
-    .comp-result-header { text-align: center; padding: 20px 0 18px; }
-    .comp-result-names { font-size: 14px; font-weight: 800; color: #6d28d9; margin-bottom: 18px; letter-spacing: 0.05em; }
+    .comp-result-header { text-align: center; padding: 22px 0 20px; }
+    .comp-result-names { font-size: 15px; font-weight: 800; color: #6d28d9; margin-bottom: 20px; letter-spacing: 0.04em; }
     .comp-score-ring {
-      width: 116px; height: 116px; margin: 0 auto 14px;
+      width: 124px; height: 124px; margin: 0 auto 16px;
       border-radius: 50%; position: relative;
       display: flex; align-items: center; justify-content: center;
     }
@@ -908,9 +965,9 @@
       position: absolute; inset: 14px; background: #f4f2ff; border-radius: 50%;
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
     }
-    .comp-score-num { font-size: 26px; font-weight: 900; color: #5b21b6; line-height: 1; }
-    .comp-score-unit { font-size: 10px; color: #a78bfa; letter-spacing: 0.06em; }
-    .comp-rel-type { font-size: 14px; font-weight: 900; color: #2e1065; margin-bottom: 3px; }
+    .comp-score-num { font-size: 28px; font-weight: 900; color: #5b21b6; line-height: 1; }
+    .comp-score-unit { font-size: 11px; color: #a78bfa; letter-spacing: 0.06em; }
+    .comp-rel-type { font-size: 16px; font-weight: 900; color: #2e1065; margin-bottom: 4px; }
     .comp-rel-sub { font-size: 11px; color: #a78bfa; letter-spacing: 0.07em; }
     .comp-dims {
       background: #fff; border: 1px solid #ede8ff; border-radius: 20px;
@@ -921,25 +978,25 @@
       font-size: 10px; font-weight: 900; letter-spacing: 0.14em;
       color: #a78bfa; text-transform: uppercase; margin-bottom: 14px;
     }
-    .comp-dim-row { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
+    .comp-dim-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
     .comp-dim-row:last-child { margin-bottom: 0; }
-    .comp-dim-label { font-size: 12px; font-weight: 700; color: #7c6fa0; width: 32px; flex-shrink: 0; }
+    .comp-dim-label { font-size: 13px; font-weight: 700; color: #7c6fa0; width: 34px; flex-shrink: 0; }
     .comp-dim-bar-bg { flex: 1; height: 8px; background: #ede9fe; border-radius: 6px; overflow: hidden; }
     .comp-dim-bar-fill {
       height: 100%; border-radius: 6px;
       background: linear-gradient(to right, #7c3aed, #db2777);
       transition: width 0.7s cubic-bezier(0.34,1.1,0.64,1);
     }
-    .comp-dim-score { font-size: 12px; font-weight: 800; color: #4c1d95; width: 28px; text-align: right; flex-shrink: 0; }
+    .comp-dim-score { font-size: 13px; font-weight: 800; color: #4c1d95; width: 28px; text-align: right; flex-shrink: 0; }
     .comp-desc-card {
       background: linear-gradient(140deg, #f0ecff, #fef0fc);
       border: 1px solid rgba(124,58,237,0.13); border-radius: 18px;
-      padding: 16px 18px; margin-bottom: 10px;
-      font-size: 14px; line-height: 1.82; color: #1e1b4b;
+      padding: 17px 18px; margin-bottom: 10px;
+      font-size: 14px; line-height: 1.85; color: #1e1b4b;
     }
     .comp-sub-card {
-      border-radius: 15px; padding: 13px 16px; margin-bottom: 8px;
-      font-size: 13px; line-height: 1.72; display: flex; flex-direction: column; gap: 6px;
+      border-radius: 15px; padding: 14px 16px; margin-bottom: 8px;
+      font-size: 14px; line-height: 1.75; display: flex; flex-direction: column; gap: 7px;
     }
     .comp-sub-card.s { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
     .comp-sub-card.c { background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; }
@@ -950,10 +1007,10 @@
     .comp-sub-label.s { background: #dcfce7; color: #166534; }
     .comp-sub-label.c { background: #ffe4e6; color: #9f1239; }
     .comp-elem-row { font-size: 12px; color: #a78bfa; padding: 6px 4px 14px; text-align: center; letter-spacing: 0.04em; }
-    .comp-result-btns { display: flex; flex-direction: column; gap: 10px; padding-bottom: 16px; }
+    .comp-result-btns { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
     .comp-btn {
-      width: 100%; padding: 14px; border-radius: 14px; border: none;
-      font-size: 14px; font-weight: 800; cursor: pointer;
+      width: 100%; padding: 15px; border-radius: 14px; border: none;
+      font-size: 15px; font-weight: 800; cursor: pointer;
       font-family: inherit; transition: opacity 0.15s, transform 0.12s; letter-spacing: 0.03em;
     }
     .comp-btn:active { opacity: 0.84; transform: scale(0.98); }
@@ -1310,33 +1367,36 @@
     <div class="composite-hd">
       <div class="composite-handle"></div>
       <div class="composite-hd-row">
-        <div class="composite-hd-title">✦ 雙人合盤</div>
+        <div class="composite-hd-title">雙人合盤</div>
         <button class="composite-close-btn" onclick="closeComposite()">
           <svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/>
           </svg>
         </button>
       </div>
-      <div class="composite-hd-sub">Composite Chart · 中點法星盤</div>
     </div>
-    <div class="composite-body" id="compositeBody">
+    <div class="composite-body" id="compositeBody" onclick="closeCompMemberDropdown(event)">
 
       <!-- View A: Form -->
       <div id="cvForm">
 
-        <!-- 我的資料 (read-only profile card) -->
-        <div class="comp-section">
-          <div class="comp-section-label">我的資料</div>
-          <div class="comp-profile-card" id="compMyCard">
-            <div class="comp-profile-avatar" id="compMyAvatar">✦</div>
-            <div class="comp-profile-info">
-              <div class="comp-profile-name" id="compMyNameDisp">—</div>
-              <div class="comp-profile-birth" id="compMyBirthDisp">—</div>
-            </div>
+        <!-- 我的資料 -->
+        <div class="comp-block">
+          <div class="comp-block-title">我的資料</div>
+          <div class="comp-ro-field">
+            <div class="comp-ro-label">暱稱</div>
+            <div class="comp-input-ro" id="compMyNameDisp">—</div>
           </div>
-          <!-- 我的出生地（可修改） -->
-          <div class="comp-field">
-            <div class="comp-label">出生地 <span class="comp-label-note">可修改</span></div>
+          <div class="comp-ro-field">
+            <div class="comp-ro-label">出生日期</div>
+            <div class="comp-input-ro" id="compMyDateDisp">—</div>
+          </div>
+          <div class="comp-ro-field">
+            <div class="comp-ro-label">出生時間</div>
+            <div class="comp-input-ro" id="compMyTimeDisp">—</div>
+          </div>
+          <div class="comp-field" style="margin-top:18px">
+            <div class="comp-label">我的出生地</div>
             <div class="comp-loc-row">
               <select class="comp-select" id="compMyCounty" onchange="updateCompDistrict('my')">
                 <option value="">縣市</option>
@@ -1356,48 +1416,52 @@
         </div>
 
         <!-- 對方資料 -->
-        <div class="comp-section">
-          <div class="comp-section-label">對方資料</div>
+        <div class="comp-block">
+          <div class="comp-block-title">對方資料</div>
 
-          <!-- 成員選擇（有符合成員才顯示） -->
-          <div class="comp-member-picker" id="compMemberPickerWrap" style="display:none">
-            <div class="comp-member-pick-hint">從群組成員快速填入 →</div>
-            <select class="comp-select" id="compMemberSelect" onchange="onCompMemberSelect()">
-              <option value="">── 手動輸入 ──</option>
-            </select>
+          <!-- 對方名字 + 成員選擇按鈕 -->
+          <div class="comp-label">對方名字</div>
+          <div class="comp-name-row" id="compNameManualRow">
+            <input class="comp-input" id="compPartnerName" type="text" placeholder="輸入對方稱呼" maxlength="20">
+            <button class="comp-member-btn" id="compMemberBtn" onclick="toggleMemberDropdown(event)">
+              👥 成員
+            </button>
+          </div>
+          <!-- 成員列表（展開） -->
+          <div class="comp-member-list" id="compMemberList" style="display:none"></div>
+          <!-- 已選成員顯示列 -->
+          <div class="comp-selected-bar" id="compSelectedBar" style="display:none">
+            <span class="comp-selected-name" id="compPartnerNameDisp">—</span>
+            <button class="comp-clear-btn" onclick="_setPartnerManual()">× 重選</button>
           </div>
 
-          <!-- 已選成員：鎖定卡片 -->
-          <div class="comp-profile-card comp-partner-card" id="compPartnerCard" style="display:none">
-            <div class="comp-profile-avatar" id="compPartnerAvatar">★</div>
-            <div class="comp-profile-info">
-              <div class="comp-profile-name" id="compPartnerNameDisp">—</div>
-              <div class="comp-profile-birth" id="compPartnerBirthDisp">—</div>
-            </div>
-            <div class="comp-lock-badge">已鎖定</div>
-          </div>
-
-          <!-- 手動輸入區（未選成員時顯示） -->
-          <div id="compManualFields">
+          <!-- 手動輸入：出生日期 & 時間 -->
+          <div id="compManualDT" class="comp-dt-row">
             <div class="comp-field">
-              <div class="comp-label">對方名字</div>
-              <input class="comp-input" id="compPartnerName" type="text" placeholder="對方的稱呼" maxlength="20">
+              <div class="comp-label">📅 出生日期</div>
+              <input class="comp-input" id="compPartnerDate" type="date">
             </div>
-            <div class="comp-dt-row">
-              <div class="comp-field">
-                <div class="comp-label">出生日期</div>
-                <input class="comp-input" id="compPartnerDate" type="date">
-              </div>
-              <div class="comp-field">
-                <div class="comp-label">出生時間</div>
-                <input class="comp-input" id="compPartnerTime" type="time" value="12:00">
-              </div>
+            <div class="comp-field">
+              <div class="comp-label">🕐 出生時間</div>
+              <input class="comp-input" id="compPartnerTime" type="time" value="12:00">
             </div>
           </div>
 
-          <!-- 出生地（永遠可修改） -->
+          <!-- 鎖定顯示：成員已選時的出生日期 & 時間 -->
+          <div class="comp-locked-dt" id="compLockedDT" style="display:none">
+            <div class="comp-locked-row">
+              <div class="comp-locked-label">出生日期</div>
+              <div class="comp-locked-value" id="compPartnerDateDisp">—</div>
+            </div>
+            <div class="comp-locked-row">
+              <div class="comp-locked-label">出生時間</div>
+              <div class="comp-locked-value" id="compPartnerTimeDisp">—</div>
+            </div>
+          </div>
+
+          <!-- 對方出生地（永遠可修改） -->
           <div class="comp-field">
-            <div class="comp-label">對方出生地 <span class="comp-label-note">可修改</span></div>
+            <div class="comp-label">對方出生地</div>
             <div class="comp-loc-row">
               <select class="comp-select" id="compPartnerCounty" onchange="updateCompDistrict('partner')">
                 <option value="">縣市</option>
@@ -2636,6 +2700,13 @@
     return `${y}年${m}月${d}日${time ? '　' + time : ''}`;
   }
 
+  function _fmtDateOnly(dateStr) {
+    if (!dateStr) return '—';
+    const [y, m, d] = dateStr.split('-').map(Number);
+    if (!y) return '—';
+    return `${y}年${m}月${d}日`;
+  }
+
   function _parseLocName(locName) {
     if (!locName) return null;
     for (const county of Object.keys(TW_LOCS)) {
@@ -2665,15 +2736,11 @@
     document.getElementById('cvResult').style.display  = 'none';
     _compResult = null; _compSaved = false; _compSelectedMember = null;
 
-    // My profile card
-    const avatarEl = document.getElementById('compMyAvatar');
-    if (myAvatar) {
-      avatarEl.innerHTML = `<img src="${myAvatar}" alt="">`;
-    } else {
-      avatarEl.textContent = '✦';
-    }
-    document.getElementById('compMyNameDisp').textContent  = myNickname || '—';
-    document.getElementById('compMyBirthDisp').textContent = _fmtBirthDisplay(mySubjectIso);
+    // My section (read-only)
+    const [myDate, myTime] = (mySubjectIso || '').split('T');
+    document.getElementById('compMyNameDisp').textContent = myNickname || '—';
+    document.getElementById('compMyDateDisp').textContent = _fmtDateOnly(myDate);
+    document.getElementById('compMyTimeDisp').textContent = myTime ? myTime.slice(0, 5) : '—';
 
     _populateCompCounty('my');
     _populateCompCounty('partner');
@@ -2700,8 +2767,11 @@
 
   function _setPartnerManual() {
     _compSelectedMember = null;
-    document.getElementById('compPartnerCard').style.display   = 'none';
-    document.getElementById('compManualFields').style.display  = 'block';
+    document.getElementById('compNameManualRow').style.display = 'flex';
+    document.getElementById('compSelectedBar').style.display   = 'none';
+    document.getElementById('compMemberList').style.display    = 'none';
+    document.getElementById('compManualDT').style.display      = 'grid';
+    document.getElementById('compLockedDT').style.display      = 'none';
     document.getElementById('compPartnerName').value = '';
     document.getElementById('compPartnerDate').value = '';
     document.getElementById('compPartnerTime').value = '12:00';
@@ -2709,19 +2779,16 @@
 
   function _setPartnerMember(m) {
     _compSelectedMember = m;
-    // Locked card
-    const avatarEl = document.getElementById('compPartnerAvatar');
-    if (m.line_avatar) {
-      avatarEl.innerHTML = `<img src="${m.line_avatar}" alt="">`;
-    } else {
-      avatarEl.textContent = '★';
-    }
-    document.getElementById('compPartnerNameDisp').textContent  = m.nickname || '—';
-    document.getElementById('compPartnerBirthDisp').textContent = _fmtBirthDisplay(m.subject_iso_datetime);
-    document.getElementById('compPartnerCard').style.display   = 'flex';
-    document.getElementById('compManualFields').style.display  = 'none';
-
-    // Pre-fill partner location from DB location_name (user can still edit)
+    document.getElementById('compPartnerNameDisp').textContent = m.nickname || '—';
+    document.getElementById('compNameManualRow').style.display = 'none';
+    document.getElementById('compSelectedBar').style.display   = 'flex';
+    document.getElementById('compMemberList').style.display    = 'none';
+    const iso = m.subject_iso_datetime || '';
+    const [dp, tp] = iso.split('T');
+    document.getElementById('compPartnerDateDisp').textContent = _fmtDateOnly(dp);
+    document.getElementById('compPartnerTimeDisp').textContent = tp ? tp.slice(0, 5) : '—';
+    document.getElementById('compManualDT').style.display  = 'none';
+    document.getElementById('compLockedDT').style.display  = 'block';
     const parsed = _parseLocName(m.location_name);
     if (parsed) {
       document.getElementById('compPartnerCounty').value = parsed.county;
@@ -2772,27 +2839,46 @@
       _compMembers = (data.members || []).filter(m => m.uid !== uid && m.subject_iso_datetime);
     } catch { _compMembers = []; }
 
-    const pickerWrap = document.getElementById('compMemberPickerWrap');
+    const btn = document.getElementById('compMemberBtn');
     if (_compMembers.length === 0) {
-      pickerWrap.style.display = 'none';
+      if (btn) btn.style.display = 'none';
       return;
     }
-    pickerWrap.style.display = 'block';
-    const sel = document.getElementById('compMemberSelect');
-    sel.innerHTML = '<option value="">── 手動輸入 ──</option>';
-    for (const m of _compMembers) {
-      const o = document.createElement('option');
-      o.value = m.uid;
-      o.textContent = m.nickname || '成員';
-      sel.appendChild(o);
-    }
+    if (btn) btn.style.display = 'flex';
+
+    const list = document.getElementById('compMemberList');
+    list.innerHTML = _compMembers.map(m => {
+      const dp     = (m.subject_iso_datetime || '').split('T')[0] || '';
+      const avHtml = m.line_avatar
+        ? `<img src="${m.line_avatar}" alt="">`
+        : x((m.nickname || '?')[0]);
+      const safeUid = m.uid.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return `<div class="comp-member-item" onclick="selectPartnerMember('${safeUid}')">
+        <div class="comp-member-item-av">${avHtml}</div>
+        <div>
+          <div class="comp-member-item-name">${x(m.nickname || '成員')}</div>
+          <div class="comp-member-item-date">${_fmtDateOnly(dp)}</div>
+        </div>
+      </div>`;
+    }).join('');
   }
 
-  function onCompMemberSelect() {
-    const muid = document.getElementById('compMemberSelect').value;
-    if (!muid) { _setPartnerManual(); return; }
+  function toggleMemberDropdown(event) {
+    event.stopPropagation();
+    const list = document.getElementById('compMemberList');
+    list.style.display = list.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function selectPartnerMember(muid) {
     const m = _compMembers.find(v => v.uid === muid);
     if (m) _setPartnerMember(m);
+  }
+
+  function closeCompMemberDropdown(event) {
+    if (!event.target.closest('#compMemberList') && !event.target.closest('#compMemberBtn')) {
+      const list = document.getElementById('compMemberList');
+      if (list) list.style.display = 'none';
+    }
   }
 
   async function submitCompositeForm() {
