@@ -3214,7 +3214,7 @@
   function _showCompResult(data, myNick, partnerName) {
     document.getElementById('cvLoading').style.display = 'none';
     const fillDeg = Math.round((data.compat_score / 100) * 360);
-    const DIM_LABELS = { passion:'激情', stability:'穩定', communication:'溝通', trust:'信任', growth:'成長' };
+    const DIM_LABELS = { passion:'吸引', stability:'穩定', communication:'溝通', trust:'信任', growth:'成長' };
     const ELEM_ZH    = { Fire:'🔥火', Earth:'⛰️土', Air:'💨風', Water:'💧水' };
 
     const dims = Object.entries(data.scores || {}).map(([k, v]) => `
@@ -3294,7 +3294,6 @@
   function resetComposite() {
     document.getElementById('cvResult').style.display = 'none';
     document.getElementById('cvForm').style.display   = 'block';
-    _compSelectedMember = null;
     document.getElementById('compositeBody').scrollTop = 0;
   }
 
