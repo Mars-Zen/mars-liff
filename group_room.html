@@ -735,7 +735,7 @@
     }
     .composite-overlay.open { opacity: 1; visibility: visible; }
     .composite-panel {
-      width: 100%; height: 92vh;
+      width: 100%; height: 100%;
       background: #f4f2ff;
       border-radius: 28px 28px 0 0;
       display: flex; flex-direction: column;
@@ -747,7 +747,7 @@
     .composite-overlay.open .composite-panel { transform: translateY(0); }
     .composite-hd {
       background: linear-gradient(150deg, #130726 0%, #3b0764 38%, #6b21a8 68%, #9d174d 100%);
-      padding: 0 20px 12px; flex-shrink: 0; position: relative; overflow: hidden;
+      padding: 0 20px 8px; flex-shrink: 0; position: relative; overflow: hidden;
     }
     .composite-hd::before {
       content: '';
@@ -758,9 +758,9 @@
     }
     .composite-handle {
       width: 36px; height: 4px; background: rgba(255,255,255,0.28);
-      border-radius: 2px; margin: 10px auto 12px; position: relative; z-index: 1;
+      border-radius: 2px; margin: 7px auto 8px; position: relative; z-index: 1;
     }
-    .composite-hd-row { display: flex; align-items: center; position: relative; z-index: 1; margin-bottom: 5px; }
+    .composite-hd-row { display: flex; align-items: center; position: relative; z-index: 1; margin-bottom: 3px; }
     .composite-hd-title {
       font-size: 19px; font-weight: 900; color: #fff; flex: 1;
       letter-spacing: 0.03em; text-shadow: 0 2px 14px rgba(167,139,250,0.55);
@@ -816,9 +816,9 @@
     .comp-vs { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
     .comp-vs-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, rgba(124,58,237,0.3), transparent); }
     .comp-vs-badge {
-      width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+      width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
       background: linear-gradient(135deg, #6d28d9, #db2777);
-      color: #fff; font-size: 9px; font-weight: 900;
+      color: #fff; font-size: 8px; font-weight: 900;
       display: flex; align-items: center; justify-content: center; letter-spacing: 0.06em;
       box-shadow: 0 3px 10px rgba(109,40,217,0.35);
     }
