@@ -776,7 +776,11 @@
     .composite-body {
       flex: 1; overflow-y: auto; padding: 20px 16px 28px;
       -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin; scrollbar-color: rgba(124,58,237,0.45) transparent;
     }
+    .composite-body::-webkit-scrollbar { width: 5px; }
+    .composite-body::-webkit-scrollbar-track { background: rgba(124,58,237,0.08); border-radius: 4px; margin: 6px 0; }
+    .composite-body::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.5); border-radius: 4px; }
 
     /* Section blocks */
     .comp-block {
@@ -1034,14 +1038,15 @@
       display: flex; align-items: center; gap: 6px;
     }
     .vd-help-btn {
-      width: 15px; height: 15px; border-radius: 50%;
-      border: 1.4px solid #a78bfa; background: transparent; color: #a78bfa;
-      font-size: 10px; font-weight: 900; line-height: 1;
+      width: 13px; height: 13px; border-radius: 50%; box-sizing: border-box;
+      border: 1.3px solid #222; background: transparent; color: #222;
+      font-size: 9px; font-weight: 900; line-height: 1;
       display: inline-flex; align-items: center; justify-content: center;
-      cursor: pointer; padding: 0; flex-shrink: 0;
+      cursor: pointer; padding: 0; flex-shrink: 0; font-family: inherit;
       transition: background 0.15s, transform 0.12s;
     }
-    .vd-help-btn:active { background: #ede9fe; transform: scale(0.9); }
+    .vd-help-btn > span { display: block; transform: translateY(0.5px); }
+    .vd-help-btn:active { background: rgba(0,0,0,0.08); transform: scale(0.9); }
     .comp-dim-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
     .comp-dim-row:last-child { margin-bottom: 0; }
     .comp-dim-label { font-size: 13px; font-weight: 700; color: #7c6fa0; width: 34px; flex-shrink: 0; }
@@ -1112,12 +1117,12 @@
     }
     .vd-confirm {
       border: none; border-radius: 13px;
-      background: linear-gradient(135deg, #7c3aed, #db2777);
+      background: #1a1a1a;
       color: #fff; font-size: 14px; font-weight: 800; letter-spacing: 0.05em;
       padding: 12px; cursor: pointer; width: 100%;
       transition: transform 0.12s, opacity 0.15s;
     }
-    .vd-confirm:active { transform: scale(0.97); opacity: 0.9; }
+    .vd-confirm:active { transform: scale(0.97); opacity: 0.8; }
     .comp-result-btns { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
     .comp-btn {
       width: 100%; padding: 15px; border-radius: 14px; border: none;
@@ -3355,7 +3360,7 @@
         <div class="comp-rel-sub">COMPOSITE CHART · 星盤契合度</div>
       </div>
       <div class="comp-dims">
-        <div class="comp-dims-title">五維度分析<button class="vd-help-btn" onclick="openVdHelp()" aria-label="五維度說明">?</button></div>
+        <div class="comp-dims-title">五維度分析<button class="vd-help-btn" onclick="openVdHelp()" aria-label="五維度說明"><span>?</span></button></div>
         ${dims}
         ${data.description ? `<div class="comp-dims-desc">${x(data.description)}</div>` : ''}
         ${data.strength ? `<div class="comp-sub-card s"><div class="comp-sub-label s">✦ 天然優勢</div>${x(data.strength)}</div>` : ''}
