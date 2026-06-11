@@ -1042,15 +1042,16 @@
       transition: width 0.7s cubic-bezier(0.34,1.1,0.64,1);
     }
     .comp-dim-score { font-size: 13px; font-weight: 800; color: #4c1d95; width: 28px; text-align: right; flex-shrink: 0; }
-    .comp-desc-card {
-      background: linear-gradient(140deg, #f0ecff, #fef0fc);
-      border: 1px solid rgba(124,58,237,0.13); border-radius: 18px;
-      padding: 17px 18px; margin-bottom: 10px;
+    .comp-dims-desc {
+      margin-top: 16px; padding-top: 16px;
+      border-top: 1px solid rgba(124,58,237,0.18);
       font-size: 14px; line-height: 1.85; color: #1e1b4b;
+      text-align: justify; text-justify: inter-ideograph;
     }
     .comp-sub-card {
       border-radius: 15px; padding: 14px 16px; margin-bottom: 8px;
       font-size: 14px; line-height: 1.75; display: flex; flex-direction: column; gap: 7px;
+      text-align: justify; text-justify: inter-ideograph;
     }
     .comp-sub-card.s { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
     .comp-sub-card.c { background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; }
@@ -1058,9 +1059,9 @@
       font-size: 10px; font-weight: 900; letter-spacing: 0.07em;
       display: inline-block; border-radius: 20px; padding: 2px 9px; align-self: flex-start;
     }
-    .comp-sub-label.s { background: #dcfce7; color: #166534; }
-    .comp-sub-label.c { background: #ffe4e6; color: #9f1239; }
-    .comp-elem-row { font-size: 12px; color: #a78bfa; padding: 6px 4px 14px; text-align: center; letter-spacing: 0.04em; }
+    .comp-sub-label.s { background: #dcfce7; color: #166534; border: 1.5px solid #4ade80; }
+    .comp-sub-label.c { background: #ffe4e6; color: #9f1239; border: 1.5px solid #fb7185; }
+    .comp-elem-row { font-size: 12px; color: #a78bfa; padding: 6px 4px 14px; text-align: center; letter-spacing: 0.04em; white-space: nowrap; }
     .comp-result-btns { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
     .comp-btn {
       width: 100%; padding: 15px; border-radius: 14px; border: none;
@@ -3215,7 +3216,8 @@
     document.getElementById('cvLoading').style.display = 'none';
     const fillDeg = Math.round((data.compat_score / 100) * 360);
     const DIM_LABELS = { passion:'吸引', stability:'穩定', communication:'溝通', trust:'信任', growth:'成長' };
-    const ELEM_ZH    = { Fire:'🔥火', Earth:'⛰️土', Air:'💨風', Water:'💧水' };
+    const ELEM_NAME  = { Fire:'火', Earth:'土', Air:'風', Water:'水' };
+    const ELEM_COLOR = { Fire:'#e0392b', Earth:'#8b5a2b', Air:'#2e9e5b', Water:'#2d7ff0' };
 
     const dims = Object.entries(data.scores || {}).map(([k, v]) => `
       <div class="comp-dim-row">
@@ -3224,9 +3226,9 @@
         <div class="comp-dim-score">${v}</div>
       </div>`).join('');
 
-    const elems = Object.entries(data.elem_pct || {})
-      .filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1])
-      .map(([k,v]) => `${ELEM_ZH[k]||k} ${v}%`).join('　');
+    const elems = ['Fire','Earth','Air','Water']
+      .filter(k => (data.elem_pct || {})[k] > 0)
+      .map(k => `<span style="color:${ELEM_COLOR[k]}">${ELEM_NAME[k]} ${data.elem_pct[k]}%</span>`).join('　');
 
     const saveLabel = _compSaved ? '✓ 已儲存' : '儲存紀錄';
     const saveCls   = _compSaved ? 'comp-btn saved' : 'comp-btn save';
@@ -3247,8 +3249,8 @@
       <div class="comp-dims">
         <div class="comp-dims-title">五維度分析</div>
         ${dims}
+        ${data.description ? `<div class="comp-dims-desc">${x(data.description)}</div>` : ''}
       </div>
-      <div class="comp-desc-card">${x(data.description)}</div>
       ${data.strength ? `<div class="comp-sub-card s"><div class="comp-sub-label s">✦ 天然優勢</div>${x(data.strength)}</div>` : ''}
       ${data.challenge ? `<div class="comp-sub-card c"><div class="comp-sub-label c">△ 需要磨合</div>${x(data.challenge)}</div>` : ''}
       ${elems ? `<div class="comp-elem-row">合盤元素組成：${elems}</div>` : ''}
@@ -3260,6 +3262,18 @@
 
     document.getElementById('cvResult').style.display = 'block';
     document.getElementById('compositeBody').scrollTop = 0;
+
+    // 元素組成行：自動縮小字體，讓它剛好一行、不換行也不被切
+    requestAnimationFrame(() => {
+      const er = document.querySelector('#cvResult .comp-elem-row');
+      if (!er) return;
+      let fs = 12;
+      er.style.fontSize = fs + 'px';
+      while (er.scrollWidth > er.clientWidth && fs > 8) {
+        fs -= 0.5;
+        er.style.fontSize = fs + 'px';
+      }
+    });
   }
 
   async function saveCompositeRecord() {
