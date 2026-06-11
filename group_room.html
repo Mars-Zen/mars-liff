@@ -1031,7 +1031,17 @@
     .comp-dims-title {
       font-size: 10px; font-weight: 900; letter-spacing: 0.14em;
       color: #a78bfa; text-transform: uppercase; margin-bottom: 14px;
+      display: flex; align-items: center; gap: 6px;
     }
+    .vd-help-btn {
+      width: 15px; height: 15px; border-radius: 50%;
+      border: 1.4px solid #a78bfa; background: transparent; color: #a78bfa;
+      font-size: 10px; font-weight: 900; line-height: 1;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer; padding: 0; flex-shrink: 0;
+      transition: background 0.15s, transform 0.12s;
+    }
+    .vd-help-btn:active { background: #ede9fe; transform: scale(0.9); }
     .comp-dim-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
     .comp-dim-row:last-child { margin-bottom: 0; }
     .comp-dim-label { font-size: 13px; font-weight: 700; color: #7c6fa0; width: 34px; flex-shrink: 0; }
@@ -1063,6 +1073,51 @@
     .comp-sub-label.s { background: #dcfce7; color: #166534; border: 1.5px solid #4ade80; }
     .comp-sub-label.c { background: #ffe4e6; color: #9f1239; border: 1.5px solid #fb7185; }
     .comp-elem-row { font-size: 12px; color: #a78bfa; margin-top: 16px; text-align: center; letter-spacing: 0.04em; white-space: nowrap; }
+
+    /* ── 五維度說明 Modal ── */
+    .vd-overlay {
+      position: fixed; inset: 0;
+      background: rgba(12,8,32,0.72); backdrop-filter: blur(4px);
+      z-index: 500; display: flex; align-items: center; justify-content: center;
+      padding: 24px; opacity: 0; visibility: hidden;
+      transition: opacity 0.25s, visibility 0.25s;
+    }
+    .vd-overlay.open { opacity: 1; visibility: visible; }
+    .vd-panel {
+      width: 100%; max-width: 320px;
+      background: #fff; border-radius: 22px; padding: 22px 18px 18px;
+      box-shadow: 0 20px 60px rgba(40,20,90,0.4);
+      transform: scale(0.9) translateY(12px); opacity: 0.4;
+      transition: transform 0.3s cubic-bezier(0.34,1.2,0.64,1), opacity 0.3s;
+      display: flex; flex-direction: column;
+    }
+    .vd-overlay.open .vd-panel { transform: scale(1) translateY(0); opacity: 1; }
+    .vd-hd { display: flex; flex-direction: column; align-items: center; gap: 11px; }
+    .vd-title { font-size: 17px; font-weight: 900; color: #4c1d95; letter-spacing: 0.06em; transition: opacity 0.2s; }
+    .vd-dots { display: flex; gap: 6px; }
+    .vd-dot { width: 7px; height: 7px; border-radius: 50%; background: #ddd6fe; cursor: pointer; transition: all 0.25s; }
+    .vd-dot.active { background: #7c3aed; width: 18px; border-radius: 4px; }
+    .vd-track {
+      display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+      scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch;
+      margin: 16px 0;
+    }
+    .vd-track::-webkit-scrollbar { display: none; }
+    .vd-card {
+      flex: 0 0 100%; scroll-snap-align: center;
+      padding: 6px 2px; min-height: 84px;
+      display: flex; align-items: center;
+      font-size: 14px; line-height: 1.8; color: #3b3357;
+      text-align: justify; text-justify: inter-ideograph;
+    }
+    .vd-confirm {
+      border: none; border-radius: 13px;
+      background: linear-gradient(135deg, #7c3aed, #db2777);
+      color: #fff; font-size: 14px; font-weight: 800; letter-spacing: 0.05em;
+      padding: 12px; cursor: pointer; width: 100%;
+      transition: transform 0.12s, opacity 0.15s;
+    }
+    .vd-confirm:active { transform: scale(0.97); opacity: 0.9; }
     .comp-result-btns { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
     .comp-btn {
       width: 100%; padding: 15px; border-radius: 14px; border: none;
@@ -1419,6 +1474,31 @@
 
 <!-- Composite Overlay -->
 <div class="composite-overlay" id="compositeOverlay" onclick="if(event.target===this)closeComposite()">
+
+  <!-- 五維度說明 Modal（z-index 高於 panel，開啟時擋住整個合盤頁，必須關閉才能離開）-->
+  <div class="vd-overlay" id="vdHelpOverlay" onclick="if(event.target===this)closeVdHelp()">
+    <div class="vd-panel">
+      <div class="vd-hd">
+        <div class="vd-title" id="vdTitle">吸引</div>
+        <div class="vd-dots" id="vdDots">
+          <div class="vd-dot active" onclick="_vdGoTo(0)"></div>
+          <div class="vd-dot" onclick="_vdGoTo(1)"></div>
+          <div class="vd-dot" onclick="_vdGoTo(2)"></div>
+          <div class="vd-dot" onclick="_vdGoTo(3)"></div>
+          <div class="vd-dot" onclick="_vdGoTo(4)"></div>
+        </div>
+      </div>
+      <div class="vd-track" id="vdTrack" onscroll="_vdOnScroll()">
+        <div class="vd-card">兩人之間的化學反應與心動感，那股自然被對方吸引、想靠近的能量。</div>
+        <div class="vd-card">關係長期相處的平順度與安全感，能不能細水長流、給彼此踏實的依靠。</div>
+        <div class="vd-card">聊不聊得來、話題順不順，想法和感受能不能輕鬆傳達給對方。</div>
+        <div class="vd-card">能不能放心把真實的自己交給對方，那種坦誠、不必設防的程度。</div>
+        <div class="vd-card">在一起會不會讓彼此變得更好，能互相啟發、一起進步的潛力。</div>
+      </div>
+      <button class="vd-confirm" onclick="closeVdHelp()">我知道了</button>
+    </div>
+  </div>
+
   <div class="composite-panel">
     <div class="composite-hd">
       <div class="composite-handle"></div>
@@ -2896,7 +2976,34 @@
   }
 
   function closeComposite() {
+    // 五維度說明視窗開著時，必須先關閉它才能離開雙人合盤
+    if (document.getElementById('vdHelpOverlay').classList.contains('open')) return;
     document.getElementById('compositeOverlay').classList.remove('open');
+  }
+
+  // ── 五維度說明 Modal ──
+  const VD_NAMES = ['吸引', '穩定', '溝通', '信任', '成長'];
+  function openVdHelp() {
+    document.getElementById('vdHelpOverlay').classList.add('open');
+    const t = document.getElementById('vdTrack');
+    t.scrollLeft = 0;
+    _updateVdIndicator(0);
+  }
+  function closeVdHelp() {
+    document.getElementById('vdHelpOverlay').classList.remove('open');
+  }
+  function _updateVdIndicator(idx) {
+    const title = document.getElementById('vdTitle');
+    if (title) title.textContent = VD_NAMES[idx] || '';
+    document.querySelectorAll('#vdDots .vd-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+  function _vdGoTo(idx) {
+    const t = document.getElementById('vdTrack');
+    t.scrollTo({ left: t.clientWidth * idx, behavior: 'smooth' });
+  }
+  function _vdOnScroll() {
+    const t = document.getElementById('vdTrack');
+    _updateVdIndicator(Math.round(t.scrollLeft / t.clientWidth));
   }
 
   async function _initCompositeForm() {
@@ -3248,7 +3355,7 @@
         <div class="comp-rel-sub">COMPOSITE CHART · 星盤契合度</div>
       </div>
       <div class="comp-dims">
-        <div class="comp-dims-title">五維度分析</div>
+        <div class="comp-dims-title">五維度分析<button class="vd-help-btn" onclick="openVdHelp()" aria-label="五維度說明">?</button></div>
         ${dims}
         ${data.description ? `<div class="comp-dims-desc">${x(data.description)}</div>` : ''}
         ${data.strength ? `<div class="comp-sub-card s"><div class="comp-sub-label s">✦ 天然優勢</div>${x(data.strength)}</div>` : ''}
