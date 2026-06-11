@@ -1003,10 +1003,10 @@
     .comp-loading-sub { font-size: 14px; color: #9ca3af; text-align: center; line-height: 1.75; }
 
     /* Result */
-    .comp-result-header { text-align: center; padding: 22px 0 20px; }
+    .comp-result-header { text-align: center; padding: 10px 0 20px; }
     .comp-result-names { font-size: 15px; font-weight: 800; color: #6d28d9; margin-bottom: 20px; letter-spacing: 0.04em; }
     .comp-score-ring {
-      width: 124px; height: 124px; margin: 0 auto 16px;
+      width: 110px; height: 110px; margin: 0 auto 16px;
       border-radius: 50%; position: relative;
       display: flex; align-items: center; justify-content: center;
     }
@@ -1019,7 +1019,7 @@
       position: absolute; inset: 14px; background: #f4f2ff; border-radius: 50%;
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
     }
-    .comp-score-num { font-size: 28px; font-weight: 900; color: #5b21b6; line-height: 1; }
+    .comp-score-num { font-size: 25px; font-weight: 900; color: #5b21b6; line-height: 1; }
     .comp-score-unit { font-size: 11px; color: #a78bfa; letter-spacing: 0.06em; }
     .comp-rel-type { font-size: 16px; font-weight: 900; color: #2e1065; margin-bottom: 4px; }
     .comp-rel-sub { font-size: 11px; color: #a78bfa; letter-spacing: 0.07em; }
@@ -1049,7 +1049,7 @@
       text-align: justify; text-justify: inter-ideograph;
     }
     .comp-sub-card {
-      border-radius: 15px; padding: 14px 16px; margin-bottom: 8px;
+      border-radius: 15px; padding: 14px 16px; margin: 12px 6px 0;
       font-size: 14px; line-height: 1.75; display: flex; flex-direction: column; gap: 7px;
       text-align: justify; text-justify: inter-ideograph;
     }
@@ -1061,7 +1061,7 @@
     }
     .comp-sub-label.s { background: #dcfce7; color: #166534; border: 1.5px solid #4ade80; }
     .comp-sub-label.c { background: #ffe4e6; color: #9f1239; border: 1.5px solid #fb7185; }
-    .comp-elem-row { font-size: 12px; color: #a78bfa; padding: 6px 4px 14px; text-align: center; letter-spacing: 0.04em; white-space: nowrap; }
+    .comp-elem-row { font-size: 12px; color: #a78bfa; margin-top: 16px; text-align: center; letter-spacing: 0.04em; white-space: nowrap; }
     .comp-result-btns { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
     .comp-btn {
       width: 100%; padding: 15px; border-radius: 14px; border: none;
@@ -3250,10 +3250,10 @@
         <div class="comp-dims-title">五維度分析</div>
         ${dims}
         ${data.description ? `<div class="comp-dims-desc">${x(data.description)}</div>` : ''}
+        ${data.strength ? `<div class="comp-sub-card s"><div class="comp-sub-label s">✦ 天然優勢</div>${x(data.strength)}</div>` : ''}
+        ${data.challenge ? `<div class="comp-sub-card c"><div class="comp-sub-label c">△ 需要磨合</div>${x(data.challenge)}</div>` : ''}
+        ${elems ? `<div class="comp-elem-row">合盤元素組成：${elems}</div>` : ''}
       </div>
-      ${data.strength ? `<div class="comp-sub-card s"><div class="comp-sub-label s">✦ 天然優勢</div>${x(data.strength)}</div>` : ''}
-      ${data.challenge ? `<div class="comp-sub-card c"><div class="comp-sub-label c">△ 需要磨合</div>${x(data.challenge)}</div>` : ''}
-      ${elems ? `<div class="comp-elem-row">合盤元素組成：${elems}</div>` : ''}
       <div class="comp-result-btns">
         <button class="${saveCls}" id="compSaveBtn" onclick="saveCompositeRecord()">${saveLabel}</button>
         <button class="comp-btn share" onclick="shareCompositeLine()">📤 分享到 LINE</button>
