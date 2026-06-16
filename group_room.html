@@ -3528,8 +3528,10 @@
         {
           type: 'box', layout: 'horizontal', margin: 'md',
           contents: [
+            { type: 'filler' },
             { type: 'text', text: '元素：', size: 'xs', color: '#6b7280', flex: 0 },
-            ...elemParts
+            ...elemParts,
+            { type: 'filler' }
           ]
         }
       );
