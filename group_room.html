@@ -3438,26 +3438,22 @@
 
     // 五維度列：標籤靠左，數值靠右，無進度條（每列 3 節點）
     const dimRows = Object.entries(d.scores || {}).map(([k, v], i) => ({
-      type: 'box', layout: 'horizontal', margin: i === 0 ? 'none' : 'sm',
+      type: 'box', layout: 'horizontal',
+      ...(i > 0 && { margin: 'sm' }),
       contents: [
         { type: 'text', text: DIM_LABELS[k] || k, size: 'sm', color: '#374151', weight: 'bold', flex: 3 },
         { type: 'text', text: String(v), size: 'sm', color: PURPLE, weight: 'bold', flex: 1, align: 'end' }
       ]
     }));
 
-    // 契合度雙層圓圈：外圈紫底 78×78，內圈白底 68×68（paddingAll:5 自動撐開）
+    // 契合度分數徽章（只用 invite 確認有效的屬性：backgroundColor/cornerRadius/paddingAll/flex）
     const scoreCircle = {
-      type: 'box', layout: 'vertical', flex: 0,
-      width: '78px', height: '78px', cornerRadius: '39px',
-      backgroundColor: PURPLE, paddingAll: '5px', gravity: 'center',
-      contents: [{
-        type: 'box', layout: 'vertical', flex: 1,
-        cornerRadius: '34px', backgroundColor: '#ffffff', justifyContent: 'center',
-        contents: [
-          { type: 'text', text: String(d.compat_score), size: 'xl', weight: 'bold', color: PURPLE, align: 'center' },
-          { type: 'text', text: '分', size: 'xxs', color: PURPLE, align: 'center' }
-        ]
-      }]
+      type: 'box', layout: 'vertical', flex: 2,
+      backgroundColor: '#ede9fe', cornerRadius: '16px', paddingAll: '10px',
+      contents: [
+        { type: 'text', text: String(d.compat_score), size: 'xl', weight: 'bold', color: PURPLE, align: 'center' },
+        { type: 'text', text: '分', size: 'sm', color: PURPLE, align: 'center' }
+      ]
     };
 
     // ── 組裝 body（總節點數 30，遠低於 LINE 上限 50）──
