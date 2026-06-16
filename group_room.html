@@ -1137,6 +1137,7 @@
     .comp-btn.share { background: #00b900; color: #fff; box-shadow: 0 4px 14px rgba(0,185,0,0.28); }
     .comp-btn.reset { background: #fff; border: 1.5px solid #e5deff; color: #6d28d9; font-weight: 700; }
     .comp-btn.saved { background: #f1f0f7; color: #b0a8cc; cursor: default; pointer-events: none; box-shadow: none; }
+    .comp-btn.delete { background: linear-gradient(135deg, #b91c1c, #dc2626 50%, #f87171); color: #fff; box-shadow: 0 5px 18px rgba(185,28,28,0.30); }
 
     /* ── Loading ── */
     .loading { display: flex; justify-content: center; padding: 52px; }
@@ -2943,6 +2944,7 @@
   let _compMembers        = [];
   let _compResult         = null;
   let _compSaved          = false;
+  let _compCached         = false;
   let _compSelectedMember = null;
 
   function _fmtBirthDisplay(isoStr) {
@@ -3015,7 +3017,7 @@
     document.getElementById('cvForm').style.display    = 'block';
     document.getElementById('cvLoading').style.display = 'none';
     document.getElementById('cvResult').style.display  = 'none';
-    _compResult = null; _compSaved = false; _compSelectedMember = null;
+    _compResult = null; _compSaved = false; _compCached = false; _compSelectedMember = null;
 
     // Fetch birth profile from DB if not yet available
     if (!mySubjectIso && uid && uid !== 'demo_user') {
@@ -3292,7 +3294,7 @@
         let cachedRes;
         try { cachedRes = JSON.parse(cached.result_json); } catch { cachedRes = null; }
         if (cachedRes) {
-          _compResult = cachedRes; _compSaved = true;
+          _compResult = cachedRes; _compSaved = true; _compCached = true;
           _showCompResult(_compResult, myNick, partnerName);
           return;
         }
@@ -3313,9 +3315,11 @@
       const calcData = await calcR.json();
       if (!calcData.success || !calcData.data) throw new Error('API 回傳格式錯誤');
 
-      _compResult = calcData.data; _compSaved = false;
+      _compResult = calcData.data;
       _compResult.my_gender      = myGender      || 'U';
       _compResult.partner_gender = partnerGender || 'U';
+      _compCached = calcData.cached === true;
+      _compSaved  = _compCached;
       _showCompResult(_compResult, myNick, partnerName);
 
     } catch {
@@ -3343,8 +3347,9 @@
       .filter(k => (data.elem_pct || {})[k] > 0)
       .map(k => `<span style="color:${ELEM_COLOR[k]}">${ELEM_NAME[k]} ${data.elem_pct[k]}%</span>`).join('　');
 
-    const saveLabel = _compSaved ? '✓ 已儲存' : '儲存紀錄';
-    const saveCls   = _compSaved ? 'comp-btn saved' : 'comp-btn save';
+    const saveLabel   = _compSaved ? '刪除紀錄' : '儲存紀錄';
+    const saveCls     = _compSaved ? 'comp-btn delete' : 'comp-btn save';
+    const saveOnclick = _compSaved ? 'deleteCompositeRecord()' : 'saveCompositeRecord()';
 
     document.getElementById('cvResult').innerHTML = `
       <div class="comp-result-header">
@@ -3368,7 +3373,7 @@
         ${elems ? `<div class="comp-elem-row">合盤元素組成：${elems}</div>` : ''}
       </div>
       <div class="comp-result-btns">
-        <button class="${saveCls}" id="compSaveBtn" onclick="saveCompositeRecord()">${saveLabel}</button>
+        <button class="${saveCls}" id="compSaveBtn" onclick="${saveOnclick}">${saveLabel}</button>
         <button class="comp-btn share" onclick="shareCompositeLine()">📤 分享到 LINE</button>
         <button class="comp-btn reset" onclick="resetComposite()">重新計算</button>
       </div>`;
@@ -3409,12 +3414,30 @@
           result_json:        JSON.stringify(_compResult)
         })
       });
-      _compSaved = true;
-      if (btn) { btn.textContent = '✓ 已儲存'; btn.className = 'comp-btn saved'; }
+      _compSaved = true; _compCached = true;
+      if (btn) { btn.textContent = '刪除紀錄'; btn.className = 'comp-btn delete'; btn.onclick = deleteCompositeRecord; }
       showToast('合盤紀錄已儲存 ✦');
     } catch {
       if (btn) btn.textContent = '儲存紀錄';
       showToast('儲存失敗，請再試一次');
+    }
+  }
+
+  async function deleteCompositeRecord() {
+    if (!_compResult || !_compSaved) return;
+    const btn = document.getElementById('compSaveBtn');
+    if (btn) btn.textContent = '刪除中…';
+    try {
+      await fetch(`${API}/composite-delete`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, cache_key: _compResult.cache_key })
+      });
+      _compSaved = false; _compCached = false;
+      if (btn) { btn.textContent = '儲存紀錄'; btn.className = 'comp-btn save'; btn.onclick = saveCompositeRecord; }
+      showToast('紀錄已刪除');
+    } catch {
+      if (btn) btn.textContent = '刪除紀錄';
+      showToast('刪除失敗，請再試一次');
     }
   }
 
