@@ -3450,7 +3450,7 @@
     const scoreCircle = {
       type: 'box', layout: 'vertical', flex: 0,
       width: '72px', height: '72px',
-      cornerRadius: '36px', backgroundColor: '#000000', paddingAll: '5px',
+      cornerRadius: '36px', backgroundColor: '#ede9fe', paddingAll: '5px',
       contents: [{
         type: 'box', layout: 'vertical',
         height: '62px', cornerRadius: '31px',
@@ -3464,12 +3464,13 @@
 
     const bodyContents = [
       { type: 'text', text: `${d.user_name} × ${d.partner_name}`,
-        size: 'md', weight: 'bold', color: '#1f2937', wrap: true },
+        size: 'md', weight: 'bold', color: '#2563eb', wrap: true },
+      { type: 'separator', margin: 'lg', color: '#e5e7eb' },
       // 左半：維度文字組（paddingStart 推向中間），右半：paddingTop 讓圓圈中心對齊溝通那行
       {
         type: 'box', layout: 'horizontal', margin: 'lg',
         contents: [
-          { type: 'box', layout: 'vertical', flex: 1, paddingStart: 'xl', contents: dimRows },
+          { type: 'box', layout: 'vertical', flex: 1, paddingStart: '20px', contents: dimRows },
           {
             type: 'box', layout: 'horizontal', flex: 1, paddingEnd: 'lg', paddingTop: '12px',
             contents: [
