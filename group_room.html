@@ -3450,7 +3450,7 @@
     const scoreCircle = {
       type: 'box', layout: 'vertical', flex: 0,
       width: '72px', height: '72px',
-      cornerRadius: '36px', backgroundColor: PURPLE, paddingAll: '5px',
+      cornerRadius: '36px', backgroundColor: '#000000', paddingAll: '5px',
       contents: [{
         type: 'box', layout: 'vertical',
         height: '62px', cornerRadius: '31px',
@@ -3465,14 +3465,13 @@
     const bodyContents = [
       { type: 'text', text: `${d.user_name} × ${d.partner_name}`,
         size: 'md', weight: 'bold', color: '#1f2937', wrap: true },
-      { type: 'separator', margin: 'lg', color: '#e5e7eb' },
-      // 左半：維度文字組（paddingStart 推離左邊緣），右半：filler+圓圈+filler 橫向置中
+      // 左半：維度文字組（paddingStart 推向中間），右半：paddingTop 讓圓圈中心對齊溝通那行
       {
         type: 'box', layout: 'horizontal', margin: 'lg',
         contents: [
-          { type: 'box', layout: 'vertical', flex: 1, paddingStart: 'lg', contents: dimRows },
+          { type: 'box', layout: 'vertical', flex: 1, paddingStart: 'xl', contents: dimRows },
           {
-            type: 'box', layout: 'horizontal', flex: 1, paddingEnd: 'lg',
+            type: 'box', layout: 'horizontal', flex: 1, paddingEnd: 'lg', paddingTop: '12px',
             contents: [
               { type: 'filler' },
               scoreCircle,
@@ -3485,7 +3484,7 @@
 
     if (d.description) {
       bodyContents.push(
-        { type: 'separator', margin: 'xl', color: '#e5e7eb' },
+        { type: 'separator', margin: 'lg', color: '#e5e7eb' },
         { type: 'text', text: d.description, size: 'sm', color: '#374151', margin: 'md', wrap: true }
       );
     }
@@ -3513,7 +3512,7 @@
       });
     }
 
-    const ELEM_COLOR = { Fire: '#ef4444', Earth: '#92400e', Air: '#6366f1', Water: '#0ea5e9' };
+    const ELEM_COLOR = { Fire: '#ef4444', Earth: '#92400e', Air: '#16a34a', Water: '#0ea5e9' };
     const ELEM_NAME  = { Fire: '火', Earth: '土', Air: '風', Water: '水' };
     const elemParts  = ['Fire', 'Earth', 'Air', 'Water']
       .filter(k => (d.elem_pct || {})[k] > 0)
@@ -3526,9 +3525,9 @@
       bodyContents.push(
         { type: 'separator', margin: 'lg', color: '#e5e7eb' },
         {
-          type: 'box', layout: 'horizontal', margin: 'sm',
+          type: 'box', layout: 'horizontal', margin: 'md',
           contents: [
-            { type: 'text', text: '合盤元素：', size: 'xs', color: '#6b7280', flex: 0 },
+            { type: 'text', text: '元素：', size: 'xs', color: '#6b7280', flex: 0 },
             ...elemParts
           ]
         }
