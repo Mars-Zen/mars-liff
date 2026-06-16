@@ -3436,40 +3436,38 @@
     const PURPLE       = '#7c3aed';
     const PURPLE_LIGHT = '#e9d5ff';
     const DIM_LABELS   = { passion:'吸引', stability:'穩定', communication:'溝通', trust:'信任', growth:'成長' };
-    const ELEM_ZH      = { Fire:'火', Earth:'土', Air:'風', Water:'水' };
-    const ELEM_HEX     = { Fire:'#e0392b', Earth:'#8b5a2b', Air:'#2e9e5b', Water:'#2d7ff0' };
 
-    // ── 維度進度條（文字字元版，節省 component 數量）──
-    function dimBar(label, score) {
-      const filled = Math.round(score / 10);
-      const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
+    // ── 維度進度條（width% 填充，gravity: 'center' 讓文字與條對齊）──
+    function dimBar(label, score, isFirst) {
+      const pct = Math.max(1, Math.min(99, score));
       return {
-        type: 'box', layout: 'horizontal', margin: 'sm',
+        type: 'box', layout: 'horizontal', margin: isFirst ? 'lg' : 'sm',
         contents: [
-          { type: 'text', text: label, size: 'sm', color: '#374151', flex: 2, weight: 'bold' },
-          { type: 'text', text: bar,   size: 'xs', color: PURPLE,    flex: 6 },
-          { type: 'text', text: String(score), size: 'sm', color: PURPLE, flex: 2, align: 'end', weight: 'bold' }
+          { type: 'text', text: label, size: 'sm', color: '#374151', flex: 2, weight: 'bold', gravity: 'center' },
+          {
+            type: 'box', layout: 'horizontal', flex: 8,
+            height: '10px', cornerRadius: '5px', backgroundColor: PURPLE_LIGHT, gravity: 'center',
+            contents: [
+              { type: 'box', layout: 'vertical', width: `${pct}%`, backgroundColor: PURPLE, cornerRadius: '5px', contents: [{ type: 'filler' }] }
+            ]
+          },
+          { type: 'text', text: String(score), size: 'sm', color: PURPLE, flex: 2, align: 'end', weight: 'bold', gravity: 'center' }
         ]
       };
     }
 
-    // ── 元素組成 ──
-    const elemTexts = ['Fire','Earth','Air','Water']
-      .filter(k => (d.elem_pct || {})[k] > 0)
-      .map(k => ({ type: 'text', text: `${ELEM_ZH[k]} ${d.elem_pct[k]}%`, size: 'sm', color: ELEM_HEX[k], flex: 0 }));
-
     // ── 組裝 body ──
     const bodyContents = [
-      // 名字
+      // 名字（比內文稍大）
       { type: 'text', text: `${d.user_name} × ${d.partner_name}`,
-        size: 'xl', weight: 'bold', color: '#1f2937', wrap: true },
-      // 契合度分數（單行文字，避免跨 size gravity 對齊問題）
+        size: 'md', weight: 'bold', color: '#1f2937', wrap: true },
+      // 契合度分數
       { type: 'text', text: `契合度　${d.compat_score} 分`,
-        size: 'lg', weight: 'bold', color: PURPLE, margin: 'sm' },
+        size: 'md', weight: 'bold', color: PURPLE, margin: 'sm' },
       // ── 分隔 ──
       { type: 'separator', margin: 'xl', color: '#e5e7eb' },
       // 維度進度條
-      ...Object.entries(d.scores || {}).map(([k, v]) => dimBar(DIM_LABELS[k] || k, v))
+      ...Object.entries(d.scores || {}).map(([k, v], i) => dimBar(DIM_LABELS[k] || k, v, i === 0))
     ];
 
     // 描述 + 天然優勢 + 需要磨合
@@ -3500,20 +3498,6 @@
           { type: 'text', text: d.challenge, size: 'sm', color: '#374151', margin: 'sm', wrap: true }
         ]
       });
-    }
-
-    // 元素組成（最下方，有值才顯示）
-    if (elemTexts.length > 0) {
-      bodyContents.push(
-        { type: 'separator', margin: 'lg', color: '#e5e7eb' },
-        {
-          type: 'box', layout: 'horizontal', margin: 'md', spacing: 'lg',
-          contents: [
-            { type: 'text', text: '元素', size: 'xs', color: '#9ca3af', flex: 0 },
-            ...elemTexts
-          ]
-        }
-      );
     }
 
     const flexMsg = {
