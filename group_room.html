@@ -1123,7 +1123,8 @@
       transition: transform 0.12s, opacity 0.15s;
     }
     .vd-confirm:active { transform: scale(0.97); opacity: 0.8; }
-    .comp-result-btns { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
+    .comp-result-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-bottom: 20px; }
+    .comp-result-btns .comp-btn.reset { grid-column: 1 / -1; }
     .comp-btn {
       width: 100%; padding: 15px; border-radius: 14px; border: none;
       font-size: 15px; font-weight: 800; cursor: pointer;
@@ -3355,7 +3356,7 @@
       </div>
       <div class="comp-result-btns">
         <button class="${saveCls}" id="compSaveBtn" onclick="${saveOnclick}">${saveLabel}</button>
-        <button class="comp-btn share" onclick="shareCompositeLine()">📤 分享到 LINE</button>
+        <button class="comp-btn share" onclick="shareCompositeLine()">分享到 LINE</button>
         <button class="comp-btn reset" onclick="resetComposite()">重新計算</button>
       </div>`;
 
@@ -3431,10 +3432,61 @@
   async function shareCompositeLine() {
     if (!_compResult) return;
     const d = _compResult;
-    const msg = `✦ 雙人合盤\n${x(d.user_name)} × ${x(d.partner_name)}\n契合度：${d.compat_score} 分\n${x(d.relationship_type)}\n\n${x(d.description)}`;
+    const DIM_LABELS = { passion:'吸引', stability:'穩定', communication:'溝通', trust:'信任', growth:'成長' };
+    const PURPLE = '#7c3aed';
+    const PURPLE_LIGHT = '#e9d5ff';
+
+    function dimBar(label, score) {
+      const filled = Math.max(1, Math.min(99, score));
+      const empty  = 100 - filled;
+      return {
+        type: 'box', layout: 'horizontal', margin: 'sm',
+        contents: [
+          { type: 'text', text: label, size: 'sm', color: '#374151', flex: 2, weight: 'bold', gravity: 'center' },
+          {
+            type: 'box', layout: 'horizontal', flex: 7,
+            height: '8px', cornerRadius: '4px', backgroundColor: PURPLE_LIGHT,
+            contents: [
+              { type: 'box', layout: 'vertical', flex: filled, backgroundColor: PURPLE, cornerRadius: '4px', contents: [{ type: 'filler' }] },
+              { type: 'box', layout: 'vertical', flex: empty,  backgroundColor: 'transparent', contents: [{ type: 'filler' }] }
+            ]
+          },
+          { type: 'text', text: String(score), size: 'sm', color: PURPLE, flex: 2, align: 'end', weight: 'bold', gravity: 'center' }
+        ]
+      };
+    }
+
+    const dimContents = Object.entries(d.scores || {}).map(([k, v]) => dimBar(DIM_LABELS[k] || k, v));
+
+    const flexMsg = {
+      type: 'flex',
+      altText: `✦ ${d.user_name} × ${d.partner_name}｜契合度 ${d.compat_score} 分`,
+      contents: {
+        type: 'bubble',
+        body: {
+          type: 'box', layout: 'vertical', paddingAll: '20px', backgroundColor: '#ffffff',
+          contents: [
+            { type: 'text', text: '✦ 雙人合盤', size: 'xs', color: PURPLE, weight: 'bold' },
+            { type: 'text', text: `${d.user_name} × ${d.partner_name}`, size: 'xl', weight: 'bold', color: '#1f2937', margin: 'xs', wrap: true },
+            {
+              type: 'box', layout: 'horizontal', margin: 'sm',
+              contents: [
+                { type: 'text', text: String(d.compat_score), size: '3xl', weight: 'bold', color: PURPLE, flex: 0, gravity: 'bottom' },
+                { type: 'text', text: ' 分', size: 'md', color: PURPLE, flex: 0, gravity: 'bottom' }
+              ]
+            },
+            { type: 'text', text: d.relationship_type, size: 'sm', color: '#6d28d9', weight: 'bold', margin: 'xs' },
+            { type: 'separator', margin: 'lg', color: '#e5e7eb' },
+            { type: 'text', text: '五維度分析', weight: 'bold', size: 'sm', color: '#374151', margin: 'lg' },
+            ...dimContents
+          ]
+        }
+      }
+    };
+
     const ready = await ensureLiff();
     if (ready && liff.isInClient()) {
-      try { await liff.shareTargetPicker([{ type: 'text', text: msg }]); }
+      try { await liff.shareTargetPicker([flexMsg]); }
       catch { showToast('分享已取消'); }
     } else {
       showToast('請在 LINE 內使用分享功能');
