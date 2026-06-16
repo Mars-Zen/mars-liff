@@ -3437,18 +3437,20 @@
     const PURPLE_LIGHT = '#e9d5ff';
     const DIM_LABELS   = { passion:'吸引', stability:'穩定', communication:'溝通', trust:'信任', growth:'成長' };
 
-    // ── 維度進度條（width% 填充，gravity: 'center' 讓文字與條對齊）──
+    // ── 維度進度條（fill+empty 雙 box，與截圖工作版本相同結構）──
     function dimBar(label, score, isFirst) {
-      const pct = Math.max(1, Math.min(99, score));
+      const filled = Math.max(1, Math.min(99, score));
+      const empty  = 100 - filled;
       return {
-        type: 'box', layout: 'horizontal', margin: isFirst ? 'lg' : 'sm',
+        type: 'box', layout: 'horizontal', margin: isFirst ? 'xl' : 'sm',
         contents: [
           { type: 'text', text: label, size: 'sm', color: '#374151', flex: 2, weight: 'bold', gravity: 'center' },
           {
             type: 'box', layout: 'horizontal', flex: 8,
             height: '10px', cornerRadius: '5px', backgroundColor: PURPLE_LIGHT, gravity: 'center',
             contents: [
-              { type: 'box', layout: 'vertical', width: `${pct}%`, backgroundColor: PURPLE, cornerRadius: '5px', contents: [{ type: 'filler' }] }
+              { type: 'box', layout: 'vertical', flex: filled, backgroundColor: PURPLE, cornerRadius: '5px', contents: [{ type: 'filler' }] },
+              { type: 'box', layout: 'vertical', flex: empty,  contents: [{ type: 'filler' }] }
             ]
           },
           { type: 'text', text: String(score), size: 'sm', color: PURPLE, flex: 2, align: 'end', weight: 'bold', gravity: 'center' }
@@ -3456,46 +3458,41 @@
       };
     }
 
-    // ── 組裝 body ──
+    // ── 組裝 body（總節點數 50，符合 LINE 上限）──
     const bodyContents = [
-      // 名字（比內文稍大）
+      // 名字
       { type: 'text', text: `${d.user_name} × ${d.partner_name}`,
         size: 'md', weight: 'bold', color: '#1f2937', wrap: true },
       // 契合度分數
       { type: 'text', text: `契合度　${d.compat_score} 分`,
         size: 'md', weight: 'bold', color: PURPLE, margin: 'sm' },
-      // ── 分隔 ──
-      { type: 'separator', margin: 'xl', color: '#e5e7eb' },
-      // 維度進度條
+      // 維度進度條（大 margin 代替分隔線，節省 1 節點）
       ...Object.entries(d.scores || {}).map(([k, v], i) => dimBar(DIM_LABELS[k] || k, v, i === 0))
     ];
 
-    // 描述 + 天然優勢 + 需要磨合
+    // 描述（大 margin 代替分隔線，節省 1 節點）
     if (d.description) {
       bodyContents.push(
-        { type: 'separator', margin: 'xl', color: '#e5e7eb' },
-        { type: 'text', text: d.description, size: 'sm', color: '#374151', margin: 'lg', wrap: true }
+        { type: 'text', text: d.description, size: 'sm', color: '#374151', margin: 'xxl', wrap: true }
       );
     }
     if (d.strength) {
       bodyContents.push({
-        type: 'box', layout: 'vertical', margin: 'lg',
-        paddingTop: '12px', paddingBottom: '12px', paddingStart: '14px', paddingEnd: '14px',
-        backgroundColor: '#f0fdf4', cornerRadius: '10px',
+        type: 'box', layout: 'vertical', margin: 'xl',
+        paddingAll: '12px', backgroundColor: '#f0fdf4', cornerRadius: '10px',
         contents: [
           { type: 'text', text: '✦ 天然優勢', size: 'xs', color: '#166534', weight: 'bold' },
-          { type: 'text', text: d.strength, size: 'sm', color: '#374151', margin: 'sm', wrap: true }
+          { type: 'text', text: d.strength, size: 'sm', color: '#374151', margin: 'xs', wrap: true }
         ]
       });
     }
     if (d.challenge) {
       bodyContents.push({
-        type: 'box', layout: 'vertical', margin: 'md',
-        paddingTop: '12px', paddingBottom: '12px', paddingStart: '14px', paddingEnd: '14px',
-        backgroundColor: '#fff1f2', cornerRadius: '10px',
+        type: 'box', layout: 'vertical', margin: 'sm',
+        paddingAll: '12px', backgroundColor: '#fff1f2', cornerRadius: '10px',
         contents: [
           { type: 'text', text: '△ 需要磨合', size: 'xs', color: '#be123c', weight: 'bold' },
-          { type: 'text', text: d.challenge, size: 'sm', color: '#374151', margin: 'sm', wrap: true }
+          { type: 'text', text: d.challenge, size: 'sm', color: '#374151', margin: 'xs', wrap: true }
         ]
       });
     }
@@ -3508,7 +3505,6 @@
         body: {
           type: 'box', layout: 'vertical',
           paddingTop: '20px', paddingBottom: '24px', paddingStart: '20px', paddingEnd: '20px',
-          backgroundColor: '#ffffff',
           contents: bodyContents
         }
       }
@@ -3516,8 +3512,10 @@
 
     const ready = await ensureLiff();
     if (ready && liff.isInClient()) {
-      try { await liff.shareTargetPicker([flexMsg]); }
-      catch (e) { showToast(e?.message ? '分享失敗：' + e.message : '分享已取消'); }
+      try {
+        const result = await liff.shareTargetPicker([flexMsg], { isMultiple: true });
+        if (result) showToast('分享已送出 ✓');
+      } catch (e) { showToast(e?.message ? '分享失敗：' + e.message : '分享已取消'); }
     } else {
       showToast('請在 LINE 內使用分享功能');
     }
