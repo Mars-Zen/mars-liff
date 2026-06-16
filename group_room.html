@@ -3437,23 +3437,28 @@
     const DIM_LABELS = { passion:'吸引', stability:'穩定', communication:'溝通', trust:'信任', growth:'成長' };
 
     // 五維度列：標籤靠左，數值靠右，無進度條（每列 3 節點）
-    const dimRows = Object.entries(d.scores || {}).map(([k, v], i) => ({
-      type: 'box', layout: 'horizontal',
-      ...(i > 0 && { margin: 'sm' }),
-      contents: [
-        { type: 'text', text: DIM_LABELS[k] || k, size: 'sm', color: '#374151', weight: 'bold', flex: 3 },
-        { type: 'text', text: String(v), size: 'sm', color: PURPLE, weight: 'bold', flex: 1, align: 'end' }
-      ]
+    // 五維度：每行一個文字，格式「吸引：37」
+    const dimTexts = Object.entries(d.scores || {}).map(([k, v], i) => ({
+      type: 'text',
+      text: `${DIM_LABELS[k] || k}：${v}`,
+      size: 'sm', color: '#374151',
+      ...(i > 0 && { margin: 'xs' })
     }));
 
-    // 契合度分數徽章（只用 invite 確認有效的屬性：backgroundColor/cornerRadius/paddingAll/flex）
+    // 雙層圓環：外圈紫色底 72×72，內圈白色 62×62，用 height 固定高度避免 justifyContent
     const scoreCircle = {
-      type: 'box', layout: 'vertical', flex: 2,
-      backgroundColor: '#ede9fe', cornerRadius: '16px', paddingAll: '10px',
-      contents: [
-        { type: 'text', text: String(d.compat_score), size: 'xl', weight: 'bold', color: PURPLE, align: 'center' },
-        { type: 'text', text: '分', size: 'sm', color: PURPLE, align: 'center' }
-      ]
+      type: 'box', layout: 'vertical', flex: 0,
+      width: '72px', height: '72px',
+      cornerRadius: '36px', backgroundColor: PURPLE, paddingAll: '5px',
+      contents: [{
+        type: 'box', layout: 'vertical',
+        height: '62px', cornerRadius: '31px',
+        backgroundColor: '#ffffff', paddingTop: '14px',
+        contents: [
+          { type: 'text', text: String(d.compat_score), size: 'xl', weight: 'bold', color: PURPLE, align: 'center' },
+          { type: 'text', text: '分', size: 'xs', color: PURPLE, align: 'center' }
+        ]
+      }]
     };
 
     // ── 組裝 body（總節點數 30，遠低於 LINE 上限 50）──
@@ -3464,13 +3469,37 @@
       {
         type: 'box', layout: 'horizontal', margin: 'lg',
         contents: [
-          { type: 'box', layout: 'vertical', flex: 1, contents: dimRows },
+          { type: 'box', layout: 'vertical', flex: 1, contents: dimTexts },
           scoreCircle
         ]
       }
     ];
 
-    // ── 診斷測試：暫時只送名字+維度+圓圈，確認基礎結構是否可送達 ──
+    if (d.description) {
+      bodyContents.push(
+        { type: 'text', text: d.description, size: 'sm', color: '#374151', margin: 'xl', wrap: true }
+      );
+    }
+    if (d.strength) {
+      bodyContents.push({
+        type: 'box', layout: 'vertical', margin: 'lg',
+        paddingAll: '12px', backgroundColor: '#f0fdf4', cornerRadius: '10px',
+        contents: [
+          { type: 'text', text: '✦ 天然優勢', size: 'xs', color: '#166534', weight: 'bold' },
+          { type: 'text', text: d.strength, size: 'sm', color: '#374151', margin: 'xs', wrap: true }
+        ]
+      });
+    }
+    if (d.challenge) {
+      bodyContents.push({
+        type: 'box', layout: 'vertical', margin: 'sm',
+        paddingAll: '12px', backgroundColor: '#fff1f2', cornerRadius: '10px',
+        contents: [
+          { type: 'text', text: '△ 需要磨合', size: 'xs', color: '#be123c', weight: 'bold' },
+          { type: 'text', text: d.challenge, size: 'sm', color: '#374151', margin: 'xs', wrap: true }
+        ]
+      });
+    }
 
     const flexMsg = {
       type: 'flex',
@@ -3489,8 +3518,9 @@
     if (ready && liff.isInClient()) {
       try {
         const result = await liff.shareTargetPicker([flexMsg], { isMultiple: true });
-        showToast(`LINE 回傳：${result?.status ?? 'null'}`);
-      } catch (e) { showToast('error: ' + (e?.message || String(e))); }
+        if (result?.status === 'success') showToast('分享已送出 ✓');
+        else showToast('分享已取消');
+      } catch (e) { showToast(e?.message ? '分享失敗：' + e.message : '分享已取消'); }
     } else {
       showToast('請在 LINE 內使用分享功能');
     }
