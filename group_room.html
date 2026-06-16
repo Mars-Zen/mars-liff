@@ -3448,7 +3448,7 @@
             height: '8px', cornerRadius: '4px', backgroundColor: PURPLE_LIGHT,
             contents: [
               { type: 'box', layout: 'vertical', flex: filled, backgroundColor: PURPLE, cornerRadius: '4px', contents: [{ type: 'filler' }] },
-              { type: 'box', layout: 'vertical', flex: empty,  backgroundColor: 'transparent', contents: [{ type: 'filler' }] }
+              { type: 'box', layout: 'vertical', flex: empty,  contents: [{ type: 'filler' }] }
             ]
           },
           { type: 'text', text: String(score), size: 'sm', color: PURPLE, flex: 2, align: 'end', weight: 'bold', gravity: 'center' }
@@ -3487,7 +3487,7 @@
     const ready = await ensureLiff();
     if (ready && liff.isInClient()) {
       try { await liff.shareTargetPicker([flexMsg]); }
-      catch { showToast('分享已取消'); }
+      catch (e) { showToast(e?.message ? '分享失敗：' + e.message : '分享已取消'); }
     } else {
       showToast('請在 LINE 內使用分享功能');
     }
