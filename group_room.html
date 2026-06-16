@@ -3433,52 +3433,55 @@
     if (!_compResult) return;
     const d = _compResult;
 
-    const PURPLE       = '#7c3aed';
-    const PURPLE_LIGHT = '#e9d5ff';
-    const DIM_LABELS   = { passion:'吸引', stability:'穩定', communication:'溝通', trust:'信任', growth:'成長' };
+    const PURPLE     = '#7c3aed';
+    const DIM_LABELS = { passion:'吸引', stability:'穩定', communication:'溝通', trust:'信任', growth:'成長' };
 
-    // ── 維度進度條（fill+empty 雙 box，與截圖工作版本相同結構）──
-    function dimBar(label, score, isFirst) {
-      const filled = Math.max(1, Math.min(99, score));
-      const empty  = 100 - filled;
-      return {
-        type: 'box', layout: 'horizontal', margin: isFirst ? 'xl' : 'sm',
+    // 五維度列：標籤靠左，數值靠右，無進度條（每列 3 節點）
+    const dimRows = Object.entries(d.scores || {}).map(([k, v], i) => ({
+      type: 'box', layout: 'horizontal', margin: i === 0 ? 'none' : 'sm',
+      contents: [
+        { type: 'text', text: DIM_LABELS[k] || k, size: 'sm', color: '#374151', weight: 'bold', flex: 3 },
+        { type: 'text', text: String(v), size: 'sm', color: PURPLE, weight: 'bold', flex: 1, align: 'end' }
+      ]
+    }));
+
+    // 契合度雙層圓圈：外圈紫底 78×78，內圈白底 68×68（paddingAll:5 自動撐開）
+    const scoreCircle = {
+      type: 'box', layout: 'vertical', flex: 0,
+      width: '78px', height: '78px', cornerRadius: '39px',
+      backgroundColor: PURPLE, paddingAll: '5px', gravity: 'center',
+      contents: [{
+        type: 'box', layout: 'vertical', flex: 1,
+        cornerRadius: '34px', backgroundColor: '#ffffff', justifyContent: 'center',
         contents: [
-          { type: 'text', text: label, size: 'sm', color: '#374151', flex: 2, weight: 'bold', gravity: 'center' },
-          {
-            type: 'box', layout: 'horizontal', flex: 8,
-            height: '10px', cornerRadius: '5px', backgroundColor: PURPLE_LIGHT, gravity: 'center',
-            contents: [
-              { type: 'box', layout: 'vertical', flex: filled, backgroundColor: PURPLE, cornerRadius: '5px', contents: [{ type: 'filler' }] },
-              { type: 'box', layout: 'vertical', flex: empty,  contents: [{ type: 'filler' }] }
-            ]
-          },
-          { type: 'text', text: String(score), size: 'sm', color: PURPLE, flex: 2, align: 'end', weight: 'bold', gravity: 'center' }
+          { type: 'text', text: String(d.compat_score), size: 'xl', weight: 'bold', color: PURPLE, align: 'center' },
+          { type: 'text', text: '分', size: 'xxs', color: PURPLE, align: 'center' }
         ]
-      };
-    }
+      }]
+    };
 
-    // ── 組裝 body（總節點數 50，符合 LINE 上限）──
+    // ── 組裝 body（總節點數 30，遠低於 LINE 上限 50）──
     const bodyContents = [
-      // 名字
       { type: 'text', text: `${d.user_name} × ${d.partner_name}`,
         size: 'md', weight: 'bold', color: '#1f2937', wrap: true },
-      // 契合度分數
-      { type: 'text', text: `契合度　${d.compat_score} 分`,
-        size: 'md', weight: 'bold', color: PURPLE, margin: 'sm' },
-      // 維度進度條（大 margin 代替分隔線，節省 1 節點）
-      ...Object.entries(d.scores || {}).map(([k, v], i) => dimBar(DIM_LABELS[k] || k, v, i === 0))
+      // 五維度（左） + 圓圈分數（右）
+      {
+        type: 'box', layout: 'horizontal', margin: 'lg',
+        contents: [
+          { type: 'box', layout: 'vertical', flex: 1, contents: dimRows },
+          scoreCircle
+        ]
+      }
     ];
 
-    // 描述（大 margin 代替分隔線，節省 1 節點）
     if (d.description) {
       bodyContents.push(
-        { type: 'text', text: d.description, size: 'sm', color: '#374151', margin: 'xxl', wrap: true }
+        { type: 'text', text: d.description, size: 'sm', color: '#374151', margin: 'xl', wrap: true }
       );
     }
     if (d.strength) {
       bodyContents.push({
-        type: 'box', layout: 'vertical', margin: 'xl',
+        type: 'box', layout: 'vertical', margin: 'lg',
         paddingAll: '12px', backgroundColor: '#f0fdf4', cornerRadius: '10px',
         contents: [
           { type: 'text', text: '✦ 天然優勢', size: 'xs', color: '#166534', weight: 'bold' },
