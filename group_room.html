@@ -3436,18 +3436,20 @@
     const PURPLE     = '#7c3aed';
     const DIM_LABELS = { passion:'吸引', stability:'穩定', communication:'溝通', trust:'信任', growth:'成長' };
 
-    // 五維度列：標籤靠左，數值靠右，無進度條（每列 3 節點）
-    // 五維度：每行一個文字，格式「吸引：37」
-    const dimTexts = Object.entries(d.scores || {}).map(([k, v], i) => ({
-      type: 'text',
-      text: `${DIM_LABELS[k] || k}：${v}`,
-      size: 'sm', color: '#374151',
-      ...(i > 0 && { margin: 'xs' })
+    // 五維度：每行兩個 text（標籤粗體深色 + 數值粗體紫色），並排靠攏
+    const dimRows = Object.entries(d.scores || {}).map(([k, v], i) => ({
+      type: 'box', layout: 'horizontal',
+      ...(i > 0 && { margin: 'xs' }),
+      contents: [
+        { type: 'text', text: `${DIM_LABELS[k] || k}：`, size: 'sm', color: '#374151', weight: 'bold', flex: 0 },
+        { type: 'text', text: String(v), size: 'sm', color: PURPLE, weight: 'bold', flex: 0 }
+      ]
     }));
 
-    // 雙層圓環：外圈紫色底 72×72，內圈白色 62×62，用 height 固定高度避免 justifyContent
+    // 雙層圓環：gravity:'center' 垂直置中；filler 在右側容器橫向置中
     const scoreCircle = {
       type: 'box', layout: 'vertical', flex: 0,
+      gravity: 'center',
       width: '72px', height: '72px',
       cornerRadius: '36px', backgroundColor: PURPLE, paddingAll: '5px',
       contents: [{
@@ -3461,23 +3463,31 @@
       }]
     };
 
-    // ── 組裝 body（總節點數 30，遠低於 LINE 上限 50）──
     const bodyContents = [
       { type: 'text', text: `${d.user_name} × ${d.partner_name}`,
         size: 'md', weight: 'bold', color: '#1f2937', wrap: true },
-      // 五維度（左） + 圓圈分數（右）
+      { type: 'separator', margin: 'lg', color: '#e5e7eb' },
+      // 左半：維度文字組（paddingStart 推離左邊緣），右半：filler+圓圈+filler 橫向置中
       {
         type: 'box', layout: 'horizontal', margin: 'lg',
         contents: [
-          { type: 'box', layout: 'vertical', flex: 1, contents: dimTexts },
-          scoreCircle
+          { type: 'box', layout: 'vertical', flex: 1, paddingStart: 'lg', contents: dimRows },
+          {
+            type: 'box', layout: 'horizontal', flex: 1, paddingEnd: 'lg',
+            contents: [
+              { type: 'filler' },
+              scoreCircle,
+              { type: 'filler' }
+            ]
+          }
         ]
       }
     ];
 
     if (d.description) {
       bodyContents.push(
-        { type: 'text', text: d.description, size: 'sm', color: '#374151', margin: 'xl', wrap: true }
+        { type: 'separator', margin: 'xl', color: '#e5e7eb' },
+        { type: 'text', text: d.description, size: 'sm', color: '#374151', margin: 'md', wrap: true }
       );
     }
     if (d.strength) {
@@ -3492,7 +3502,7 @@
     }
     if (d.challenge) {
       bodyContents.push({
-        type: 'box', layout: 'vertical', margin: 'sm',
+        type: 'box', layout: 'vertical', margin: 'lg',
         paddingAll: '12px', backgroundColor: '#fff1f2', cornerRadius: '10px',
         contents: [
           { type: 'text', text: '△ 需要磨合', size: 'xs', color: '#be123c', weight: 'bold' },
