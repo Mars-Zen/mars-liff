@@ -3439,21 +3439,15 @@
     const ELEM_ZH      = { Fire:'火', Earth:'土', Air:'風', Water:'水' };
     const ELEM_HEX     = { Fire:'#e0392b', Earth:'#8b5a2b', Air:'#2e9e5b', Water:'#2d7ff0' };
 
-    // ── 維度進度條 ──
+    // ── 維度進度條（文字字元版，節省 component 數量）──
     function dimBar(label, score) {
-      const filled = Math.max(1, Math.min(99, score));
+      const filled = Math.round(score / 10);
+      const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
       return {
-        type: 'box', layout: 'horizontal', margin: 'md',
+        type: 'box', layout: 'horizontal', margin: 'sm',
         contents: [
           { type: 'text', text: label, size: 'sm', color: '#374151', flex: 2, weight: 'bold' },
-          {
-            type: 'box', layout: 'horizontal', flex: 8,
-            height: '10px', cornerRadius: '5px', backgroundColor: PURPLE_LIGHT, gravity: 'center',
-            contents: [
-              { type: 'box', layout: 'vertical', flex: filled,       backgroundColor: PURPLE, cornerRadius: '5px', contents: [{ type: 'filler' }] },
-              { type: 'box', layout: 'vertical', flex: 100 - filled, contents: [{ type: 'filler' }] }
-            ]
-          },
+          { type: 'text', text: bar,   size: 'xs', color: PURPLE,    flex: 6 },
           { type: 'text', text: String(score), size: 'sm', color: PURPLE, flex: 2, align: 'end', weight: 'bold' }
         ]
       };
