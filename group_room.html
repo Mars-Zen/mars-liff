@@ -3277,29 +3277,10 @@
 
     const [pYear, pMonth, pDay] = partnerDate.split('-').map(Number);
     const [pHour, pMinute]      = partnerTime.split(':').map(Number);
-    const cacheKey = `${uid}|${partnerName}|${partnerDate}`;
-
     document.getElementById('cvForm').style.display    = 'none';
     document.getElementById('cvLoading').style.display = 'block';
 
     try {
-      const histR    = await fetch(`${API}/composite-history`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: uid })
-      });
-      const histData = await histR.json();
-      const cached   = (histData.records || []).find(r => r.cache_key === cacheKey);
-
-      if (cached) {
-        let cachedRes;
-        try { cachedRes = JSON.parse(cached.result_json); } catch { cachedRes = null; }
-        if (cachedRes) {
-          _compResult = cachedRes; _compSaved = true; _compCached = true;
-          _showCompResult(_compResult, myNick, partnerName);
-          return;
-        }
-      }
-
       const calcR = await fetch(`${API}/composite-calc`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
