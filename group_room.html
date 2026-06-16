@@ -3474,31 +3474,7 @@
       }
     ];
 
-    if (d.description) {
-      bodyContents.push(
-        { type: 'text', text: d.description, size: 'sm', color: '#374151', margin: 'xl', wrap: true }
-      );
-    }
-    if (d.strength) {
-      bodyContents.push({
-        type: 'box', layout: 'vertical', margin: 'lg',
-        paddingAll: '12px', backgroundColor: '#f0fdf4', cornerRadius: '10px',
-        contents: [
-          { type: 'text', text: '✦ 天然優勢', size: 'xs', color: '#166534', weight: 'bold' },
-          { type: 'text', text: d.strength, size: 'sm', color: '#374151', margin: 'xs', wrap: true }
-        ]
-      });
-    }
-    if (d.challenge) {
-      bodyContents.push({
-        type: 'box', layout: 'vertical', margin: 'sm',
-        paddingAll: '12px', backgroundColor: '#fff1f2', cornerRadius: '10px',
-        contents: [
-          { type: 'text', text: '△ 需要磨合', size: 'xs', color: '#be123c', weight: 'bold' },
-          { type: 'text', text: d.challenge, size: 'sm', color: '#374151', margin: 'xs', wrap: true }
-        ]
-      });
-    }
+    // ── 診斷測試：暫時只送名字+維度+圓圈，確認基礎結構是否可送達 ──
 
     const flexMsg = {
       type: 'flex',
@@ -3517,8 +3493,8 @@
     if (ready && liff.isInClient()) {
       try {
         const result = await liff.shareTargetPicker([flexMsg], { isMultiple: true });
-        if (result) showToast('分享已送出 ✓');
-      } catch (e) { showToast(e?.message ? '分享失敗：' + e.message : '分享已取消'); }
+        showToast(`LINE 回傳：${result?.status ?? 'null'}`);
+      } catch (e) { showToast('error: ' + (e?.message || String(e))); }
     } else {
       showToast('請在 LINE 內使用分享功能');
     }
