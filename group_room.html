@@ -3488,7 +3488,7 @@
     if (d.description) {
       bodyContents.push(
         { type: 'separator', margin: 'xl', color: '#e5e7eb' },
-        { type: 'text', text: d.description, size: 'sm', color: '#374151', margin: 'lg', wrap: true, lineSpacing: '4px' }
+        { type: 'text', text: d.description, size: 'sm', color: '#374151', margin: 'lg', wrap: true }
       );
     }
     if (d.strength) {
@@ -3498,7 +3498,7 @@
         backgroundColor: '#f0fdf4', cornerRadius: '10px',
         contents: [
           { type: 'text', text: '✦ 天然優勢', size: 'xs', color: '#166534', weight: 'bold' },
-          { type: 'text', text: d.strength, size: 'sm', color: '#374151', margin: 'sm', wrap: true, lineSpacing: '4px' }
+          { type: 'text', text: d.strength, size: 'sm', color: '#374151', margin: 'sm', wrap: true }
         ]
       });
     }
@@ -3509,7 +3509,7 @@
         backgroundColor: '#fff1f2', cornerRadius: '10px',
         contents: [
           { type: 'text', text: '△ 需要磨合', size: 'xs', color: '#be123c', weight: 'bold' },
-          { type: 'text', text: d.challenge, size: 'sm', color: '#374151', margin: 'sm', wrap: true, lineSpacing: '4px' }
+          { type: 'text', text: d.challenge, size: 'sm', color: '#374151', margin: 'sm', wrap: true }
         ]
       });
     }
