@@ -3446,10 +3446,9 @@
       ]
     }));
 
-    // 雙層圓環：gravity:'center' 垂直置中；filler 在右側容器橫向置中
+    // 雙層圓環：filler 在右側容器橫向置中（gravity on box 無效，改用 paddingTop 補偏移）
     const scoreCircle = {
       type: 'box', layout: 'vertical', flex: 0,
-      gravity: 'center',
       width: '72px', height: '72px',
       cornerRadius: '36px', backgroundColor: PURPLE, paddingAll: '5px',
       contents: [{
@@ -3491,14 +3490,17 @@
       );
     }
     if (d.strength) {
-      bodyContents.push({
-        type: 'box', layout: 'vertical', margin: 'lg',
-        paddingAll: '12px', backgroundColor: '#f0fdf4', cornerRadius: '10px',
-        contents: [
-          { type: 'text', text: '✦ 天然優勢', size: 'xs', color: '#166534', weight: 'bold' },
-          { type: 'text', text: d.strength, size: 'sm', color: '#374151', margin: 'xs', wrap: true }
-        ]
-      });
+      bodyContents.push(
+        { type: 'separator', margin: 'lg', color: '#e5e7eb' },
+        {
+          type: 'box', layout: 'vertical', margin: 'lg',
+          paddingAll: '12px', backgroundColor: '#f0fdf4', cornerRadius: '10px',
+          contents: [
+            { type: 'text', text: '✦ 天然優勢', size: 'xs', color: '#166534', weight: 'bold' },
+            { type: 'text', text: d.strength, size: 'sm', color: '#374151', margin: 'xs', wrap: true }
+          ]
+        }
+      );
     }
     if (d.challenge) {
       bodyContents.push({
@@ -3509,6 +3511,28 @@
           { type: 'text', text: d.challenge, size: 'sm', color: '#374151', margin: 'xs', wrap: true }
         ]
       });
+    }
+
+    const ELEM_COLOR = { Fire: '#ef4444', Earth: '#92400e', Air: '#6366f1', Water: '#0ea5e9' };
+    const ELEM_NAME  = { Fire: '火', Earth: '土', Air: '風', Water: '水' };
+    const elemParts  = ['Fire', 'Earth', 'Air', 'Water']
+      .filter(k => (d.elem_pct || {})[k] > 0)
+      .map((k, i) => ({
+        type: 'text', text: `${ELEM_NAME[k]} ${d.elem_pct[k]}%`,
+        size: 'xs', color: ELEM_COLOR[k], flex: 0,
+        ...(i > 0 && { margin: 'sm' })
+      }));
+    if (elemParts.length) {
+      bodyContents.push(
+        { type: 'separator', margin: 'lg', color: '#e5e7eb' },
+        {
+          type: 'box', layout: 'horizontal', margin: 'sm',
+          contents: [
+            { type: 'text', text: '合盤元素：', size: 'xs', color: '#6b7280', flex: 0 },
+            ...elemParts
+          ]
+        }
+      );
     }
 
     const flexMsg = {
