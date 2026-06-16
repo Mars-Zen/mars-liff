@@ -3445,7 +3445,7 @@
       return {
         type: 'box', layout: 'horizontal', margin: 'md',
         contents: [
-          { type: 'text', text: label, size: 'sm', color: '#374151', flex: 2, weight: 'bold', gravity: 'center' },
+          { type: 'text', text: label, size: 'sm', color: '#374151', flex: 2, weight: 'bold' },
           {
             type: 'box', layout: 'horizontal', flex: 8,
             height: '10px', cornerRadius: '5px', backgroundColor: PURPLE_LIGHT, gravity: 'center',
@@ -3454,7 +3454,7 @@
               { type: 'box', layout: 'vertical', flex: 100 - filled, contents: [{ type: 'filler' }] }
             ]
           },
-          { type: 'text', text: String(score), size: 'sm', color: PURPLE, flex: 2, align: 'end', weight: 'bold', gravity: 'center' }
+          { type: 'text', text: String(score), size: 'sm', color: PURPLE, flex: 2, align: 'end', weight: 'bold' }
         ]
       };
     }
@@ -3469,15 +3469,9 @@
       // 名字
       { type: 'text', text: `${d.user_name} × ${d.partner_name}`,
         size: 'xl', weight: 'bold', color: '#1f2937', wrap: true },
-      // 契合度分數
-      {
-        type: 'box', layout: 'horizontal', margin: 'sm',
-        contents: [
-          { type: 'text', text: '契合度', size: 'sm', color: '#6d28d9', flex: 0, gravity: 'bottom' },
-          { type: 'text', text: String(d.compat_score), size: '3xl', weight: 'bold', color: PURPLE, flex: 0, gravity: 'bottom', margin: 'sm' },
-          { type: 'text', text: '分',   size: 'sm', color: '#6d28d9', flex: 0, gravity: 'bottom' }
-        ]
-      },
+      // 契合度分數（單行文字，避免跨 size gravity 對齊問題）
+      { type: 'text', text: `契合度　${d.compat_score} 分`,
+        size: 'lg', weight: 'bold', color: PURPLE, margin: 'sm' },
       // ── 分隔 ──
       { type: 'separator', margin: 'xl', color: '#e5e7eb' },
       // 維度進度條
@@ -3521,7 +3515,7 @@
         {
           type: 'box', layout: 'horizontal', margin: 'md', spacing: 'lg',
           contents: [
-            { type: 'text', text: '元素', size: 'xs', color: '#9ca3af', flex: 0, gravity: 'center' },
+            { type: 'text', text: '元素', size: 'xs', color: '#9ca3af', flex: 0 },
             ...elemTexts
           ]
         }
