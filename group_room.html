@@ -3432,23 +3432,26 @@
   async function shareCompositeLine() {
     if (!_compResult) return;
     const d = _compResult;
-    const DIM_LABELS = { passion:'吸引', stability:'穩定', communication:'溝通', trust:'信任', growth:'成長' };
-    const PURPLE = '#7c3aed';
-    const PURPLE_LIGHT = '#e9d5ff';
 
+    const PURPLE       = '#7c3aed';
+    const PURPLE_LIGHT = '#e9d5ff';
+    const DIM_LABELS   = { passion:'吸引', stability:'穩定', communication:'溝通', trust:'信任', growth:'成長' };
+    const ELEM_ZH      = { Fire:'火', Earth:'土', Air:'風', Water:'水' };
+    const ELEM_HEX     = { Fire:'#e0392b', Earth:'#8b5a2b', Air:'#2e9e5b', Water:'#2d7ff0' };
+
+    // ── 維度進度條 ──
     function dimBar(label, score) {
       const filled = Math.max(1, Math.min(99, score));
-      const empty  = 100 - filled;
       return {
-        type: 'box', layout: 'horizontal', margin: 'sm',
+        type: 'box', layout: 'horizontal', margin: 'md',
         contents: [
           { type: 'text', text: label, size: 'sm', color: '#374151', flex: 2, weight: 'bold', gravity: 'center' },
           {
-            type: 'box', layout: 'horizontal', flex: 7,
-            height: '8px', cornerRadius: '4px', backgroundColor: PURPLE_LIGHT,
+            type: 'box', layout: 'horizontal', flex: 8,
+            height: '10px', cornerRadius: '5px', backgroundColor: PURPLE_LIGHT, gravity: 'center',
             contents: [
-              { type: 'box', layout: 'vertical', flex: filled, backgroundColor: PURPLE, cornerRadius: '4px', contents: [{ type: 'filler' }] },
-              { type: 'box', layout: 'vertical', flex: empty,  contents: [{ type: 'filler' }] }
+              { type: 'box', layout: 'vertical', flex: filled,       backgroundColor: PURPLE, cornerRadius: '5px', contents: [{ type: 'filler' }] },
+              { type: 'box', layout: 'vertical', flex: 100 - filled, contents: [{ type: 'filler' }] }
             ]
           },
           { type: 'text', text: String(score), size: 'sm', color: PURPLE, flex: 2, align: 'end', weight: 'bold', gravity: 'center' }
@@ -3456,30 +3459,85 @@
       };
     }
 
-    const dimContents = Object.entries(d.scores || {}).map(([k, v]) => dimBar(DIM_LABELS[k] || k, v));
+    // ── 元素組成 ──
+    const elemTexts = ['Fire','Earth','Air','Water']
+      .filter(k => (d.elem_pct || {})[k] > 0)
+      .map(k => ({ type: 'text', text: `${ELEM_ZH[k]} ${d.elem_pct[k]}%`, size: 'sm', color: ELEM_HEX[k], flex: 0 }));
+
+    // ── 組裝 body ──
+    const bodyContents = [
+      // 名字
+      { type: 'text', text: `${d.user_name} × ${d.partner_name}`,
+        size: 'xl', weight: 'bold', color: '#1f2937', wrap: true },
+      // 契合度分數
+      {
+        type: 'box', layout: 'horizontal', margin: 'sm',
+        contents: [
+          { type: 'text', text: '契合度', size: 'sm', color: '#6d28d9', flex: 0, gravity: 'bottom' },
+          { type: 'text', text: String(d.compat_score), size: '3xl', weight: 'bold', color: PURPLE, flex: 0, gravity: 'bottom', margin: 'sm' },
+          { type: 'text', text: '分',   size: 'sm', color: '#6d28d9', flex: 0, gravity: 'bottom' }
+        ]
+      },
+      // ── 分隔 ──
+      { type: 'separator', margin: 'xl', color: '#e5e7eb' },
+      // 維度進度條
+      ...Object.entries(d.scores || {}).map(([k, v]) => dimBar(DIM_LABELS[k] || k, v))
+    ];
+
+    // 描述 + 天然優勢 + 需要磨合
+    if (d.description) {
+      bodyContents.push(
+        { type: 'separator', margin: 'xl', color: '#e5e7eb' },
+        { type: 'text', text: d.description, size: 'sm', color: '#374151', margin: 'lg', wrap: true, lineSpacing: '4px' }
+      );
+    }
+    if (d.strength) {
+      bodyContents.push({
+        type: 'box', layout: 'vertical', margin: 'lg',
+        paddingTop: '12px', paddingBottom: '12px', paddingStart: '14px', paddingEnd: '14px',
+        backgroundColor: '#f0fdf4', cornerRadius: '10px',
+        contents: [
+          { type: 'text', text: '✦ 天然優勢', size: 'xs', color: '#166534', weight: 'bold' },
+          { type: 'text', text: d.strength, size: 'sm', color: '#374151', margin: 'sm', wrap: true, lineSpacing: '4px' }
+        ]
+      });
+    }
+    if (d.challenge) {
+      bodyContents.push({
+        type: 'box', layout: 'vertical', margin: 'md',
+        paddingTop: '12px', paddingBottom: '12px', paddingStart: '14px', paddingEnd: '14px',
+        backgroundColor: '#fff1f2', cornerRadius: '10px',
+        contents: [
+          { type: 'text', text: '△ 需要磨合', size: 'xs', color: '#be123c', weight: 'bold' },
+          { type: 'text', text: d.challenge, size: 'sm', color: '#374151', margin: 'sm', wrap: true, lineSpacing: '4px' }
+        ]
+      });
+    }
+
+    // 元素組成（最下方，有值才顯示）
+    if (elemTexts.length > 0) {
+      bodyContents.push(
+        { type: 'separator', margin: 'lg', color: '#e5e7eb' },
+        {
+          type: 'box', layout: 'horizontal', margin: 'md', spacing: 'lg',
+          contents: [
+            { type: 'text', text: '元素', size: 'xs', color: '#9ca3af', flex: 0, gravity: 'center' },
+            ...elemTexts
+          ]
+        }
+      );
+    }
 
     const flexMsg = {
       type: 'flex',
-      altText: `✦ ${d.user_name} × ${d.partner_name}｜契合度 ${d.compat_score} 分`,
+      altText: `${d.user_name} × ${d.partner_name}｜契合度 ${d.compat_score} 分`,
       contents: {
         type: 'bubble',
         body: {
-          type: 'box', layout: 'vertical', paddingAll: '20px', backgroundColor: '#ffffff',
-          contents: [
-            { type: 'text', text: '✦ 雙人合盤', size: 'xs', color: PURPLE, weight: 'bold' },
-            { type: 'text', text: `${d.user_name} × ${d.partner_name}`, size: 'xl', weight: 'bold', color: '#1f2937', margin: 'xs', wrap: true },
-            {
-              type: 'box', layout: 'horizontal', margin: 'sm',
-              contents: [
-                { type: 'text', text: String(d.compat_score), size: '3xl', weight: 'bold', color: PURPLE, flex: 0, gravity: 'bottom' },
-                { type: 'text', text: ' 分', size: 'md', color: PURPLE, flex: 0, gravity: 'bottom' }
-              ]
-            },
-            { type: 'text', text: d.relationship_type, size: 'sm', color: '#6d28d9', weight: 'bold', margin: 'xs' },
-            { type: 'separator', margin: 'lg', color: '#e5e7eb' },
-            { type: 'text', text: '五維度分析', weight: 'bold', size: 'sm', color: '#374151', margin: 'lg' },
-            ...dimContents
-          ]
+          type: 'box', layout: 'vertical',
+          paddingTop: '20px', paddingBottom: '24px', paddingStart: '20px', paddingEnd: '20px',
+          backgroundColor: '#ffffff',
+          contents: bodyContents
         }
       }
     };
