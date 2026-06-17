@@ -991,20 +991,20 @@
     /* Loading */
     .comp-loading-wrap {
       display: flex; flex-direction: column; align-items: center;
-      justify-content: center; padding: 64px 20px; gap: 22px;
+      justify-content: center; padding: 48px 20px; gap: 16px;
     }
-    .comp-loading-orb {
-      width: 68px; height: 68px; border-radius: 50%;
-      background: linear-gradient(135deg, #7c3aed, #db2777);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 30px; animation: comp-orb 2.2s ease-in-out infinite;
+    .comp-loading-ring-bg {
+      position: absolute; inset: 0; border-radius: 50%;
+      background: conic-gradient(#7c3aed 110deg, #e9e3ff 110deg);
+      filter: drop-shadow(0 4px 10px rgba(124,58,237,0.3));
+      animation: comp-ring-spin 1.4s linear infinite;
     }
-    @keyframes comp-orb {
-      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(124,58,237,0.3); }
-      50%       { transform: scale(1.08); box-shadow: 0 0 0 18px rgba(124,58,237,0); }
+    @keyframes comp-ring-spin {
+      from { transform: rotate(-90deg); }
+      to   { transform: rotate(270deg); }
     }
-    .comp-loading-title { font-size: 17px; font-weight: 800; color: #1e1b4b; }
-    .comp-loading-sub { font-size: 14px; color: #9ca3af; text-align: center; line-height: 1.75; }
+    .comp-loading-title { font-size: 17px; font-weight: 800; color: #1e1b4b; margin-top: 4px; }
+    .comp-loading-sub { font-size: 13px; color: #9ca3af; text-align: center; line-height: 1.75; }
 
     /* Result */
     .comp-result-header { text-align: center; padding: 10px 0 20px; }
@@ -1635,9 +1635,16 @@
       <!-- View B: Loading -->
       <div id="cvLoading" style="display:none">
         <div class="comp-loading-wrap">
-          <div class="comp-loading-orb">✦</div>
-          <div class="comp-loading-title">星盤計算中…</div>
-          <div class="comp-loading-sub">正在對齊雙人星位<br>約需 10–20 秒，請稍候</div>
+          <div class="comp-result-names" id="cvLoadingNames">－ × －</div>
+          <div class="comp-score-ring">
+            <div class="comp-loading-ring-bg"></div>
+            <div class="comp-score-ring-inner">
+              <div class="comp-score-num" style="color:#c4b5fd">?</div>
+              <div class="comp-score-unit">分</div>
+            </div>
+          </div>
+          <div class="comp-loading-title">計算中</div>
+          <div class="comp-loading-sub">需等待 30～60 秒，請稍候</div>
         </div>
       </div>
 
@@ -3278,6 +3285,7 @@
 
     const [pYear, pMonth, pDay] = partnerDate.split('-').map(Number);
     const [pHour, pMinute]      = partnerTime.split(':').map(Number);
+    document.getElementById('cvLoadingNames').textContent = `${myNick} × ${partnerName}`;
     document.getElementById('cvForm').style.display    = 'none';
     document.getElementById('cvLoading').style.display = 'block';
 
