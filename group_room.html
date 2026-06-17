@@ -993,15 +993,18 @@
       display: flex; flex-direction: column; align-items: center;
       justify-content: center; padding: 48px 20px; gap: 16px;
     }
+    @property --comp-fill {
+      syntax: '<angle>'; inherits: false; initial-value: 0deg;
+    }
     .comp-loading-ring-bg {
       position: absolute; inset: 0; border-radius: 50%;
-      background: conic-gradient(#7c3aed 110deg, #e9e3ff 110deg);
+      background: conic-gradient(from -90deg, #7c3aed var(--comp-fill), #e9e3ff 0deg);
       filter: drop-shadow(0 4px 10px rgba(124,58,237,0.3));
-      animation: comp-ring-spin 1.4s linear infinite;
+      animation: comp-ring-fill 2.4s ease-in-out infinite;
     }
-    @keyframes comp-ring-spin {
-      from { transform: rotate(-90deg); }
-      to   { transform: rotate(270deg); }
+    @keyframes comp-ring-fill {
+      0%   { --comp-fill: 0deg; }
+      100% { --comp-fill: 360deg; }
     }
     .comp-loading-title { font-size: 17px; font-weight: 800; color: #1e1b4b; margin-top: 4px; }
     .comp-loading-sub { font-size: 13px; color: #9ca3af; text-align: center; line-height: 1.75; }
