@@ -998,7 +998,7 @@
     }
     .comp-loading-ring-bg {
       position: absolute; inset: 0; border-radius: 50%;
-      background: conic-gradient(from -90deg, #7c3aed var(--comp-fill), #e9e3ff 0deg);
+      background: conic-gradient(#7c3aed var(--comp-fill), #e9e3ff 0deg);
       filter: drop-shadow(0 4px 10px rgba(124,58,237,0.3));
       animation: comp-ring-fill 2.4s ease-in-out infinite;
     }
@@ -1646,7 +1646,7 @@
               <div class="comp-score-unit">分</div>
             </div>
           </div>
-          <div class="comp-loading-title">計算中</div>
+          <div class="comp-loading-title">計算中<span id="cvLoadingDots"></span></div>
           <div class="comp-loading-sub">需等待 30～60 秒，請稍候</div>
         </div>
       </div>
@@ -2957,6 +2957,20 @@
   let _compSaved          = false;
   let _compCached         = false;
   let _compSelectedMember = null;
+  let _dotsTimer          = null;
+  function _startDots() {
+    const el = document.getElementById('cvLoadingDots');
+    if (!el) return;
+    const seq = ['', '·', '··', '···'];
+    let i = 0;
+    el.textContent = '';
+    _dotsTimer = setInterval(() => { el.textContent = seq[++i % 4]; }, 500);
+  }
+  function _stopDots() {
+    if (_dotsTimer) { clearInterval(_dotsTimer); _dotsTimer = null; }
+    const el = document.getElementById('cvLoadingDots');
+    if (el) el.textContent = '';
+  }
 
   function _fmtBirthDisplay(isoStr) {
     if (!isoStr) return '—';
@@ -3291,6 +3305,7 @@
     document.getElementById('cvLoadingNames').textContent = `${myNick} × ${partnerName}`;
     document.getElementById('cvForm').style.display    = 'none';
     document.getElementById('cvLoading').style.display = 'block';
+    _startDots();
 
     try {
       const calcR = await fetch(`${API}/composite-calc`, {
@@ -3316,6 +3331,7 @@
       _showCompResult(_compResult, myNick, partnerName);
 
     } catch {
+      _stopDots();
       document.getElementById('cvLoading').style.display = 'none';
       document.getElementById('cvForm').style.display    = 'block';
       showToast('計算失敗，請稍後再試');
@@ -3323,6 +3339,7 @@
   }
 
   function _showCompResult(data, myNick, partnerName) {
+    _stopDots();
     document.getElementById('cvLoading').style.display = 'none';
     const fillDeg = Math.round((data.compat_score / 100) * 360);
     const DIM_LABELS = { passion:'吸引', stability:'穩定', communication:'溝通', trust:'信任', growth:'成長' };
