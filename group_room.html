@@ -530,7 +530,7 @@
     }
     .bh-overlay.open { opacity: 1; visibility: visible; }
     .bh-panel {
-      width: 100%; height: 92vh;
+      width: 100%; height: 88vh;
       background: #f9f7ff;
       border-radius: 22px 22px 0 0;
       display: flex; flex-direction: column;
@@ -546,10 +546,13 @@
     .bh-handle {
       width: 36px; height: 4px;
       background: rgba(255,255,255,0.2);
-      border-radius: 2px; margin: 14px auto 12px;
+      border-radius: 2px;
     }
-    .bh-hd-row { display: flex; align-items: center; margin-bottom: 14px; }
-    .bh-hd-title { font-size: 16px; font-weight: 700; color: #fff; flex: 1; }
+    .bh-hd-top {
+      display: flex; align-items: center; justify-content: center;
+      position: relative; padding: 14px 0 10px;
+    }
+    .bh-hd-top .bh-close-btn { position: absolute; right: 0; top: 50%; transform: translateY(-50%); }
     .bh-close-btn {
       width: 28px; height: 28px; border-radius: 50%;
       border: none; background: rgba(255,255,255,0.12);
@@ -560,7 +563,8 @@
     .bh-close-btn:active { background: rgba(255,255,255,0.22); }
     .bh-profile {
       display: flex; align-items: center; gap: 12px;
-      background: rgba(255,255,255,0.06);
+      background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.10) 100%);
+      border: 1px solid rgba(255,255,255,0.22);
       border-radius: 14px; padding: 10px 12px;
     }
     .bh-avatar {
@@ -586,9 +590,9 @@
       display: flex; align-items: center;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
-    .bh-card.p2 { background: #fffbeb; border-color: #fde68a; }
-    .bh-card.p3 { background: #f5f3ff; border-color: #ddd6fe; }
-    .bh-card.p4 { background: #eff6ff; border-color: #bfdbfe; }
+    .bh-card.p2 { background: #FEF3C7; border-color: #D97706; box-shadow: 0 2px 10px rgba(217,119,6,0.1); }
+    .bh-card.p3 { background: #EDE9FE; border-color: #7C3AED; box-shadow: 0 2px 10px rgba(124,58,237,0.1); }
+    .bh-card.p4 { background: #E0F2FE; border-color: #0284C7; box-shadow: 0 2px 10px rgba(2,132,199,0.1); }
     .bh-col {
       display: flex; flex-direction: column; align-items: center;
       gap: 2px; flex: 1; padding: 2px 0;
@@ -596,34 +600,61 @@
     .bh-col-label { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; color: var(--muted); }
     .bh-col-num { font-size: 22px; font-weight: 900; line-height: 1; }
     .bh-col-sub { font-size: 10px; color: var(--muted); }
-    .bh-card.p2 .bh-col-num { color: #b45309; }
+    .bh-card.p2 .bh-col-num { color: #92400e; }
     .bh-card.p3 .bh-col-num { color: #5b21b6; }
-    .bh-card.p4 .bh-col-num { color: #1d4ed8; }
+    .bh-card.p4 .bh-col-num { color: #0369a1; }
     .bh-vdiv { width: 1px; height: 38px; background: rgba(0,0,0,0.07); flex-shrink: 0; }
     .bh-rank {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      border-radius: 12px; padding: 8px 12px; margin-left: 4px; min-width: 60px; flex-shrink: 0;
+      border-radius: 14px; padding: 8px 12px; margin-left: 6px;
+      min-width: 58px; flex-shrink: 0; gap: 1px;
+      position: relative; overflow: hidden;
     }
-    .bh-rank-icon { font-size: 16px; line-height: 1; }
-    .bh-rank-text { font-size: 12px; font-weight: 800; margin-top: 2px; }
+    .bh-rank::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 55%;
+      background: rgba(255,255,255,0.2); border-radius: 14px 14px 0 0; pointer-events: none;
+    }
+    .bh-rank-num {
+      font-size: 22px; font-weight: 900; line-height: 1; position: relative; z-index: 1;
+    }
+    .bh-rank-text {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.04em; position: relative; z-index: 1;
+    }
     .bh-rank.r1 {
-      background: linear-gradient(150deg, #fef08a 0%, #fbbf24 100%);
-      box-shadow: 0 2px 10px rgba(251,191,36,0.4);
+      background: linear-gradient(160deg, #F7D060 0%, #E89010 100%);
+      box-shadow: 0 3px 14px rgba(232,144,16,0.5); border: 1px solid rgba(255,220,60,0.5);
     }
-    .bh-rank.r1 .bh-rank-text { color: #78350f; }
+    .bh-rank.r1 .bh-rank-num, .bh-rank.r1 .bh-rank-text { color: #4A2400; }
     .bh-rank.r2 {
-      background: linear-gradient(150deg, #f1f5f9 0%, #cbd5e1 100%);
-      box-shadow: 0 2px 6px rgba(148,163,184,0.3);
+      background: linear-gradient(160deg, #E4EAF0 0%, #96A8B8 100%);
+      box-shadow: 0 2px 10px rgba(120,144,160,0.35); border: 1px solid rgba(220,230,240,0.6);
     }
-    .bh-rank.r2 .bh-rank-text { color: #475569; }
+    .bh-rank.r2 .bh-rank-num, .bh-rank.r2 .bh-rank-text { color: #2A3A48; }
     .bh-rank.r3 {
-      background: linear-gradient(150deg, #fed7aa 0%, #c2410c 100%);
-      box-shadow: 0 2px 8px rgba(194,65,12,0.3);
+      background: linear-gradient(160deg, #D4956A 0%, #8B4820 100%);
+      box-shadow: 0 2px 10px rgba(139,72,32,0.4); border: 1px solid rgba(210,140,80,0.5);
     }
-    .bh-rank.r3 .bh-rank-text { color: #fff; }
-    .bh-rank.r4, .bh-rank.r5 { background: #f1f5f9; border: 1px solid #e2e8f0; }
-    .bh-rank.r4 .bh-rank-text, .bh-rank.r5 .bh-rank-text { color: #64748b; }
-    .bh-rank.r4 .bh-rank-icon, .bh-rank.r5 .bh-rank-icon { font-size: 13px; }
+    .bh-rank.r3 .bh-rank-num, .bh-rank.r3 .bh-rank-text { color: #fff; }
+    .bh-rank.r4 {
+      background: linear-gradient(160deg, #7C96A8 0%, #4C6478 100%);
+      box-shadow: 0 2px 8px rgba(60,80,100,0.25); border: 1px solid rgba(130,160,180,0.4);
+    }
+    .bh-rank.r4 .bh-rank-num, .bh-rank.r4 .bh-rank-text { color: #fff; }
+    .bh-rank.r5 {
+      background: linear-gradient(160deg, #8A96A0 0%, #58646E 100%);
+      box-shadow: 0 2px 6px rgba(60,70,80,0.2); border: 1px solid rgba(140,150,160,0.4);
+    }
+    .bh-rank.r5 .bh-rank-num, .bh-rank.r5 .bh-rank-text { color: #fff; }
+    .bh-battle-title {
+      font-size: 15px; font-weight: 900; line-height: 1.1; white-space: nowrap;
+    }
+    .bh-battle-date {
+      font-size: 9px; color: var(--muted); margin-top: 5px;
+      font-weight: 500; letter-spacing: 0.02em; white-space: nowrap;
+    }
+    .bh-card.p2 .bh-battle-title { color: #92400e; }
+    .bh-card.p3 .bh-battle-title { color: #5b21b6; }
+    .bh-card.p4 .bh-battle-title { color: #0369a1; }
     .bh-load-more {
       text-align: center; padding: 12px 0;
       font-size: 13px; font-weight: 600; color: var(--primary);
@@ -633,7 +664,13 @@
       transition: background 0.12s;
     }
     .bh-load-more:active { background: rgba(124,58,237,0.06); }
-    .bh-empty { text-align: center; padding: 40px 0; font-size: 13px; color: var(--muted); line-height: 2; }
+    .bh-empty {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 52px 24px; gap: 0;
+    }
+    .bh-empty-icon { font-size: 44px; opacity: 0.28; margin-bottom: 16px; }
+    .bh-empty-title { font-size: 15px; font-weight: 700; color: var(--subtext); margin-bottom: 6px; }
+    .bh-empty-sub { font-size: 12px; color: var(--muted); line-height: 1.6; text-align: center; }
 
     /* ── Journal Overlay ── */
     .journal-overlay {
@@ -646,7 +683,7 @@
     }
     .journal-overlay.open { opacity: 1; visibility: visible; }
     .journal-panel {
-      width: 100%; height: 92vh;
+      width: 100%; height: 88vh;
       background: #f9f7ff;
       border-radius: 22px 22px 0 0;
       display: flex; flex-direction: column;
@@ -1603,9 +1640,8 @@
 <div class="bh-overlay" id="bhOverlay" onclick="if(event.target===this)closeBattleHistory()">
   <div class="bh-panel">
     <div class="bh-hd">
-      <div class="bh-handle"></div>
-      <div class="bh-hd-row">
-        <div class="bh-hd-title">⚔️ 我的戰績</div>
+      <div class="bh-hd-top">
+        <div class="bh-handle"></div>
         <button class="bh-close-btn" onclick="closeBattleHistory()">
           <svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/></svg>
         </button>
@@ -3763,7 +3799,7 @@
       const s = data.stats;
       document.getElementById('bhTotal').textContent   = s.totalBattles;
       document.getElementById('bhWins').textContent    = s.wins;
-      document.getElementById('bhWinRate').textContent = s.winRate + '%';
+      document.getElementById('bhWinRate').textContent = s.totalBattles > 0 ? s.winRate + '%' : '';
       renderBattleHistory();
     } catch {
       document.getElementById('bhBody').innerHTML =
@@ -3774,7 +3810,7 @@
   function renderBattleHistory() {
     if (_bhHistory.length === 0) {
       document.getElementById('bhBody').innerHTML =
-        '<div class="bh-empty">還沒有對戰記錄 ⚔️<br>快去挑戰群組成員吧！</div>';
+        '<div class="bh-empty"><div class="bh-empty-icon">⚔️</div><div class="bh-empty-title">尚無任何戰績</div><div class="bh-empty-sub">完成第一場對戰後<br>戰績將會記錄於此</div></div>';
       return;
     }
     document.getElementById('bhBody').innerHTML =
@@ -3807,15 +3843,22 @@
   function _bhCardHtml(h) {
     const pClass = h.total_players <= 2 ? 'p2' : h.total_players === 3 ? 'p3' : 'p4';
     const rk = Math.min(h.rank, 5);
-    const RANK_ICON  = ['', '👑', '🥈', '🥉', '4️⃣', '5️⃣'];
-    const RANK_LABEL = ['', '冠軍', '亞軍', '季軍', '第4名', '第5名'];
-    const dateStr = (h.date || '').slice(5, 10).replace('-', '/');
+    const RANK_LABEL = ['', '冠軍', '亞軍', '季軍', '殿軍', '5th'];
+    let dateStr = '', timeStr = '';
+    if (h.date) {
+      const d = new Date(h.date);
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mi = String(d.getMinutes()).padStart(2,'0');
+      dateStr = `${mm}/${dd}`;
+      timeStr = `${hh}:${mi}`;
+    }
     return `
       <div class="bh-card ${pClass}">
         <div class="bh-col">
-          <div class="bh-col-num">${h.total_players}</div>
-          <div class="bh-col-sub">人對戰</div>
-          <div class="bh-col-label" style="margin-top:3px">${dateStr}</div>
+          <div class="bh-battle-title">${h.total_players}人對戰</div>
+          <div class="bh-battle-date">${dateStr} ${timeStr}</div>
         </div>
         <div class="bh-vdiv"></div>
         <div class="bh-col">
@@ -3828,7 +3871,7 @@
           <div class="bh-col-num">${h.score}</div>
         </div>
         <div class="bh-rank r${rk}">
-          <div class="bh-rank-icon">${RANK_ICON[rk]}</div>
+          <div class="bh-rank-num">${rk}</div>
           <div class="bh-rank-text">${RANK_LABEL[rk]}</div>
         </div>
       </div>`;
