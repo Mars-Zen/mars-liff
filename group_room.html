@@ -519,6 +519,122 @@
     .member-card:not(.is-self) { cursor: pointer; }
     .member-card:not(.is-self):active { background: var(--pri-bg); }
 
+    /* ── Battle History Overlay ── */
+    .bh-overlay {
+      position: fixed; inset: 0;
+      background: rgba(28,26,46,0.45);
+      z-index: 350;
+      display: flex; align-items: flex-end;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.25s, visibility 0.25s;
+    }
+    .bh-overlay.open { opacity: 1; visibility: visible; }
+    .bh-panel {
+      width: 100%; height: 92vh;
+      background: #f9f7ff;
+      border-radius: 22px 22px 0 0;
+      display: flex; flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+      overflow: hidden;
+    }
+    .bh-overlay.open .bh-panel { transform: translateY(0); }
+    .bh-hd {
+      background: linear-gradient(160deg, #1e1b4b 0%, #3730a3 100%);
+      padding: 0 20px 14px; flex-shrink: 0;
+    }
+    .bh-handle {
+      width: 36px; height: 4px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 2px; margin: 14px auto 12px;
+    }
+    .bh-hd-row { display: flex; align-items: center; margin-bottom: 14px; }
+    .bh-hd-title { font-size: 16px; font-weight: 700; color: #fff; flex: 1; }
+    .bh-close-btn {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: none; background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.8);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; transition: background 0.12s;
+    }
+    .bh-close-btn:active { background: rgba(255,255,255,0.22); }
+    .bh-profile {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 14px; padding: 10px 12px;
+    }
+    .bh-avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.35); overflow: hidden; flex-shrink: 0;
+      background: #4338ca; display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: #fff;
+    }
+    .bh-profile-info { flex: 1; }
+    .bh-nickname { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .bh-stats { display: flex; gap: 14px; flex-wrap: wrap; }
+    .bh-stat-item { display: flex; align-items: baseline; gap: 2px; }
+    .bh-stat-val { font-size: 15px; font-weight: 800; color: #fde68a; }
+    .bh-stat-lbl { font-size: 10px; color: rgba(255,255,255,0.6); }
+    .bh-body { flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch; }
+    .bh-sec-title {
+      font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
+      color: var(--subtext); margin-bottom: 12px; padding-left: 2px;
+    }
+    .bh-card {
+      border-radius: 16px; border: 1.5px solid;
+      padding: 12px 10px; margin-bottom: 10px;
+      display: flex; align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .bh-card.p2 { background: #fffbeb; border-color: #fde68a; }
+    .bh-card.p3 { background: #f5f3ff; border-color: #ddd6fe; }
+    .bh-card.p4 { background: #eff6ff; border-color: #bfdbfe; }
+    .bh-col {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 2px; flex: 1; padding: 2px 0;
+    }
+    .bh-col-label { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; color: var(--muted); }
+    .bh-col-num { font-size: 22px; font-weight: 900; line-height: 1; }
+    .bh-col-sub { font-size: 10px; color: var(--muted); }
+    .bh-card.p2 .bh-col-num { color: #b45309; }
+    .bh-card.p3 .bh-col-num { color: #5b21b6; }
+    .bh-card.p4 .bh-col-num { color: #1d4ed8; }
+    .bh-vdiv { width: 1px; height: 38px; background: rgba(0,0,0,0.07); flex-shrink: 0; }
+    .bh-rank {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border-radius: 12px; padding: 8px 12px; margin-left: 4px; min-width: 60px; flex-shrink: 0;
+    }
+    .bh-rank-icon { font-size: 16px; line-height: 1; }
+    .bh-rank-text { font-size: 12px; font-weight: 800; margin-top: 2px; }
+    .bh-rank.r1 {
+      background: linear-gradient(150deg, #fef08a 0%, #fbbf24 100%);
+      box-shadow: 0 2px 10px rgba(251,191,36,0.4);
+    }
+    .bh-rank.r1 .bh-rank-text { color: #78350f; }
+    .bh-rank.r2 {
+      background: linear-gradient(150deg, #f1f5f9 0%, #cbd5e1 100%);
+      box-shadow: 0 2px 6px rgba(148,163,184,0.3);
+    }
+    .bh-rank.r2 .bh-rank-text { color: #475569; }
+    .bh-rank.r3 {
+      background: linear-gradient(150deg, #fed7aa 0%, #c2410c 100%);
+      box-shadow: 0 2px 8px rgba(194,65,12,0.3);
+    }
+    .bh-rank.r3 .bh-rank-text { color: #fff; }
+    .bh-rank.r4, .bh-rank.r5 { background: #f1f5f9; border: 1px solid #e2e8f0; }
+    .bh-rank.r4 .bh-rank-text, .bh-rank.r5 .bh-rank-text { color: #64748b; }
+    .bh-rank.r4 .bh-rank-icon, .bh-rank.r5 .bh-rank-icon { font-size: 13px; }
+    .bh-load-more {
+      text-align: center; padding: 12px 0;
+      font-size: 13px; font-weight: 600; color: var(--primary);
+      cursor: pointer; border-top: 1px solid rgba(124,58,237,0.12);
+      margin-top: 4px; border-radius: 0 0 10px 10px;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      transition: background 0.12s;
+    }
+    .bh-load-more:active { background: rgba(124,58,237,0.06); }
+    .bh-empty { text-align: center; padding: 40px 0; font-size: 13px; color: var(--muted); line-height: 2; }
+
     /* ── Journal Overlay ── */
     .journal-overlay {
       position: fixed; inset: 0;
@@ -1358,6 +1474,7 @@
     <div class="drawer-item" onclick="closeMenu(); openProfile()">個人檔案</div>
     <div class="drawer-item" onclick="closeMenu(); goToPetCollection()">星獸收集</div>
     <div class="drawer-item" onclick="closeMenu(); goToBattleLobby()">測驗對戰</div>
+    <div class="drawer-item" onclick="closeMenu(); openBattleHistory()">歷史戰績</div>
     <div class="drawer-item"             onclick="closeMenu(); openJournal()">心情札記</div>
     <div class="drawer-item"             onclick="closeMenu(); openComposite()">雙人合盤</div>
     <div class="drawer-item sep"         onclick="closeMenu(); window.open('https://youtu.be/DX0Z5u-tDys','_blank')">前導故事</div>
@@ -1477,6 +1594,35 @@
       </div>
     </div>
     <div class="journal-body" id="journalBody">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Battle History Overlay -->
+<div class="bh-overlay" id="bhOverlay" onclick="if(event.target===this)closeBattleHistory()">
+  <div class="bh-panel">
+    <div class="bh-hd">
+      <div class="bh-handle"></div>
+      <div class="bh-hd-row">
+        <div class="bh-hd-title">⚔️ 我的戰績</div>
+        <button class="bh-close-btn" onclick="closeBattleHistory()">
+          <svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/></svg>
+        </button>
+      </div>
+      <div class="bh-profile">
+        <div class="bh-avatar" id="bhAvatar">⚔️</div>
+        <div class="bh-profile-info">
+          <div class="bh-nickname" id="bhNickname">—</div>
+          <div class="bh-stats">
+            <div class="bh-stat-item"><span class="bh-stat-val" id="bhTotal">—</span><span class="bh-stat-lbl"> 場</span></div>
+            <div class="bh-stat-item"><span class="bh-stat-val" id="bhWins">—</span><span class="bh-stat-lbl"> 冠軍</span></div>
+            <div class="bh-stat-item"><span class="bh-stat-val" id="bhWinRate">—</span><span class="bh-stat-lbl"> 勝率</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bh-body" id="bhBody">
       <div class="loading"><div class="spinner"></div></div>
     </div>
   </div>
@@ -3577,6 +3723,115 @@
   function goToPetCollection() {
     const params = new URLSearchParams({ uid, group_id, group_name });
     location.href = `pet_collection.html?${params}`;
+  }
+
+  /* ── Battle History ───────────────────────────────────────────── */
+  const BH_PAGE = 5;
+  let _bhHistory = [];
+  let _bhShown   = 0;
+
+  function openBattleHistory() {
+    if (!uid || uid === 'demo_user') { showToast('示範模式無法使用此功能'); return; }
+    document.getElementById('bhOverlay').classList.add('open');
+    const bhAv = document.getElementById('bhAvatar');
+    bhAv.innerHTML = myAvatar
+      ? `<img src="${x(myAvatar)}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='⚔️'">`
+      : '⚔️';
+    document.getElementById('bhNickname').textContent = myNickname || '—';
+    document.getElementById('bhTotal').textContent   = '—';
+    document.getElementById('bhWins').textContent    = '—';
+    document.getElementById('bhWinRate').textContent = '—';
+    document.getElementById('bhBody').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    loadBattleHistory();
+  }
+
+  function closeBattleHistory() {
+    document.getElementById('bhOverlay').classList.remove('open');
+  }
+
+  async function loadBattleHistory() {
+    try {
+      const r = await fetch(`${API}/battle-history`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid })
+      });
+      const data = await r.json();
+      if (!data.success) throw new Error('failed');
+      _bhHistory = data.history || [];
+      _bhShown   = 0;
+      const s = data.stats;
+      document.getElementById('bhTotal').textContent   = s.totalBattles;
+      document.getElementById('bhWins').textContent    = s.wins;
+      document.getElementById('bhWinRate').textContent = s.winRate + '%';
+      renderBattleHistory();
+    } catch {
+      document.getElementById('bhBody').innerHTML =
+        '<div class="bh-empty">無法載入戰績，請稍後再試 🌙</div>';
+    }
+  }
+
+  function renderBattleHistory() {
+    if (_bhHistory.length === 0) {
+      document.getElementById('bhBody').innerHTML =
+        '<div class="bh-empty">還沒有對戰記錄 ⚔️<br>快去挑戰群組成員吧！</div>';
+      return;
+    }
+    document.getElementById('bhBody').innerHTML =
+      '<div class="bh-sec-title">近期戰績</div><div id="bhList"></div><div id="bhMoreWrap"></div>';
+    _appendBhCards();
+  }
+
+  function _appendBhCards() {
+    const listEl = document.getElementById('bhList');
+    const wrapEl = document.getElementById('bhMoreWrap');
+    const next = _bhHistory.slice(_bhShown, _bhShown + BH_PAGE);
+    listEl.insertAdjacentHTML('beforeend', next.map(_bhCardHtml).join(''));
+    _bhShown += next.length;
+    if (_bhShown < _bhHistory.length) {
+      wrapEl.innerHTML = `<div class="bh-load-more" onclick="_appendBhCards()">查看更多<svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor" style="margin-top:1px"><path d="M7 9.5L1.5 4h11L7 9.5z"/></svg></div>`;
+    } else if (_bhShown > BH_PAGE) {
+      wrapEl.innerHTML = `<div class="bh-load-more" onclick="_collapseBhCards()"><svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor" style="margin-top:1px;transform:rotate(180deg)"><path d="M7 9.5L1.5 4h11L7 9.5z"/></svg>收起</div>`;
+    } else {
+      wrapEl.innerHTML = '';
+    }
+  }
+
+  function _collapseBhCards() {
+    _bhShown = 0;
+    document.getElementById('bhList').innerHTML = '';
+    _appendBhCards();
+    document.getElementById('bhBody').scrollTop = 0;
+  }
+
+  function _bhCardHtml(h) {
+    const pClass = h.total_players <= 2 ? 'p2' : h.total_players === 3 ? 'p3' : 'p4';
+    const rk = Math.min(h.rank, 5);
+    const RANK_ICON  = ['', '👑', '🥈', '🥉', '4️⃣', '5️⃣'];
+    const RANK_LABEL = ['', '冠軍', '亞軍', '季軍', '第4名', '第5名'];
+    const dateStr = (h.date || '').slice(5, 10).replace('-', '/');
+    return `
+      <div class="bh-card ${pClass}">
+        <div class="bh-col">
+          <div class="bh-col-num">${h.total_players}</div>
+          <div class="bh-col-sub">人對戰</div>
+          <div class="bh-col-label" style="margin-top:3px">${dateStr}</div>
+        </div>
+        <div class="bh-vdiv"></div>
+        <div class="bh-col">
+          <div class="bh-col-label">題數</div>
+          <div class="bh-col-num">${h.max_questions}</div>
+        </div>
+        <div class="bh-vdiv"></div>
+        <div class="bh-col">
+          <div class="bh-col-label">得分</div>
+          <div class="bh-col-num">${h.score}</div>
+        </div>
+        <div class="bh-rank r${rk}">
+          <div class="bh-rank-icon">${RANK_ICON[rk]}</div>
+          <div class="bh-rank-text">${RANK_LABEL[rk]}</div>
+        </div>
+      </div>`;
   }
 
   /* ── Battle Lobby ────────────────────────────────────────────── */
