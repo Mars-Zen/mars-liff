@@ -720,7 +720,7 @@
     .bd-td-sticky { z-index: 2; font-size: 12px; }
     .bd-ans { font-size: 17px; font-weight: 800; line-height: 1; }
     .bd-ans.correct { color: #16a34a; }
-    .bd-ans.wrong   { color: #dc2626; }
+    .bd-ans.wrong   { color: #dc2626; font-weight: 300; font-size: 18px; }
     .bd-ans.skip    { color: #dc2626; }
     .bd-scroll-hint {
       display: none; text-align: center;
@@ -4164,7 +4164,7 @@
       const rankHtml = players.map(p => {
         const rk = Math.min(p.rank, 5);
         const isSelf = p.uid === subjectUid;
-        const txtCol = isSelf ? '#fff' : '#000';
+        const txtCol = isSelf ? themeColor : '#000';
         return `<div class="bd-rank-row r${rk}">
           <span class="bd-r-medal">${getMedal(rk)}</span>
           <span class="bd-r-name" style="color:${txtCol}">${x(getName(p.uid))}</span>
@@ -4177,7 +4177,7 @@
         const rk = Math.min(p.rank, 5);
         const isSelf = p.uid === subjectUid;
         const stickyBg = RANK_STICKY_BG[rk];
-        const nameTxt  = isSelf ? '#fff' : '#000';
+        const nameTxt  = isSelf ? themeColor : '#000';
         const ansData = answers[p.uid] || {};
         const cells = Array.from({length: maxQ}, (_, qi) => {
           const ans = ansData[qi];
@@ -4185,7 +4185,7 @@
             return '<td><span class="bd-ans skip">—</span></td>';
           return ans.is_correct
             ? '<td><span class="bd-ans correct">○</span></td>'
-            : '<td><span class="bd-ans wrong">✖</span></td>';
+            : '<td><span class="bd-ans wrong">✕</span></td>';
         }).join('');
         return `<tr class="r${rk}"><td class="bd-td-sticky" style="background:${stickyBg};color:${nameTxt}">${x(getName(p.uid))}</td>${cells}</tr>`;
       }).join('');
@@ -4206,7 +4206,7 @@
           </div>
           <div class="bd-section">
             <div class="bd-sec-label">作答狀況</div>
-            <div style="border:1px solid ${borderColor};border-radius:14px;overflow:clip;margin-bottom:4px">
+            <div style="display:block;width:fit-content;max-width:100%;border:1px solid ${borderColor};border-radius:14px;overflow:clip;margin-bottom:4px">
               <div class="bd-table-wrap">
                 <table class="bd-table">
                   <thead><tr><th class="bd-th-sticky">玩家</th>${qHeaders}</tr></thead>
