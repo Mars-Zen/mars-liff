@@ -602,12 +602,17 @@
       align-self: stretch; margin-left: 8px; flex-shrink: 0; min-width: 44px; gap: 3px;
     }
     .bh-rank-icon { font-size: 28px; line-height: 1; }
-    .bh-rank-text { font-size: 10px; font-weight: 700; color: var(--subtext); letter-spacing: 0.02em; white-space: nowrap; }
+    .bh-rank-text { font-size: 10px; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap; }
+    .bh-rank.r1 .bh-rank-text { color: #b45309; }
+    .bh-rank.r2 .bh-rank-text { color: #2563eb; }
+    .bh-rank.r3 .bh-rank-text { color: #9a3412; }
+    .bh-rank.r4 .bh-rank-text { color: #374151; }
+    .bh-rank.r5 .bh-rank-text { color: #6b7280; }
     .bh-battle-date {
       font-size: 10px; font-weight: 700; letter-spacing: 0.05em; color: var(--muted); white-space: nowrap;
     }
     .bh-battle-title {
-      font-size: 22px; font-weight: 900; margin-top: 4px; white-space: nowrap; line-height: 1;
+      font-size: 17px; font-weight: 900; white-space: nowrap; line-height: 1;
     }
     .bh-card.p2 .bh-battle-title { color: #92400e; }
     .bh-card.p3 .bh-battle-title { color: #1e40af; }
@@ -3811,7 +3816,7 @@
     const pClass = h.total_players <= 2 ? 'p2' : h.total_players === 3 ? 'p3' : 'p4';
     const rk = Math.min(h.rank, 5);
     const RANK_ICON  = ['', '🥇', '🥈', '🥉', '🎖️', '🎖️'];
-    const RANK_LABEL = ['', '第一名', '第二名', '第三名', '第四名', '第五名'];
+    const RANK_LABEL = ['', '冠軍', '亞軍', '季軍', '第四名', '第五名'];
     let dateStr = '', timeStr = '';
     if (h.date) {
       const d = new Date(h.date);
