@@ -596,7 +596,7 @@
       letter-spacing: 0.05em; color: var(--muted); padding: 0 6px;
     }
     .bh-cell-val {
-      text-align: center; font-size: 18px; font-weight: 900;
+      text-align: center; font-size: 15px; font-weight: 900;
       line-height: 1; padding: 0 6px;
     }
     .bh-cell-label:not(:nth-child(3n)),
@@ -615,6 +615,34 @@
     .bh-rank.r3 .bh-rank-text { color: #9a3412; }
     .bh-rank.r4 .bh-rank-text { color: #374151; }
     .bh-rank.r5 .bh-rank-text { color: #6b7280; }
+    .bh-toggle-btn {
+      font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.85);
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px; padding: 4px 10px; cursor: pointer; white-space: nowrap;
+      transition: background 0.12s; margin-right: 8px; flex-shrink: 0;
+    }
+    .bh-toggle-btn:active { background: rgba(255,255,255,0.22); }
+    .bh-panel.group-mode { background: linear-gradient(160deg, #1e1b4b 0%, #2d2878 100%); }
+    .bh-panel.group-mode .bh-hd { background: transparent; }
+    .bh-panel.group-mode .bh-body { background: transparent; }
+    .bh-gmember {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .bh-gmember:last-child { border-bottom: none; }
+    .bh-gm-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3); overflow: hidden; flex-shrink: 0;
+      background: #4338ca; display: flex; align-items: center; justify-content: center;
+      font-size: 17px; color: #fff;
+    }
+    .bh-gm-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .bh-gm-info { flex: 1; min-width: 0; }
+    .bh-gm-name { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+    .bh-gm-stats { display: flex; gap: 12px; align-items: baseline; }
+    .bh-gm-stat { display: flex; align-items: baseline; gap: 2px; }
+    .bh-gm-val { font-size: 14px; font-weight: 800; color: #fde68a; }
+    .bh-gm-lbl { font-size: 9px; color: rgba(255,255,255,0.55); }
     .bh-load-more {
       text-align: center; padding: 12px 0;
       font-size: 13px; font-weight: 600; color: var(--primary);
@@ -1598,11 +1626,12 @@
 
 <!-- Battle History Overlay -->
 <div class="bh-overlay" id="bhOverlay" onclick="if(event.target===this)closeBattleHistory()">
-  <div class="bh-panel">
+  <div class="bh-panel" id="bhPanel">
     <div class="bh-hd">
       <div class="bh-handle-bar"><div class="bh-handle"></div></div>
       <div class="bh-hd-row">
-        <div class="bh-hd-title">我的戰績</div>
+        <div class="bh-hd-title" id="bhTitle">我的戰績</div>
+        <button class="bh-toggle-btn" id="bhToggleBtn" onclick="switchBhMode()">群組戰績</button>
         <button class="bh-close-btn" onclick="closeBattleHistory()">
           <svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/></svg>
         </button>
@@ -2011,6 +2040,7 @@
 
   function renderMembers(members) {
     members.sort((a, b) => (a.uid === uid ? -1 : b.uid === uid ? 1 : 0));
+    _bhMembers = members;
     document.getElementById('memberCount').textContent = `共 ${members.length} 人`;
 
     if (!members.length) {
@@ -3724,11 +3754,19 @@
 
   /* ── Battle History ───────────────────────────────────────────── */
   const BH_PAGE = 5;
-  let _bhHistory = [];
-  let _bhShown   = 0;
+  let _bhHistory   = [];
+  let _bhShown     = 0;
+  let _bhMode      = 'personal';
+  let _bhMembers   = [];
+  let _bhGroupData = null;
 
   function openBattleHistory() {
     if (!uid || uid === 'demo_user') { showToast('示範模式無法使用此功能'); return; }
+    _bhMode = 'personal';
+    _bhGroupData = null;
+    document.getElementById('bhPanel').classList.remove('group-mode');
+    document.getElementById('bhTitle').textContent     = '我的戰績';
+    document.getElementById('bhToggleBtn').textContent = '群組戰績';
     document.getElementById('bhOverlay').classList.add('open');
     const bhAv = document.getElementById('bhAvatar');
     bhAv.innerHTML = myAvatar
@@ -3744,7 +3782,81 @@
   }
 
   function closeBattleHistory() {
+    document.getElementById('bhPanel').classList.remove('group-mode');
     document.getElementById('bhOverlay').classList.remove('open');
+  }
+
+  function switchBhMode() {
+    _bhMode = _bhMode === 'personal' ? 'group' : 'personal';
+    const panel     = document.getElementById('bhPanel');
+    const titleEl   = document.getElementById('bhTitle');
+    const toggleBtn = document.getElementById('bhToggleBtn');
+    if (_bhMode === 'group') {
+      panel.classList.add('group-mode');
+      titleEl.textContent     = '群組戰績';
+      toggleBtn.textContent   = '我的戰績';
+      loadGroupBattleHistory();
+    } else {
+      panel.classList.remove('group-mode');
+      titleEl.textContent     = '我的戰績';
+      toggleBtn.textContent   = '群組戰績';
+      renderBattleHistory();
+    }
+  }
+
+  async function loadGroupBattleHistory() {
+    const body = document.getElementById('bhBody');
+    if (_bhGroupData) { renderGroupBattleHistory(); return; }
+    body.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    try {
+      const results = await Promise.all(
+        _bhMembers.map(m =>
+          fetch(`${API}/battle-history`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uid: m.uid })
+          }).then(r => r.json()).then(data => ({
+            uid: m.uid, nickname: m.nickname, avatar: m.line_avatar,
+            stats: data.success ? data.stats : { totalBattles: 0, wins: 0, winRate: 0 }
+          })).catch(() => ({
+            uid: m.uid, nickname: m.nickname, avatar: m.line_avatar,
+            stats: { totalBattles: 0, wins: 0, winRate: 0 }
+          }))
+        )
+      );
+      _bhGroupData = results;
+      renderGroupBattleHistory();
+    } catch {
+      body.innerHTML = '<div class="bh-empty" style="color:rgba(255,255,255,0.6)">無法載入群組戰績 🌙</div>';
+    }
+  }
+
+  function renderGroupBattleHistory() {
+    const body = document.getElementById('bhBody');
+    if (!_bhGroupData || !_bhGroupData.length) {
+      body.innerHTML = '<div class="bh-empty"><div class="bh-empty-icon" style="opacity:0.35">⚔️</div><div class="bh-empty-title" style="color:rgba(255,255,255,0.6)">暫無成員戰績</div></div>';
+      return;
+    }
+    body.innerHTML = _bhGroupData.map(m => {
+      const s = m.stats;
+      const rateHtml = s.totalBattles > 0
+        ? `<div class="bh-gm-stat"><span class="bh-gm-val">${s.winRate}%</span><span class="bh-gm-lbl"> 勝率</span></div>`
+        : '';
+      return `
+        <div class="bh-gmember">
+          <div class="bh-gm-avatar">
+            ${m.avatar ? `<img src="${x(m.avatar)}" alt="" onerror="this.parentElement.innerHTML='🌟'">` : '🌟'}
+          </div>
+          <div class="bh-gm-info">
+            <div class="bh-gm-name">${x(m.nickname || '未知成員')}</div>
+            <div class="bh-gm-stats">
+              <div class="bh-gm-stat"><span class="bh-gm-val">${s.totalBattles}</span><span class="bh-gm-lbl"> 場</span></div>
+              <div class="bh-gm-stat"><span class="bh-gm-val">${s.wins}</span><span class="bh-gm-lbl"> 冠軍</span></div>
+              ${rateHtml}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
   }
 
   async function loadBattleHistory() {
