@@ -641,74 +641,98 @@
     .bh-view-btn:active { opacity: 0.8; }
     /* ─── Battle Detail ─── */
     .bd-wrap { padding-bottom: 24px; }
-    .bd-back {
-      font-size: 13px; font-weight: 700; color: var(--muted);
-      padding: 12px 16px 4px; cursor: pointer; display: block;
-      user-select: none; -webkit-user-select: none;
-    }
-    .bd-back:active { opacity: 0.65; }
     .bd-meta {
-      padding: 4px 16px 14px;
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px 14px;
       border-bottom: 1px solid rgba(0,0,0,0.07); margin-bottom: 4px;
     }
+    .bd-back-btn {
+      flex-shrink: 0;
+      background: #312e81; color: #fff;
+      border: none; border-radius: 18px;
+      padding: 7px 16px; font-size: 13px; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .bd-back-btn:active { opacity: 0.75; }
+    .bd-meta-right { flex: 1; text-align: right; }
     .bd-meta-date { font-size: 19px; font-weight: 900; color: var(--text); letter-spacing: 0.01em; }
-    .bd-meta-sub  { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .bd-meta-sub  { font-size: 12px; color: #000; margin-top: 2px; }
     .bd-section   { padding: 14px 16px 0; }
     .bd-sec-label {
       font-size: 10px; font-weight: 800; color: var(--muted);
       letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;
     }
-    .bd-rank-list {
-      background: rgba(0,0,0,0.035); border-radius: 14px;
-      overflow: hidden; margin-bottom: 4px;
-    }
+    /* Ranking */
+    .bd-rank-list { border-radius: 14px; overflow: hidden; margin-bottom: 4px; }
     .bd-rank-row {
       display: flex; align-items: center; gap: 10px;
-      padding: 11px 14px; border-bottom: 1px solid rgba(0,0,0,0.05);
+      padding: 11px 14px; border-bottom: 1px solid rgba(0,0,0,0.06);
     }
     .bd-rank-row:last-child { border-bottom: none; }
-    .bd-rank-row.is-self { background: rgba(251,191,36,0.12); }
-    .bd-r-medal { font-size: 20px; flex-shrink: 0; width: 26px; text-align: center; }
-    .bd-r-name  {
-      flex: 1; font-size: 14px; font-weight: 700; color: var(--text);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    .bd-r-medal { font-size: 20px; flex-shrink: 0; width: 28px; text-align: center; line-height: 1; }
+    .bd-r-name  { flex: 1; font-size: 14px; font-weight: 700; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bd-rank-row.is-self .bd-r-name { color: #312e81; }
+    .bd-r-score { font-size: 15px; font-weight: 900; white-space: nowrap; color: #000; }
+    .bd-rank-row.is-self .bd-r-score { color: #312e81; }
+    .bd-rank-row.r1 { background: #fffbeb; }
+    .bd-rank-row.r2 { background: #eff6ff; }
+    .bd-rank-row.r3 { background: #fff7ed; }
+    .bd-rank-row.r4 { background: #f0fdf4; }
+    .bd-rank-row.r5 { background: #f8fafc; }
+    .bd-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      font-size: 11px; font-weight: 900; color: #fff; line-height: 1;
     }
-    .bd-r-score { font-size: 15px; font-weight: 900; white-space: nowrap; }
-    .bd-rank-row.r1 .bd-r-score { color: #b45309; }
-    .bd-rank-row.r2 .bd-r-score { color: #2563eb; }
-    .bd-rank-row.r3 .bd-r-score { color: #9a3412; }
-    .bd-rank-row.r4 .bd-r-score, .bd-rank-row.r5 .bd-r-score { color: #6b7280; }
-    .bd-rank-row.is-self .bd-r-name { color: #b45309; }
+    .bd-badge.r4 { background: #15803d; }
+    .bd-badge.r5 { background: #475569; }
+    /* Answer table */
     .bd-table-wrap {
       overflow-x: auto; -webkit-overflow-scrolling: touch;
-      border-radius: 14px; background: rgba(0,0,0,0.035); margin-bottom: 16px;
+      border-radius: 14px; margin-bottom: 4px;
+      scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.22) rgba(0,0,0,0.06);
     }
+    .bd-table-wrap::-webkit-scrollbar { height: 4px; }
+    .bd-table-wrap::-webkit-scrollbar-track { background: rgba(0,0,0,0.06); }
+    .bd-table-wrap::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.22); border-radius: 2px; }
     .bd-table { border-collapse: collapse; min-width: 100%; width: max-content; }
     .bd-table th, .bd-table td {
-      padding: 9px 12px; text-align: center;
-      font-size: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); white-space: nowrap;
+      padding: 9px 12px; text-align: center; font-size: 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      border-right: 1px solid rgba(0,0,0,0.07); white-space: nowrap;
     }
-    .bd-table thead th {
-      font-weight: 800; color: var(--muted); background: rgba(0,0,0,0.04); font-size: 11px;
-    }
+    .bd-table th:last-child, .bd-table td:last-child { border-right: none; }
+    .bd-table thead th { font-weight: 800; color: var(--muted); background: rgba(0,0,0,0.05); font-size: 11px; }
     .bd-table tbody tr:last-child td { border-bottom: none; }
-    .bd-table tbody tr.is-self { background: rgba(251,191,36,0.08); }
+    .bd-table tbody tr.r1 { background: #fffbeb; }
+    .bd-table tbody tr.r2 { background: #eff6ff; }
+    .bd-table tbody tr.r3 { background: #fff7ed; }
+    .bd-table tbody tr.r4 { background: #f0fdf4; }
+    .bd-table tbody tr.r5 { background: #f8fafc; }
     .bd-th-sticky, .bd-td-sticky {
       position: sticky; left: 0; text-align: left;
       min-width: 72px; max-width: 90px; font-weight: 700;
-      border-right: 1px solid rgba(0,0,0,0.07);
+      border-right: 1px solid rgba(0,0,0,0.10) !important;
       overflow: hidden; text-overflow: ellipsis;
     }
-    .bd-th-sticky { background: rgba(242,242,242,0.97); color: var(--muted); }
-    .bd-td-sticky { background: rgba(255,255,255,0.97); font-size: 12px; }
-    .bd-table tbody tr.is-self .bd-td-sticky { background: rgba(255,248,228,0.97); color: #92400e; }
-    .bd-ans       { font-size: 15px; font-weight: 700; }
+    .bd-th-sticky { z-index: 3; background: rgba(238,238,238,0.98); color: var(--muted); font-size: 11px; }
+    .bd-td-sticky { z-index: 2; font-size: 12px; }
+    .bd-table tr.r1 .bd-td-sticky { background: #fef3c7; color: #000; }
+    .bd-table tr.r2 .bd-td-sticky { background: #dbeafe; color: #000; }
+    .bd-table tr.r3 .bd-td-sticky { background: #ffedd5; color: #000; }
+    .bd-table tr.r4 .bd-td-sticky { background: #dcfce7; color: #000; }
+    .bd-table tr.r5 .bd-td-sticky { background: #f1f5f9; color: #000; }
+    .bd-table tr.is-self .bd-td-sticky { color: #312e81; }
+    .bd-ans { font-size: 17px; font-weight: 800; line-height: 1; }
     .bd-ans.correct { color: #16a34a; }
     .bd-ans.wrong   { color: #dc2626; }
-    .bd-ans.skip    { color: #d1d5db; font-size: 12px; }
-    .bd-wrap.p2 .bd-meta-date { color: #92400e; }
-    .bd-wrap.p3 .bd-meta-date { color: #1e40af; }
-    .bd-wrap.p4 .bd-meta-date { color: #065f46; }
+    .bd-ans.skip    { color: #dc2626; }
+    .bd-scroll-hint {
+      display: none; text-align: center;
+      font-size: 11px; color: var(--muted); padding: 5px 0 14px; letter-spacing: 0.04em;
+    }
+    .bd-scroll-hint.show { display: block; }
     .bh-gmember {
       display: flex; align-items: center; gap: 12px;
       padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -4113,6 +4137,13 @@
     (_bhMembers || []).forEach(m => { nickMap[m.uid] = m.nickname || m.uid; });
     const getName = u => nickMap[u] || (u.slice(0, 6) + '…');
 
+    const getMedal = rk => {
+      if (rk === 1) return '🥇';
+      if (rk === 2) return '🥈';
+      if (rk === 3) return '🥉';
+      return `<span class="bd-badge r${rk}">${rk}</span>`;
+    };
+
     const buildHtml = (data) => {
       const battle = data.battle;
       const players = data.players;
@@ -4130,12 +4161,11 @@
         dateStr = `${yyyy}/${mm}/${dd} ${hh}:${mi}`;
       }
 
-      const RANK_ICONS = ['', '🥇', '🥈', '🥉', '🎖️', '🎖️'];
       const rankHtml = players.map(p => {
         const rk = Math.min(p.rank, 5);
         const isSelf = p.uid === uid;
         return `<div class="bd-rank-row r${rk}${isSelf ? ' is-self' : ''}">
-          <span class="bd-r-medal">${RANK_ICONS[rk]}</span>
+          <span class="bd-r-medal">${getMedal(rk)}</span>
           <span class="bd-r-name">${x(getName(p.uid))}</span>
           <span class="bd-r-score">${p.score} 分</span>
         </div>`;
@@ -4143,24 +4173,28 @@
 
       const qHeaders = Array.from({length: maxQ}, (_, qi) => `<th>Q${qi+1}</th>`).join('');
       const tableRows = players.map(p => {
+        const rk = Math.min(p.rank, 5);
         const isSelf = p.uid === uid;
         const ansData = answers[p.uid] || {};
         const cells = Array.from({length: maxQ}, (_, qi) => {
           const ans = ansData[qi];
-          if (ans === undefined || ans === null) return '<td class="bd-ans skip">—</td>';
+          if (ans === undefined || ans === null)
+            return '<td><span class="bd-ans skip">—</span></td>';
           return ans.is_correct
-            ? '<td class="bd-ans correct">○</td>'
-            : '<td class="bd-ans wrong">✕</td>';
+            ? '<td><span class="bd-ans correct">○</span></td>'
+            : '<td><span class="bd-ans wrong">✕</span></td>';
         }).join('');
-        return `<tr${isSelf ? ' class="is-self"' : ''}><td class="bd-td-sticky">${x(getName(p.uid))}</td>${cells}</tr>`;
+        return `<tr class="r${rk}${isSelf ? ' is-self' : ''}"><td class="bd-td-sticky">${x(getName(p.uid))}</td>${cells}</tr>`;
       }).join('');
 
       return `
-        <div class="bd-wrap ${pClass}">
-          <div class="bd-back" onclick="closeBattleDetail()">← 返回戰績</div>
+        <div class="bd-wrap">
           <div class="bd-meta">
-            <div class="bd-meta-date">${dateStr}</div>
-            <div class="bd-meta-sub">${players.length}人對戰 · 共${maxQ}題</div>
+            <button class="bd-back-btn" onclick="closeBattleDetail()">返回</button>
+            <div class="bd-meta-right">
+              <div class="bd-meta-date">${dateStr}</div>
+              <div class="bd-meta-sub">${players.length}人對戰 · 共${maxQ}題</div>
+            </div>
           </div>
           <div class="bd-section">
             <div class="bd-sec-label">排名</div>
@@ -4174,6 +4208,7 @@
                 <tbody>${tableRows}</tbody>
               </table>
             </div>
+            <div class="bd-scroll-hint" id="bdScrollHint">← 左右滑動 →</div>
           </div>
         </div>`;
     };
@@ -4187,6 +4222,11 @@
       const data = await r.json();
       if (!data.success) throw new Error('failed');
       body.innerHTML = buildHtml(data);
+      setTimeout(() => {
+        const wrap = body.querySelector('.bd-table-wrap');
+        const hint = body.querySelector('#bdScrollHint');
+        if (wrap && hint && wrap.scrollWidth > wrap.clientWidth) hint.classList.add('show');
+      }, 60);
     } catch {
       body.innerHTML = `
         <div class="bd-wrap ${pClass}">
