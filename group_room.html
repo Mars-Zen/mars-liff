@@ -548,11 +548,9 @@
       background: rgba(255,255,255,0.2);
       border-radius: 2px;
     }
-    .bh-hd-top {
-      display: flex; align-items: center; justify-content: center;
-      position: relative; padding: 14px 0 10px;
-    }
-    .bh-hd-top .bh-close-btn { position: absolute; right: 0; top: 50%; transform: translateY(-50%); }
+    .bh-handle-bar { display: flex; justify-content: center; padding: 12px 0 0; }
+    .bh-hd-row { display: flex; align-items: center; margin: 10px 0 14px; }
+    .bh-hd-title { font-size: 16px; font-weight: 700; color: #fff; flex: 1; }
     .bh-close-btn {
       width: 28px; height: 28px; border-radius: 50%;
       border: none; background: rgba(255,255,255,0.12);
@@ -561,12 +559,7 @@
       cursor: pointer; flex-shrink: 0; transition: background 0.12s;
     }
     .bh-close-btn:active { background: rgba(255,255,255,0.22); }
-    .bh-profile {
-      display: flex; align-items: center; gap: 12px;
-      background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.10) 100%);
-      border: 1px solid rgba(255,255,255,0.22);
-      border-radius: 14px; padding: 10px 12px;
-    }
+    .bh-profile { display: flex; align-items: center; gap: 12px; }
     .bh-avatar {
       width: 42px; height: 42px; border-radius: 50%;
       border: 2px solid rgba(255,255,255,0.35); overflow: hidden; flex-shrink: 0;
@@ -575,7 +568,7 @@
     }
     .bh-profile-info { flex: 1; }
     .bh-nickname { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-    .bh-stats { display: flex; gap: 14px; flex-wrap: wrap; }
+    .bh-stats { display: flex; gap: 14px; flex-wrap: nowrap; align-items: baseline; }
     .bh-stat-item { display: flex; align-items: baseline; gap: 2px; }
     .bh-stat-val { font-size: 15px; font-weight: 800; color: #fde68a; }
     .bh-stat-lbl { font-size: 10px; color: rgba(255,255,255,0.6); }
@@ -591,8 +584,8 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     .bh-card.p2 { background: #FEF3C7; border-color: #D97706; box-shadow: 0 2px 10px rgba(217,119,6,0.1); }
-    .bh-card.p3 { background: #EDE9FE; border-color: #7C3AED; box-shadow: 0 2px 10px rgba(124,58,237,0.1); }
-    .bh-card.p4 { background: #E0F2FE; border-color: #0284C7; box-shadow: 0 2px 10px rgba(2,132,199,0.1); }
+    .bh-card.p3 { background: #DBEAFE; border-color: #2563EB; box-shadow: 0 2px 10px rgba(37,99,235,0.1); }
+    .bh-card.p4 { background: #D1FAE5; border-color: #059669; box-shadow: 0 2px 10px rgba(5,150,105,0.1); }
     .bh-col {
       display: flex; flex-direction: column; align-items: center;
       gap: 2px; flex: 1; padding: 2px 0;
@@ -601,8 +594,8 @@
     .bh-col-num { font-size: 22px; font-weight: 900; line-height: 1; }
     .bh-col-sub { font-size: 10px; color: var(--muted); }
     .bh-card.p2 .bh-col-num { color: #92400e; }
-    .bh-card.p3 .bh-col-num { color: #5b21b6; }
-    .bh-card.p4 .bh-col-num { color: #0369a1; }
+    .bh-card.p3 .bh-col-num { color: #1e40af; }
+    .bh-card.p4 .bh-col-num { color: #065f46; }
     .bh-vdiv { width: 1px; height: 38px; background: rgba(0,0,0,0.07); flex-shrink: 0; }
     .bh-rank {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -614,9 +607,7 @@
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 55%;
       background: rgba(255,255,255,0.2); border-radius: 14px 14px 0 0; pointer-events: none;
     }
-    .bh-rank-num {
-      font-size: 22px; font-weight: 900; line-height: 1; position: relative; z-index: 1;
-    }
+    .bh-rank-icon { font-size: 20px; line-height: 1; position: relative; z-index: 1; }
     .bh-rank-text {
       font-size: 10px; font-weight: 700; letter-spacing: 0.04em; position: relative; z-index: 1;
     }
@@ -653,8 +644,8 @@
       font-weight: 500; letter-spacing: 0.02em; white-space: nowrap;
     }
     .bh-card.p2 .bh-battle-title { color: #92400e; }
-    .bh-card.p3 .bh-battle-title { color: #5b21b6; }
-    .bh-card.p4 .bh-battle-title { color: #0369a1; }
+    .bh-card.p3 .bh-battle-title { color: #1e40af; }
+    .bh-card.p4 .bh-battle-title { color: #065f46; }
     .bh-load-more {
       text-align: center; padding: 12px 0;
       font-size: 13px; font-weight: 600; color: var(--primary);
@@ -1640,8 +1631,9 @@
 <div class="bh-overlay" id="bhOverlay" onclick="if(event.target===this)closeBattleHistory()">
   <div class="bh-panel">
     <div class="bh-hd">
-      <div class="bh-hd-top">
-        <div class="bh-handle"></div>
+      <div class="bh-handle-bar"><div class="bh-handle"></div></div>
+      <div class="bh-hd-row">
+        <div class="bh-hd-title">我的戰績</div>
         <button class="bh-close-btn" onclick="closeBattleHistory()">
           <svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/></svg>
         </button>
@@ -1653,7 +1645,7 @@
           <div class="bh-stats">
             <div class="bh-stat-item"><span class="bh-stat-val" id="bhTotal">—</span><span class="bh-stat-lbl"> 場</span></div>
             <div class="bh-stat-item"><span class="bh-stat-val" id="bhWins">—</span><span class="bh-stat-lbl"> 冠軍</span></div>
-            <div class="bh-stat-item"><span class="bh-stat-val" id="bhWinRate">—</span><span class="bh-stat-lbl"> 勝率</span></div>
+            <div class="bh-stat-item" id="bhWinRateItem"><span class="bh-stat-val" id="bhWinRate"></span><span class="bh-stat-lbl"> 勝率</span></div>
           </div>
         </div>
       </div>
@@ -3777,6 +3769,7 @@
     document.getElementById('bhTotal').textContent   = '—';
     document.getElementById('bhWins').textContent    = '—';
     document.getElementById('bhWinRate').textContent = '—';
+    document.getElementById('bhWinRateItem').style.visibility = '';
     document.getElementById('bhBody').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
     loadBattleHistory();
   }
@@ -3799,7 +3792,15 @@
       const s = data.stats;
       document.getElementById('bhTotal').textContent   = s.totalBattles;
       document.getElementById('bhWins').textContent    = s.wins;
-      document.getElementById('bhWinRate').textContent = s.totalBattles > 0 ? s.winRate + '%' : '';
+      const rateEl = document.getElementById('bhWinRate');
+      const rateItem = document.getElementById('bhWinRateItem');
+      if (s.totalBattles > 0) {
+        rateEl.textContent = s.winRate + '%';
+        rateItem.style.visibility = '';
+      } else {
+        rateEl.textContent = '';
+        rateItem.style.visibility = 'hidden';
+      }
       renderBattleHistory();
     } catch {
       document.getElementById('bhBody').innerHTML =
@@ -3843,7 +3844,8 @@
   function _bhCardHtml(h) {
     const pClass = h.total_players <= 2 ? 'p2' : h.total_players === 3 ? 'p3' : 'p4';
     const rk = Math.min(h.rank, 5);
-    const RANK_LABEL = ['', '冠軍', '亞軍', '季軍', '殿軍', '5th'];
+    const RANK_ICON  = ['', '🥇', '🥈', '🥉', '🎖️', '🎖️'];
+    const RANK_LABEL = ['', '第一名', '第二名', '第三名', '第四名', '第五名'];
     let dateStr = '', timeStr = '';
     if (h.date) {
       const d = new Date(h.date);
@@ -3857,8 +3859,8 @@
     return `
       <div class="bh-card ${pClass}">
         <div class="bh-col">
-          <div class="bh-battle-title">${h.total_players}人對戰</div>
           <div class="bh-battle-date">${dateStr} ${timeStr}</div>
+          <div class="bh-battle-title">${h.total_players}人對戰</div>
         </div>
         <div class="bh-vdiv"></div>
         <div class="bh-col">
@@ -3871,7 +3873,7 @@
           <div class="bh-col-num">${h.score}</div>
         </div>
         <div class="bh-rank r${rk}">
-          <div class="bh-rank-num">${rk}</div>
+          <div class="bh-rank-icon">${RANK_ICON[rk]}</div>
           <div class="bh-rank-text">${RANK_LABEL[rk]}</div>
         </div>
       </div>`;
