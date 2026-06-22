@@ -598,38 +598,16 @@
     .bh-card.p4 .bh-col-num { color: #065f46; }
     .bh-vdiv { width: 1px; height: 38px; background: rgba(0,0,0,0.07); flex-shrink: 0; }
     .bh-rank {
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 12px; padding: 10px 12px; margin-left: 6px;
-      min-width: 52px; flex-shrink: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      align-self: stretch; margin-left: 8px; flex-shrink: 0; min-width: 44px; gap: 3px;
     }
-    .bh-rank-icon { font-size: 26px; line-height: 1; }
-    .bh-rank.r1 {
-      background: linear-gradient(160deg, #6b3a00 0%, #3d1d00 100%);
-      box-shadow: 0 3px 12px rgba(251,191,36,0.3); border: 1px solid rgba(251,191,36,0.45);
-    }
-    .bh-rank.r2 {
-      background: linear-gradient(160deg, #1e2d3d 0%, #0e1a28 100%);
-      box-shadow: 0 2px 8px rgba(180,210,240,0.2); border: 1px solid rgba(180,210,240,0.35);
-    }
-    .bh-rank.r3 {
-      background: linear-gradient(160deg, #4e1f00 0%, #2c1000 100%);
-      box-shadow: 0 2px 8px rgba(200,100,30,0.25); border: 1px solid rgba(200,100,30,0.4);
-    }
-    .bh-rank.r4 {
-      background: linear-gradient(160deg, #0e1c2c 0%, #080f1a 100%);
-      border: 1px solid rgba(80,120,160,0.3);
-    }
-    .bh-rank.r5 {
-      background: linear-gradient(160deg, #161616 0%, #0c0c0c 100%);
-      border: 1px solid rgba(100,110,120,0.25);
-    }
+    .bh-rank-icon { font-size: 28px; line-height: 1; }
+    .bh-rank-text { font-size: 10px; font-weight: 700; color: var(--subtext); letter-spacing: 0.02em; white-space: nowrap; }
     .bh-battle-date {
-      display: flex; flex-direction: column; align-items: center; gap: 1px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.05em; color: var(--muted); white-space: nowrap;
     }
-    .bh-date-d { font-size: 20px; font-weight: 900; color: #fff; line-height: 1; text-shadow: 0 1px 5px rgba(0,0,0,0.4); }
-    .bh-date-t { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.75); line-height: 1.2; text-shadow: 0 1px 3px rgba(0,0,0,0.35); }
     .bh-battle-title {
-      font-size: 13px; font-weight: 800; margin-top: 5px; white-space: nowrap;
+      font-size: 22px; font-weight: 900; margin-top: 4px; white-space: nowrap; line-height: 1;
     }
     .bh-card.p2 .bh-battle-title { color: #92400e; }
     .bh-card.p3 .bh-battle-title { color: #1e40af; }
@@ -3832,7 +3810,8 @@
   function _bhCardHtml(h) {
     const pClass = h.total_players <= 2 ? 'p2' : h.total_players === 3 ? 'p3' : 'p4';
     const rk = Math.min(h.rank, 5);
-    const RANK_ICON = ['', '🥇', '🥈', '🥉', '🎖️', '🎖️'];
+    const RANK_ICON  = ['', '🥇', '🥈', '🥉', '🎖️', '🎖️'];
+    const RANK_LABEL = ['', '第一名', '第二名', '第三名', '第四名', '第五名'];
     let dateStr = '', timeStr = '';
     if (h.date) {
       const d = new Date(h.date);
@@ -3846,10 +3825,7 @@
     return `
       <div class="bh-card ${pClass}">
         <div class="bh-col">
-          <div class="bh-battle-date">
-            <span class="bh-date-d">${dateStr}</span>
-            <span class="bh-date-t">${timeStr}</span>
-          </div>
+          <div class="bh-battle-date">${dateStr} ${timeStr}</div>
           <div class="bh-battle-title">${h.total_players}人對戰</div>
         </div>
         <div class="bh-vdiv"></div>
@@ -3864,6 +3840,7 @@
         </div>
         <div class="bh-rank r${rk}">
           <div class="bh-rank-icon">${RANK_ICON[rk]}</div>
+          <div class="bh-rank-text">${RANK_LABEL[rk]}</div>
         </div>
       </div>`;
   }
