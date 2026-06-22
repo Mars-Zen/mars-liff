@@ -639,6 +639,76 @@
       transition: opacity 0.12s;
     }
     .bh-view-btn:active { opacity: 0.8; }
+    /* ─── Battle Detail ─── */
+    .bd-wrap { padding-bottom: 24px; }
+    .bd-back {
+      font-size: 13px; font-weight: 700; color: var(--muted);
+      padding: 12px 16px 4px; cursor: pointer; display: block;
+      user-select: none; -webkit-user-select: none;
+    }
+    .bd-back:active { opacity: 0.65; }
+    .bd-meta {
+      padding: 4px 16px 14px;
+      border-bottom: 1px solid rgba(0,0,0,0.07); margin-bottom: 4px;
+    }
+    .bd-meta-date { font-size: 19px; font-weight: 900; color: var(--text); letter-spacing: 0.01em; }
+    .bd-meta-sub  { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .bd-section   { padding: 14px 16px 0; }
+    .bd-sec-label {
+      font-size: 10px; font-weight: 800; color: var(--muted);
+      letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;
+    }
+    .bd-rank-list {
+      background: rgba(0,0,0,0.035); border-radius: 14px;
+      overflow: hidden; margin-bottom: 4px;
+    }
+    .bd-rank-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 14px; border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .bd-rank-row:last-child { border-bottom: none; }
+    .bd-rank-row.is-self { background: rgba(251,191,36,0.12); }
+    .bd-r-medal { font-size: 20px; flex-shrink: 0; width: 26px; text-align: center; }
+    .bd-r-name  {
+      flex: 1; font-size: 14px; font-weight: 700; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .bd-r-score { font-size: 15px; font-weight: 900; white-space: nowrap; }
+    .bd-rank-row.r1 .bd-r-score { color: #b45309; }
+    .bd-rank-row.r2 .bd-r-score { color: #2563eb; }
+    .bd-rank-row.r3 .bd-r-score { color: #9a3412; }
+    .bd-rank-row.r4 .bd-r-score, .bd-rank-row.r5 .bd-r-score { color: #6b7280; }
+    .bd-rank-row.is-self .bd-r-name { color: #b45309; }
+    .bd-table-wrap {
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      border-radius: 14px; background: rgba(0,0,0,0.035); margin-bottom: 16px;
+    }
+    .bd-table { border-collapse: collapse; min-width: 100%; width: max-content; }
+    .bd-table th, .bd-table td {
+      padding: 9px 12px; text-align: center;
+      font-size: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); white-space: nowrap;
+    }
+    .bd-table thead th {
+      font-weight: 800; color: var(--muted); background: rgba(0,0,0,0.04); font-size: 11px;
+    }
+    .bd-table tbody tr:last-child td { border-bottom: none; }
+    .bd-table tbody tr.is-self { background: rgba(251,191,36,0.08); }
+    .bd-th-sticky, .bd-td-sticky {
+      position: sticky; left: 0; text-align: left;
+      min-width: 72px; max-width: 90px; font-weight: 700;
+      border-right: 1px solid rgba(0,0,0,0.07);
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .bd-th-sticky { background: rgba(242,242,242,0.97); color: var(--muted); }
+    .bd-td-sticky { background: rgba(255,255,255,0.97); font-size: 12px; }
+    .bd-table tbody tr.is-self .bd-td-sticky { background: rgba(255,248,228,0.97); color: #92400e; }
+    .bd-ans       { font-size: 15px; font-weight: 700; }
+    .bd-ans.correct { color: #16a34a; }
+    .bd-ans.wrong   { color: #dc2626; }
+    .bd-ans.skip    { color: #d1d5db; font-size: 12px; }
+    .bd-wrap.p2 .bd-meta-date { color: #92400e; }
+    .bd-wrap.p3 .bd-meta-date { color: #1e40af; }
+    .bd-wrap.p4 .bd-meta-date { color: #065f46; }
     .bh-gmember {
       display: flex; align-items: center; gap: 12px;
       padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -3774,6 +3844,7 @@
   let _bhMembers       = [];
   let _bhGroupData     = null;
   let _bhTargetHistory = [];
+  let _bhDisplayedCards = [];
 
   function openBattleHistory() {
     if (!uid || uid === 'demo_user') { showToast('示範模式無法使用此功能'); return; }
@@ -3946,7 +4017,8 @@
           '<div class="bh-empty"><div class="bh-empty-icon">⚔️</div><div class="bh-empty-title">尚無任何戰績</div><div class="bh-empty-sub">該成員尚未完成任何對戰</div></div>';
         return;
       }
-      const cards = _bhTargetHistory.slice(0, 15).map(_bhCardHtml).join('');
+      _bhDisplayedCards = _bhTargetHistory.slice(0, 15);
+      const cards = _bhDisplayedCards.map(_bhCardHtml).join('');
       document.getElementById('bhBody').innerHTML =
         `<div class="bh-sec-title">近期戰績 (僅顯示最近15場)</div>${cards}`;
     } catch {
@@ -3992,12 +4064,13 @@
         '<div class="bh-empty"><div class="bh-empty-icon">⚔️</div><div class="bh-empty-title">尚無任何戰績</div><div class="bh-empty-sub">完成第一場對戰後<br>戰績將會記錄於此</div></div>';
       return;
     }
-    const cards = _bhHistory.slice(0, 15).map(_bhCardHtml).join('');
+    _bhDisplayedCards = _bhHistory.slice(0, 15);
+    const cards = _bhDisplayedCards.map(_bhCardHtml).join('');
     document.getElementById('bhBody').innerHTML =
       `<div class="bh-sec-title">近期戰績 (僅顯示最近15場)</div>${cards}`;
   }
 
-  function _bhCardHtml(h) {
+  function _bhCardHtml(h, i) {
     const pClass = h.total_players <= 2 ? 'p2' : h.total_players === 3 ? 'p3' : 'p4';
     const rk = Math.min(h.rank, 5);
     const RANK_ICON  = ['', '🥇', '🥈', '🥉', '🎖️', '🎖️'];
@@ -4013,7 +4086,7 @@
       timeStr = `${hh}:${mi}`;
     }
     return `
-      <div class="bh-card ${pClass}">
+      <div class="bh-card ${pClass}" onclick="showBattleDetail(${i})" style="cursor:pointer">
         <div class="bh-card-body">
           <div class="bh-cell-label">${dateStr} ${timeStr}</div>
           <div class="bh-cell-label">題數</div>
@@ -4027,6 +4100,106 @@
           <div class="bh-rank-text">${RANK_LABEL[rk]}</div>
         </div>
       </div>`;
+  }
+
+  async function showBattleDetail(idx) {
+    const h = _bhDisplayedCards[idx];
+    if (!h || !h.battle_id) return;
+    const pClass = h.total_players <= 2 ? 'p2' : h.total_players === 3 ? 'p3' : 'p4';
+    const body = document.getElementById('bhBody');
+    body.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+    const nickMap = {};
+    (_bhMembers || []).forEach(m => { nickMap[m.uid] = m.nickname || m.uid; });
+    const getName = u => nickMap[u] || (u.slice(0, 6) + '…');
+
+    const buildHtml = (data) => {
+      const battle = data.battle;
+      const players = data.players;
+      const answers = data.answers || {};
+      const maxQ = battle.max_questions;
+
+      let dateStr = '—';
+      if (battle.finished_at) {
+        const d = new Date(battle.finished_at);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const dd = String(d.getDate()).padStart(2,'0');
+        const hh = String(d.getHours()).padStart(2,'0');
+        const mi = String(d.getMinutes()).padStart(2,'0');
+        dateStr = `${yyyy}/${mm}/${dd} ${hh}:${mi}`;
+      }
+
+      const RANK_ICONS = ['', '🥇', '🥈', '🥉', '🎖️', '🎖️'];
+      const rankHtml = players.map(p => {
+        const rk = Math.min(p.rank, 5);
+        const isSelf = p.uid === uid;
+        return `<div class="bd-rank-row r${rk}${isSelf ? ' is-self' : ''}">
+          <span class="bd-r-medal">${RANK_ICONS[rk]}</span>
+          <span class="bd-r-name">${x(getName(p.uid))}</span>
+          <span class="bd-r-score">${p.score} 分</span>
+        </div>`;
+      }).join('');
+
+      const qHeaders = Array.from({length: maxQ}, (_, qi) => `<th>Q${qi+1}</th>`).join('');
+      const tableRows = players.map(p => {
+        const isSelf = p.uid === uid;
+        const ansData = answers[p.uid] || {};
+        const cells = Array.from({length: maxQ}, (_, qi) => {
+          const ans = ansData[qi];
+          if (ans === undefined || ans === null) return '<td class="bd-ans skip">—</td>';
+          return ans.is_correct
+            ? '<td class="bd-ans correct">○</td>'
+            : '<td class="bd-ans wrong">✕</td>';
+        }).join('');
+        return `<tr${isSelf ? ' class="is-self"' : ''}><td class="bd-td-sticky">${x(getName(p.uid))}</td>${cells}</tr>`;
+      }).join('');
+
+      return `
+        <div class="bd-wrap ${pClass}">
+          <div class="bd-back" onclick="closeBattleDetail()">← 返回戰績</div>
+          <div class="bd-meta">
+            <div class="bd-meta-date">${dateStr}</div>
+            <div class="bd-meta-sub">${players.length}人對戰 · 共${maxQ}題</div>
+          </div>
+          <div class="bd-section">
+            <div class="bd-sec-label">排名</div>
+            <div class="bd-rank-list">${rankHtml}</div>
+          </div>
+          <div class="bd-section">
+            <div class="bd-sec-label">作答狀況</div>
+            <div class="bd-table-wrap">
+              <table class="bd-table">
+                <thead><tr><th class="bd-th-sticky">玩家</th>${qHeaders}</tr></thead>
+                <tbody>${tableRows}</tbody>
+              </table>
+            </div>
+          </div>
+        </div>`;
+    };
+
+    try {
+      const r = await fetch(`${API}/battle-detail`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, battle_id: h.battle_id })
+      });
+      const data = await r.json();
+      if (!data.success) throw new Error('failed');
+      body.innerHTML = buildHtml(data);
+    } catch {
+      body.innerHTML = `
+        <div class="bd-wrap ${pClass}">
+          <div class="bd-back" onclick="closeBattleDetail()">← 返回戰績</div>
+          <div class="bh-empty">無法載入詳細資訊 🌙</div>
+        </div>`;
+    }
+  }
+
+  function closeBattleDetail() {
+    const cards = _bhDisplayedCards.map(_bhCardHtml).join('');
+    document.getElementById('bhBody').innerHTML =
+      `<div class="bh-sec-title">近期戰績 (僅顯示最近15場)</div>${cards}`;
   }
 
   /* ── Battle Lobby ────────────────────────────────────────────── */
