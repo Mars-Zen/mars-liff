@@ -718,10 +718,25 @@
     }
     .bd-th-sticky { z-index: 3; background: #eaeaea; color: var(--muted); font-size: 11px; }
     .bd-td-sticky { z-index: 2; font-size: 12px; }
-    .bd-ans { font-size: 17px; font-weight: 800; line-height: 1; }
-    .bd-ans.correct { color: #16a34a; }
-    .bd-ans.wrong   { color: #dc2626; font-weight: 300; font-size: 18px; }
-    .bd-ans.skip    { color: #dc2626; }
+    .bd-ans {
+      display: inline-block; width: 15px; height: 15px;
+      position: relative; vertical-align: middle; flex-shrink: 0;
+    }
+    .bd-ans.correct {
+      border: 2px solid #16a34a; border-radius: 50%;
+    }
+    .bd-ans.wrong::before, .bd-ans.wrong::after {
+      content: ''; position: absolute;
+      width: 100%; height: 2px; background: #dc2626;
+      top: 50%; left: 0;
+    }
+    .bd-ans.wrong::before { transform: translateY(-50%) rotate(45deg); }
+    .bd-ans.wrong::after  { transform: translateY(-50%) rotate(-45deg); }
+    .bd-ans.skip::before {
+      content: ''; position: absolute;
+      width: 60%; height: 2px; background: #dc2626;
+      top: 50%; left: 20%; transform: translateY(-50%);
+    }
     .bd-scroll-hint {
       display: none; text-align: center;
       font-size: 11px; color: var(--muted); padding: 5px 0 14px; letter-spacing: 0.04em;
@@ -4182,10 +4197,10 @@
         const cells = Array.from({length: maxQ}, (_, qi) => {
           const ans = ansData[qi];
           if (ans === undefined || ans === null)
-            return '<td><span class="bd-ans skip">—</span></td>';
+            return '<td><span class="bd-ans skip"></span></td>';
           return ans.is_correct
-            ? '<td><span class="bd-ans correct">○</span></td>'
-            : '<td><span class="bd-ans wrong">✕</span></td>';
+            ? '<td><span class="bd-ans correct"></span></td>'
+            : '<td><span class="bd-ans wrong"></span></td>';
         }).join('');
         return `<tr class="r${rk}"><td class="bd-td-sticky" style="background:${stickyBg};color:${nameTxt}">${x(getName(p.uid))}</td>${cells}</tr>`;
       }).join('');
