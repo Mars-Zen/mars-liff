@@ -4159,7 +4159,7 @@
     const RANK_STICKY_BG  = { 1:'#fef3c7', 2:'#dbeafe', 3:'#ffedd5', 4:'#dcfce7', 5:'#f1f5f9' };
     const SUB_COLORS = { p2:'#D97706', p3:'#2563EB', p4:'#059669' };
 
-    const buildHtml = (data, subjectUid, themeColor, borderColor, subColor) => {
+    const buildHtml = (data, subjectUid, themeColor, borderColor, subColor, subjectTxtColor) => {
       const battle = data.battle;
       const players = data.players;
       const answers = data.answers || {};
@@ -4179,7 +4179,7 @@
       const rankHtml = players.map(p => {
         const rk = Math.min(p.rank, 5);
         const isSelf = p.uid === subjectUid;
-        const txtCol = isSelf ? themeColor : '#000';
+        const txtCol = isSelf ? subjectTxtColor : '#000';
         return `<div class="bd-rank-row r${rk}">
           <span class="bd-r-medal">${getMedal(rk)}</span>
           <span class="bd-r-name" style="color:${txtCol}">${x(getName(p.uid))}</span>
@@ -4192,7 +4192,7 @@
         const rk = Math.min(p.rank, 5);
         const isSelf = p.uid === subjectUid;
         const stickyBg = RANK_STICKY_BG[rk];
-        const nameTxt  = isSelf ? themeColor : '#000';
+        const nameTxt  = isSelf ? subjectTxtColor : '#000';
         const ansData = answers[p.uid] || {};
         const cells = Array.from({length: maxQ}, (_, qi) => {
           const ans = ansData[qi];
@@ -4246,8 +4246,9 @@
       const subjectUid   = isMemberView ? _bhDetailSubjectUid : uid;
       const themeColor   = isMemberView ? '#16a34a' : '#312e81';
       const borderColor  = isMemberView ? '#000' : '#312e81';
-      const subColor     = SUB_COLORS[pClass] || '#000';
-      body.innerHTML = buildHtml(data, subjectUid, themeColor, borderColor, subColor);
+      const subColor        = SUB_COLORS[pClass] || '#000';
+      const subjectTxtColor = isMemberView ? '#6F4E37' : themeColor;
+      body.innerHTML = buildHtml(data, subjectUid, themeColor, borderColor, subColor, subjectTxtColor);
       setTimeout(() => {
         const wrap = body.querySelector('.bd-table-wrap');
         const hint = body.querySelector('#bdScrollHint');
