@@ -4186,6 +4186,14 @@
       });
       const data = await r.json();
       if (!data.success) throw new Error('failed');
+      if (data.players.length === 0 && data._debug) {
+        body.innerHTML = `
+          <div class="bd-wrap ${pClass}">
+            <div class="bd-back" onclick="closeBattleDetail()">← 返回戰績</div>
+            <pre style="font-size:10px;padding:12px;overflow:auto;white-space:pre-wrap;word-break:break-all;color:#333;">${JSON.stringify(data._debug, null, 2)}</pre>
+          </div>`;
+        return;
+      }
       body.innerHTML = buildHtml(data);
     } catch {
       body.innerHTML = `
