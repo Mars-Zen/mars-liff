@@ -626,7 +626,10 @@
     .bh-panel.group-mode .bh-hd { background: transparent; }
     .bh-panel.group-mode .bh-body { background: transparent; }
     .bh-panel.group-mode .bh-profile { display: none; }
-    .bh-gm-name.self-name { color: #c8d3e8; }
+    .bh-panel.group-mode .bh-hd { padding-bottom: 4px; }
+    .bh-panel.group-mode .bh-hd-row { margin-bottom: 4px; }
+    .bh-panel.group-mode .bh-body { padding-top: 8px; }
+    .bh-gm-name.self-name { color: var(--primary); }
     .bh-gmember {
       display: flex; align-items: center; gap: 12px;
       padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -3899,31 +3902,9 @@
         '<div class="bh-empty"><div class="bh-empty-icon">⚔️</div><div class="bh-empty-title">尚無任何戰績</div><div class="bh-empty-sub">完成第一場對戰後<br>戰績將會記錄於此</div></div>';
       return;
     }
+    const cards = _bhHistory.slice(0, 15).map(_bhCardHtml).join('');
     document.getElementById('bhBody').innerHTML =
-      '<div class="bh-sec-title">近期戰績</div><div id="bhList"></div><div id="bhMoreWrap"></div>';
-    _appendBhCards();
-  }
-
-  function _appendBhCards() {
-    const listEl = document.getElementById('bhList');
-    const wrapEl = document.getElementById('bhMoreWrap');
-    const next = _bhHistory.slice(_bhShown, _bhShown + BH_PAGE);
-    listEl.insertAdjacentHTML('beforeend', next.map(_bhCardHtml).join(''));
-    _bhShown += next.length;
-    if (_bhShown < _bhHistory.length) {
-      wrapEl.innerHTML = `<div class="bh-load-more" onclick="_appendBhCards()">查看更多<svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor" style="margin-top:1px"><path d="M7 9.5L1.5 4h11L7 9.5z"/></svg></div>`;
-    } else if (_bhShown > BH_PAGE) {
-      wrapEl.innerHTML = `<div class="bh-load-more" onclick="_collapseBhCards()"><svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor" style="margin-top:1px;transform:rotate(180deg)"><path d="M7 9.5L1.5 4h11L7 9.5z"/></svg>收起</div>`;
-    } else {
-      wrapEl.innerHTML = '';
-    }
-  }
-
-  function _collapseBhCards() {
-    _bhShown = 0;
-    document.getElementById('bhList').innerHTML = '';
-    _appendBhCards();
-    document.getElementById('bhBody').scrollTop = 0;
+      `<div class="bh-sec-title">近期戰績 (僅顯示最近15場)</div>${cards}`;
   }
 
   function _bhCardHtml(h) {
