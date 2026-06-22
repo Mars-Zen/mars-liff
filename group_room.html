@@ -685,45 +685,39 @@
     }
     .bd-badge.r4 { background: #15803d; }
     .bd-badge.r5 { background: #475569; }
-    /* Answer layout — split: names fixed left, answers scroll right */
-    .bd-ans-layout { display: flex; border-radius: 14px; overflow: hidden; margin-bottom: 4px; }
-    .bd-ans-names { flex-shrink: 0; min-width: 72px; max-width: 88px; border-right: 1.5px solid rgba(0,0,0,0.10); }
-    .bd-ans-hdr-name {
-      height: 32px; display: flex; align-items: center;
-      padding: 0 10px; font-size: 11px; font-weight: 800; color: var(--muted);
-      background: rgba(0,0,0,0.05); border-bottom: 1px solid rgba(0,0,0,0.06);
-    }
-    .bd-ans-name-cell {
-      height: 36px; display: flex; align-items: center;
-      padding: 0 8px; font-size: 12px; font-weight: 700;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
-    .bd-ans-names .bd-ans-name-cell:last-child { border-bottom: none; }
-    .bd-ans-scroll {
-      flex: 1; min-width: 0;
+    /* Answer table */
+    .bd-table-wrap {
       overflow-x: auto; -webkit-overflow-scrolling: touch;
       scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.22) rgba(0,0,0,0.06);
     }
-    .bd-ans-scroll::-webkit-scrollbar { height: 4px; }
-    .bd-ans-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.06); }
-    .bd-ans-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.22); border-radius: 2px; }
-    .bd-ans-hdr-row { display: flex; background: rgba(0,0,0,0.05); border-bottom: 1px solid rgba(0,0,0,0.06); }
-    .bd-ans-hdr-cell {
-      flex-shrink: 0; width: 52px; height: 32px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 800; color: var(--muted);
-      border-right: 1px solid rgba(0,0,0,0.07);
+    .bd-table-wrap::-webkit-scrollbar { height: 4px; }
+    .bd-table-wrap::-webkit-scrollbar-track { background: rgba(0,0,0,0.06); }
+    .bd-table-wrap::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.22); border-radius: 2px; }
+    .bd-table { border-collapse: collapse; width: max-content; }
+    .bd-table th, .bd-table td {
+      padding: 9px 12px; text-align: center; font-size: 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      border-right: 1px solid rgba(0,0,0,0.07); white-space: nowrap;
     }
-    .bd-ans-hdr-cell:last-child { border-right: none; }
-    .bd-ans-data-row { display: flex; border-bottom: 1px solid rgba(0,0,0,0.06); }
-    .bd-ans-data-row:last-child { border-bottom: none; }
-    .bd-ans-cell {
-      flex-shrink: 0; width: 52px; height: 36px;
-      display: flex; align-items: center; justify-content: center;
-      border-right: 1px solid rgba(0,0,0,0.07);
+    .bd-table th:last-child, .bd-table td:last-child { border-right: none; }
+    .bd-table thead th { font-weight: 800; color: var(--muted); background: #eaeaea; font-size: 11px; }
+    .bd-table tbody tr:last-child td { border-bottom: none; }
+    .bd-table tbody tr.r1 { background: #fffbeb; }
+    .bd-table tbody tr.r2 { background: #eff6ff; }
+    .bd-table tbody tr.r3 { background: #fff7ed; }
+    .bd-table tbody tr.r4 { background: #f0fdf4; }
+    .bd-table tbody tr.r5 { background: #f8fafc; }
+    .bd-th-sticky, .bd-td-sticky {
+      position: -webkit-sticky;
+      position: sticky;
+      left: 0; text-align: left;
+      min-width: 72px; max-width: 90px; font-weight: 700;
+      border-right: 1px solid rgba(0,0,0,0.10) !important;
+      overflow: hidden; text-overflow: ellipsis;
+      will-change: transform;
     }
-    .bd-ans-cell:last-child { border-right: none; }
+    .bd-th-sticky { z-index: 3; background: #eaeaea; color: var(--muted); font-size: 11px; }
+    .bd-td-sticky { z-index: 2; font-size: 12px; }
     .bd-ans { font-size: 17px; font-weight: 800; line-height: 1; }
     .bd-ans.correct { color: #16a34a; }
     .bd-ans.wrong   { color: #dc2626; }
@@ -4170,43 +4164,33 @@
       const rankHtml = players.map(p => {
         const rk = Math.min(p.rank, 5);
         const isSelf = p.uid === subjectUid;
-        const rowBg   = isSelf ? themeColor : RANK_LIGHT_BG[rk];
-        const txtCol  = isSelf ? '#fff' : '#000';
-        return `<div class="bd-rank-row r${rk}" style="background:${rowBg}">
+        const txtCol = isSelf ? '#fff' : '#000';
+        return `<div class="bd-rank-row r${rk}">
           <span class="bd-r-medal">${getMedal(rk)}</span>
           <span class="bd-r-name" style="color:${txtCol}">${x(getName(p.uid))}</span>
           <span class="bd-r-score" style="color:${txtCol}">${p.score} 分</span>
         </div>`;
       }).join('');
 
-      const namesColHtml = '<div class="bd-ans-names"><div class="bd-ans-hdr-name">玩家</div>' +
-        players.map(p => {
-          const rk = Math.min(p.rank, 5);
-          const isSelf = p.uid === subjectUid;
-          const bg  = isSelf ? themeColor : RANK_STICKY_BG[rk];
-          const col = isSelf ? '#fff' : '#000';
-          return `<div class="bd-ans-name-cell" style="background:${bg};color:${col}">${x(getName(p.uid))}</div>`;
-        }).join('') + '</div>';
-
-      const qHdrCells = Array.from({length: maxQ}, (_, qi) => `<div class="bd-ans-hdr-cell">Q${qi+1}</div>`).join('');
-      const ansDataRows = players.map(p => {
+      const qHeaders = Array.from({length: maxQ}, (_, qi) => `<th>Q${qi+1}</th>`).join('');
+      const tableRows = players.map(p => {
         const rk = Math.min(p.rank, 5);
         const isSelf = p.uid === subjectUid;
-        const rowBg = isSelf ? themeColor : RANK_LIGHT_BG[rk];
+        const stickyBg = RANK_STICKY_BG[rk];
+        const nameTxt  = isSelf ? '#fff' : '#000';
         const ansData = answers[p.uid] || {};
         const cells = Array.from({length: maxQ}, (_, qi) => {
           const ans = ansData[qi];
           if (ans === undefined || ans === null)
-            return '<div class="bd-ans-cell"><span class="bd-ans skip">—</span></div>';
+            return '<td><span class="bd-ans skip">—</span></td>';
           return ans.is_correct
-            ? '<div class="bd-ans-cell"><span class="bd-ans correct">○</span></div>'
-            : '<div class="bd-ans-cell"><span class="bd-ans wrong">✖</span></div>';
+            ? '<td><span class="bd-ans correct">○</span></td>'
+            : '<td><span class="bd-ans wrong">✖</span></td>';
         }).join('');
-        return `<div class="bd-ans-data-row" style="background:${rowBg}">${cells}</div>`;
+        return `<tr class="r${rk}"><td class="bd-td-sticky" style="background:${stickyBg};color:${nameTxt}">${x(getName(p.uid))}</td>${cells}</tr>`;
       }).join('');
-      const scrollColHtml = `<div class="bd-ans-scroll"><div class="bd-ans-hdr-row">${qHdrCells}</div>${ansDataRows}</div>`;
 
-      const bdr = `border:1.5px solid ${borderColor};border-radius:14px;overflow:hidden`;
+      const bdr = `border:1px solid ${borderColor};border-radius:14px;overflow:hidden`;
       return `
         <div class="bd-wrap">
           <div class="bd-meta">
@@ -4222,8 +4206,13 @@
           </div>
           <div class="bd-section">
             <div class="bd-sec-label">作答狀況</div>
-            <div class="bd-ans-layout" style="border:1.5px solid ${borderColor}">
-              ${namesColHtml}${scrollColHtml}
+            <div style="border:1px solid ${borderColor};border-radius:14px;overflow:clip;margin-bottom:4px">
+              <div class="bd-table-wrap">
+                <table class="bd-table">
+                  <thead><tr><th class="bd-th-sticky">玩家</th>${qHeaders}</tr></thead>
+                  <tbody>${tableRows}</tbody>
+                </table>
+              </div>
             </div>
             <div class="bd-scroll-hint" id="bdScrollHint">← 左右滑動 →</div>
           </div>
@@ -4245,7 +4234,7 @@
       const subColor     = SUB_COLORS[pClass] || '#000';
       body.innerHTML = buildHtml(data, subjectUid, themeColor, borderColor, subColor);
       setTimeout(() => {
-        const wrap = body.querySelector('.bd-ans-scroll');
+        const wrap = body.querySelector('.bd-table-wrap');
         const hint = body.querySelector('#bdScrollHint');
         if (wrap && hint && wrap.scrollWidth > wrap.clientWidth) hint.classList.add('show');
       }, 60);
