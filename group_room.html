@@ -627,8 +627,9 @@
     .bh-panel.group-mode .bh-hd-row { margin-bottom: 4px; }
     .bh-panel.group-mode .bh-body { background: transparent; padding-top: 8px; }
     .bh-panel.group-mode .bh-profile { display: none; }
-    .bh-panel.member-mode .bh-hd { background: #166534; }
-    .bh-gm-name.self-name { color: #fda4af; }
+    .bh-panel.member-mode .bh-hd { background: #16a34a; }
+    .bh-gm-name.self-name { color: #fbbf24; }
+    .bh-gmember.is-self .bh-gm-avatar { border-color: #fbbf24; }
     .bh-view-btn {
       font-size: 11px; font-weight: 700; color: #fff;
       background: #16a34a; border: none;
@@ -3823,9 +3824,20 @@
       loadGroupBattleHistory();
     } else {
       panel.classList.remove('group-mode');
+      panel.classList.remove('member-mode');
       titleEl.textContent     = '我的戰績';
       toggleBtn.textContent   = '查看群組戰績';
-      renderBattleHistory();
+      const bhAv = document.getElementById('bhAvatar');
+      bhAv.innerHTML = myAvatar
+        ? `<img src="${x(myAvatar)}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='⚔️'">`
+        : '⚔️';
+      document.getElementById('bhNickname').textContent = myNickname || '—';
+      document.getElementById('bhTotal').textContent   = '—';
+      document.getElementById('bhWins').textContent    = '—';
+      document.getElementById('bhWinRate').textContent = '';
+      document.getElementById('bhWinRateItem').style.visibility = 'hidden';
+      document.getElementById('bhBody').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+      loadBattleHistory();
     }
   }
 
@@ -3871,7 +3883,7 @@
       const viewBtn = isSelf ? '' :
         `<button class="bh-view-btn" onclick="viewMemberBattleHistory('${x(m.uid)}','${x(m.nickname||'')}','${x(m.avatar||'')}')">查看</button>`;
       return `
-        <div class="bh-gmember">
+        <div class="bh-gmember${isSelf ? ' is-self' : ''}">
           <div class="bh-gm-avatar">
             ${m.avatar ? `<img src="${x(m.avatar)}" alt="" onerror="this.parentElement.innerHTML='🌟'">` : '🌟'}
           </div>
