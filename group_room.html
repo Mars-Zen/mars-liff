@@ -540,7 +540,7 @@
     }
     .bh-overlay.open .bh-panel { transform: translateY(0); }
     .bh-hd {
-      background: linear-gradient(160deg, #1e1b4b 0%, #3730a3 100%);
+      background: #312e81;
       padding: 0 20px 14px; flex-shrink: 0;
     }
     .bh-handle {
@@ -623,13 +623,20 @@
     }
     .bh-toggle-btn:active { opacity: 0.8; }
     .bh-panel.group-mode { background: linear-gradient(160deg, #1e1b4b 0%, #2d2878 100%); }
-    .bh-panel.group-mode .bh-hd { background: transparent; }
-    .bh-panel.group-mode .bh-body { background: transparent; }
-    .bh-panel.group-mode .bh-profile { display: none; }
-    .bh-panel.group-mode .bh-hd { padding-bottom: 4px; }
+    .bh-panel.group-mode .bh-hd { background: transparent; padding-bottom: 4px; }
     .bh-panel.group-mode .bh-hd-row { margin-bottom: 4px; }
-    .bh-panel.group-mode .bh-body { padding-top: 8px; }
-    .bh-gm-name.self-name { color: var(--primary); }
+    .bh-panel.group-mode .bh-body { background: transparent; padding-top: 8px; }
+    .bh-panel.group-mode .bh-profile { display: none; }
+    .bh-panel.member-mode .bh-hd { background: #166534; }
+    .bh-gm-name.self-name { color: #fda4af; }
+    .bh-view-btn {
+      font-size: 11px; font-weight: 700; color: #fff;
+      background: #16a34a; border: none;
+      border-radius: 8px; padding: 5px 10px; cursor: pointer;
+      white-space: nowrap; flex-shrink: 0; align-self: center;
+      transition: opacity 0.12s;
+    }
+    .bh-view-btn:active { opacity: 0.8; }
     .bh-gmember {
       display: flex; align-items: center; gap: 12px;
       padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -3761,15 +3768,17 @@
   const BH_PAGE = 5;
   let _bhHistory   = [];
   let _bhShown     = 0;
-  let _bhMode      = 'personal';
-  let _bhMembers   = [];
-  let _bhGroupData = null;
+  let _bhMode          = 'personal';
+  let _bhMembers       = [];
+  let _bhGroupData     = null;
+  let _bhTargetHistory = [];
 
   function openBattleHistory() {
     if (!uid || uid === 'demo_user') { showToast('示範模式無法使用此功能'); return; }
     _bhMode = 'personal';
     _bhGroupData = null;
     document.getElementById('bhPanel').classList.remove('group-mode');
+    document.getElementById('bhPanel').classList.remove('member-mode');
     document.getElementById('bhTitle').textContent     = '我的戰績';
     document.getElementById('bhToggleBtn').textContent = '查看群組戰績';
     document.getElementById('bhOverlay').classList.add('open');
@@ -3787,15 +3796,26 @@
   }
 
   function closeBattleHistory() {
-    document.getElementById('bhPanel').classList.remove('group-mode');
+    const panel = document.getElementById('bhPanel');
+    panel.classList.remove('group-mode');
+    panel.classList.remove('member-mode');
     document.getElementById('bhOverlay').classList.remove('open');
   }
 
   function switchBhMode() {
-    _bhMode = _bhMode === 'personal' ? 'group' : 'personal';
     const panel     = document.getElementById('bhPanel');
     const titleEl   = document.getElementById('bhTitle');
     const toggleBtn = document.getElementById('bhToggleBtn');
+    if (_bhMode === 'member') {
+      _bhMode = 'group';
+      panel.classList.remove('member-mode');
+      panel.classList.add('group-mode');
+      titleEl.textContent     = '群組戰績';
+      toggleBtn.textContent   = '查看我的戰績';
+      renderGroupBattleHistory();
+      return;
+    }
+    _bhMode = _bhMode === 'personal' ? 'group' : 'personal';
     if (_bhMode === 'group') {
       panel.classList.add('group-mode');
       titleEl.textContent     = '群組戰績';
@@ -3848,6 +3868,8 @@
       const rateHtml = s.totalBattles > 0
         ? `<div class="bh-gm-stat"><span class="bh-gm-val">${s.winRate}%</span><span class="bh-gm-lbl"> 勝率</span></div>`
         : '';
+      const viewBtn = isSelf ? '' :
+        `<button class="bh-view-btn" onclick="viewMemberBattleHistory('${x(m.uid)}','${x(m.nickname||'')}','${x(m.avatar||'')}')">查看</button>`;
       return `
         <div class="bh-gmember">
           <div class="bh-gm-avatar">
@@ -3861,8 +3883,63 @@
               ${rateHtml}
             </div>
           </div>
+          ${viewBtn}
         </div>`;
     }).join('');
+  }
+
+  async function viewMemberBattleHistory(targetUid, targetNick, targetAvatar) {
+    _bhMode = 'member';
+    const panel     = document.getElementById('bhPanel');
+    const titleEl   = document.getElementById('bhTitle');
+    const toggleBtn = document.getElementById('bhToggleBtn');
+    panel.classList.remove('group-mode');
+    panel.classList.add('member-mode');
+    titleEl.textContent     = `${targetNick}的戰績`;
+    toggleBtn.textContent   = '返回群組戰績';
+    const bhAv = document.getElementById('bhAvatar');
+    bhAv.innerHTML = targetAvatar
+      ? `<img src="${x(targetAvatar)}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='👤'">`
+      : '👤';
+    document.getElementById('bhNickname').textContent = targetNick || '—';
+    document.getElementById('bhTotal').textContent   = '—';
+    document.getElementById('bhWins').textContent    = '—';
+    document.getElementById('bhWinRate').textContent = '';
+    document.getElementById('bhWinRateItem').style.visibility = 'hidden';
+    document.getElementById('bhBody').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    try {
+      const r = await fetch(`${API}/battle-history`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: targetUid })
+      });
+      const data = await r.json();
+      if (!data.success) throw new Error('failed');
+      _bhTargetHistory = data.history || [];
+      const s = data.stats;
+      document.getElementById('bhTotal').textContent = s.totalBattles;
+      document.getElementById('bhWins').textContent  = s.wins;
+      const rateEl   = document.getElementById('bhWinRate');
+      const rateItem = document.getElementById('bhWinRateItem');
+      if (s.totalBattles > 0) {
+        rateEl.textContent = s.winRate + '%';
+        rateItem.style.visibility = '';
+      } else {
+        rateEl.textContent = '';
+        rateItem.style.visibility = 'hidden';
+      }
+      if (_bhTargetHistory.length === 0) {
+        document.getElementById('bhBody').innerHTML =
+          '<div class="bh-empty"><div class="bh-empty-icon">⚔️</div><div class="bh-empty-title">尚無任何戰績</div><div class="bh-empty-sub">該成員尚未完成任何對戰</div></div>';
+        return;
+      }
+      const cards = _bhTargetHistory.slice(0, 15).map(_bhCardHtml).join('');
+      document.getElementById('bhBody').innerHTML =
+        `<div class="bh-sec-title">近期戰績 (僅顯示最近15場)</div>${cards}`;
+    } catch {
+      document.getElementById('bhBody').innerHTML =
+        '<div class="bh-empty">無法載入戰績，請稍後再試 🌙</div>';
+    }
   }
 
   async function loadBattleHistory() {
