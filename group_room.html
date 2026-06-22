@@ -672,9 +672,7 @@
     .bd-rank-row:last-child { border-bottom: none; }
     .bd-r-medal { font-size: 20px; flex-shrink: 0; width: 28px; text-align: center; line-height: 1; }
     .bd-r-name  { flex: 1; font-size: 14px; font-weight: 700; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .bd-rank-row.is-self .bd-r-name { color: #312e81; }
     .bd-r-score { font-size: 15px; font-weight: 900; white-space: nowrap; color: #000; }
-    .bd-rank-row.is-self .bd-r-score { color: #312e81; }
     .bd-rank-row.r1 { background: #fffbeb; }
     .bd-rank-row.r2 { background: #eff6ff; }
     .bd-rank-row.r3 { background: #fff7ed; }
@@ -687,43 +685,45 @@
     }
     .bd-badge.r4 { background: #15803d; }
     .bd-badge.r5 { background: #475569; }
-    /* Answer table */
-    .bd-table-wrap {
+    /* Answer layout — split: names fixed left, answers scroll right */
+    .bd-ans-layout { display: flex; border-radius: 14px; overflow: hidden; margin-bottom: 4px; }
+    .bd-ans-names { flex-shrink: 0; min-width: 72px; max-width: 88px; border-right: 1.5px solid rgba(0,0,0,0.10); }
+    .bd-ans-hdr-name {
+      height: 32px; display: flex; align-items: center;
+      padding: 0 10px; font-size: 11px; font-weight: 800; color: var(--muted);
+      background: rgba(0,0,0,0.05); border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .bd-ans-name-cell {
+      height: 36px; display: flex; align-items: center;
+      padding: 0 8px; font-size: 12px; font-weight: 700;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .bd-ans-names .bd-ans-name-cell:last-child { border-bottom: none; }
+    .bd-ans-scroll {
+      flex: 1; min-width: 0;
       overflow-x: auto; -webkit-overflow-scrolling: touch;
-      border-radius: 14px; margin-bottom: 4px;
       scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.22) rgba(0,0,0,0.06);
     }
-    .bd-table-wrap::-webkit-scrollbar { height: 4px; }
-    .bd-table-wrap::-webkit-scrollbar-track { background: rgba(0,0,0,0.06); }
-    .bd-table-wrap::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.22); border-radius: 2px; }
-    .bd-table { border-collapse: collapse; min-width: 100%; width: max-content; }
-    .bd-table th, .bd-table td {
-      padding: 9px 12px; text-align: center; font-size: 12px;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-      border-right: 1px solid rgba(0,0,0,0.07); white-space: nowrap;
+    .bd-ans-scroll::-webkit-scrollbar { height: 4px; }
+    .bd-ans-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.06); }
+    .bd-ans-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.22); border-radius: 2px; }
+    .bd-ans-hdr-row { display: flex; background: rgba(0,0,0,0.05); border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .bd-ans-hdr-cell {
+      flex-shrink: 0; width: 52px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; color: var(--muted);
+      border-right: 1px solid rgba(0,0,0,0.07);
     }
-    .bd-table th:last-child, .bd-table td:last-child { border-right: none; }
-    .bd-table thead th { font-weight: 800; color: var(--muted); background: rgba(0,0,0,0.05); font-size: 11px; }
-    .bd-table tbody tr:last-child td { border-bottom: none; }
-    .bd-table tbody tr.r1 { background: #fffbeb; }
-    .bd-table tbody tr.r2 { background: #eff6ff; }
-    .bd-table tbody tr.r3 { background: #fff7ed; }
-    .bd-table tbody tr.r4 { background: #f0fdf4; }
-    .bd-table tbody tr.r5 { background: #f8fafc; }
-    .bd-th-sticky, .bd-td-sticky {
-      position: sticky; left: 0; text-align: left;
-      min-width: 72px; max-width: 90px; font-weight: 700;
-      border-right: 1px solid rgba(0,0,0,0.10) !important;
-      overflow: hidden; text-overflow: ellipsis;
+    .bd-ans-hdr-cell:last-child { border-right: none; }
+    .bd-ans-data-row { display: flex; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .bd-ans-data-row:last-child { border-bottom: none; }
+    .bd-ans-cell {
+      flex-shrink: 0; width: 52px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border-right: 1px solid rgba(0,0,0,0.07);
     }
-    .bd-th-sticky { z-index: 3; background: rgba(238,238,238,0.98); color: var(--muted); font-size: 11px; }
-    .bd-td-sticky { z-index: 2; font-size: 12px; }
-    .bd-table tr.r1 .bd-td-sticky { background: #fef3c7; color: #000; }
-    .bd-table tr.r2 .bd-td-sticky { background: #dbeafe; color: #000; }
-    .bd-table tr.r3 .bd-td-sticky { background: #ffedd5; color: #000; }
-    .bd-table tr.r4 .bd-td-sticky { background: #dcfce7; color: #000; }
-    .bd-table tr.r5 .bd-td-sticky { background: #f1f5f9; color: #000; }
-    .bd-table tr.is-self .bd-td-sticky { color: #312e81; }
+    .bd-ans-cell:last-child { border-right: none; }
     .bd-ans { font-size: 17px; font-weight: 800; line-height: 1; }
     .bd-ans.correct { color: #16a34a; }
     .bd-ans.wrong   { color: #dc2626; }
@@ -3869,6 +3869,7 @@
   let _bhGroupData     = null;
   let _bhTargetHistory = [];
   let _bhDisplayedCards = [];
+  let _bhDetailSubjectUid = '';
 
   function openBattleHistory() {
     if (!uid || uid === 'demo_user') { showToast('示範模式無法使用此功能'); return; }
@@ -3998,6 +3999,7 @@
 
   async function viewMemberBattleHistory(targetUid, targetNick, targetAvatar) {
     _bhMode = 'member';
+    _bhDetailSubjectUid = targetUid;
     const panel     = document.getElementById('bhPanel');
     const titleEl   = document.getElementById('bhTitle');
     const toggleBtn = document.getElementById('bhToggleBtn');
@@ -4144,7 +4146,11 @@
       return `<span class="bd-badge r${rk}">${rk}</span>`;
     };
 
-    const buildHtml = (data) => {
+    const RANK_LIGHT_BG   = { 1:'#fffbeb', 2:'#eff6ff', 3:'#fff7ed', 4:'#f0fdf4', 5:'#f8fafc' };
+    const RANK_STICKY_BG  = { 1:'#fef3c7', 2:'#dbeafe', 3:'#ffedd5', 4:'#dcfce7', 5:'#f1f5f9' };
+    const SUB_COLORS = { p2:'#D97706', p3:'#2563EB', p4:'#059669' };
+
+    const buildHtml = (data, subjectUid, themeColor, borderColor, subColor) => {
       const battle = data.battle;
       const players = data.players;
       const answers = data.answers || {};
@@ -4163,50 +4169,61 @@
 
       const rankHtml = players.map(p => {
         const rk = Math.min(p.rank, 5);
-        const isSelf = p.uid === uid;
-        return `<div class="bd-rank-row r${rk}${isSelf ? ' is-self' : ''}">
+        const isSelf = p.uid === subjectUid;
+        const rowBg   = isSelf ? themeColor : RANK_LIGHT_BG[rk];
+        const txtCol  = isSelf ? '#fff' : '#000';
+        return `<div class="bd-rank-row r${rk}" style="background:${rowBg}">
           <span class="bd-r-medal">${getMedal(rk)}</span>
-          <span class="bd-r-name">${x(getName(p.uid))}</span>
-          <span class="bd-r-score">${p.score} 分</span>
+          <span class="bd-r-name" style="color:${txtCol}">${x(getName(p.uid))}</span>
+          <span class="bd-r-score" style="color:${txtCol}">${p.score} 分</span>
         </div>`;
       }).join('');
 
-      const qHeaders = Array.from({length: maxQ}, (_, qi) => `<th>Q${qi+1}</th>`).join('');
-      const tableRows = players.map(p => {
+      const namesColHtml = '<div class="bd-ans-names"><div class="bd-ans-hdr-name">玩家</div>' +
+        players.map(p => {
+          const rk = Math.min(p.rank, 5);
+          const isSelf = p.uid === subjectUid;
+          const bg  = isSelf ? themeColor : RANK_STICKY_BG[rk];
+          const col = isSelf ? '#fff' : '#000';
+          return `<div class="bd-ans-name-cell" style="background:${bg};color:${col}">${x(getName(p.uid))}</div>`;
+        }).join('') + '</div>';
+
+      const qHdrCells = Array.from({length: maxQ}, (_, qi) => `<div class="bd-ans-hdr-cell">Q${qi+1}</div>`).join('');
+      const ansDataRows = players.map(p => {
         const rk = Math.min(p.rank, 5);
-        const isSelf = p.uid === uid;
+        const isSelf = p.uid === subjectUid;
+        const rowBg = isSelf ? themeColor : RANK_LIGHT_BG[rk];
         const ansData = answers[p.uid] || {};
         const cells = Array.from({length: maxQ}, (_, qi) => {
           const ans = ansData[qi];
           if (ans === undefined || ans === null)
-            return '<td><span class="bd-ans skip">—</span></td>';
+            return '<div class="bd-ans-cell"><span class="bd-ans skip">—</span></div>';
           return ans.is_correct
-            ? '<td><span class="bd-ans correct">○</span></td>'
-            : '<td><span class="bd-ans wrong">✕</span></td>';
+            ? '<div class="bd-ans-cell"><span class="bd-ans correct">○</span></div>'
+            : '<div class="bd-ans-cell"><span class="bd-ans wrong">✖</span></div>';
         }).join('');
-        return `<tr class="r${rk}${isSelf ? ' is-self' : ''}"><td class="bd-td-sticky">${x(getName(p.uid))}</td>${cells}</tr>`;
+        return `<div class="bd-ans-data-row" style="background:${rowBg}">${cells}</div>`;
       }).join('');
+      const scrollColHtml = `<div class="bd-ans-scroll"><div class="bd-ans-hdr-row">${qHdrCells}</div>${ansDataRows}</div>`;
 
+      const bdr = `border:1.5px solid ${borderColor};border-radius:14px;overflow:hidden`;
       return `
         <div class="bd-wrap">
           <div class="bd-meta">
-            <button class="bd-back-btn" onclick="closeBattleDetail()">返回</button>
+            <button class="bd-back-btn" style="background:${themeColor}" onclick="closeBattleDetail()">返回</button>
             <div class="bd-meta-right">
               <div class="bd-meta-date">${dateStr}</div>
-              <div class="bd-meta-sub">${players.length}人對戰 · 共${maxQ}題</div>
+              <div class="bd-meta-sub" style="color:${subColor}">${players.length}人對戰 · 共${maxQ}題</div>
             </div>
           </div>
           <div class="bd-section">
             <div class="bd-sec-label">排名</div>
-            <div class="bd-rank-list">${rankHtml}</div>
+            <div class="bd-rank-list" style="${bdr}">${rankHtml}</div>
           </div>
           <div class="bd-section">
             <div class="bd-sec-label">作答狀況</div>
-            <div class="bd-table-wrap">
-              <table class="bd-table">
-                <thead><tr><th class="bd-th-sticky">玩家</th>${qHeaders}</tr></thead>
-                <tbody>${tableRows}</tbody>
-              </table>
+            <div class="bd-ans-layout" style="border:1.5px solid ${borderColor}">
+              ${namesColHtml}${scrollColHtml}
             </div>
             <div class="bd-scroll-hint" id="bdScrollHint">← 左右滑動 →</div>
           </div>
@@ -4221,9 +4238,14 @@
       });
       const data = await r.json();
       if (!data.success) throw new Error('failed');
-      body.innerHTML = buildHtml(data);
+      const isMemberView = (_bhMode === 'member');
+      const subjectUid   = isMemberView ? _bhDetailSubjectUid : uid;
+      const themeColor   = isMemberView ? '#16a34a' : '#312e81';
+      const borderColor  = isMemberView ? '#000' : '#312e81';
+      const subColor     = SUB_COLORS[pClass] || '#000';
+      body.innerHTML = buildHtml(data, subjectUid, themeColor, borderColor, subColor);
       setTimeout(() => {
-        const wrap = body.querySelector('.bd-table-wrap');
+        const wrap = body.querySelector('.bd-ans-scroll');
         const hint = body.querySelector('#bdScrollHint');
         if (wrap && hint && wrap.scrollWidth > wrap.clientWidth) hint.classList.add('show');
       }, 60);
